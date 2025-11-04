@@ -1,0 +1,178 @@
+
+body {
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
+
+  }
+
+.main-sidebar{
+    height: 100%;
+    width: 250px; 
+    background-color: #009BA9;
+}
+
+
+.image img{
+    padding: 2px; 
+    display: inline-block;
+    width: 100%; 
+    height: 100%; 
+    margin-left: -3px;
+} 
+
+.info a{
+    font-size: 10px;
+}
+
+.nav-item p{
+    color:white;
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
+}
+
+.nav-item p:hover{
+    color:rgba(228, 225, 225, 0.709);
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
+}
+
+i.nav-icon{
+    color:hsl(120, 3%, 6%);
+}
+
+.modal-footer{
+    display: flex;
+    justify-content:center;
+   
+}
+
+.modal-footer .btn {
+    width: 30%;
+}
+
+.select2-container .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectOperacion .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectVehiculo .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectCond .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectAD .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectDO .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectVista .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectRol .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectInspector .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectOperador .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+}
+#selectVehi .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+    margin-bottom: 15px;
+
+}
+
+#selectObra .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+    margin-bottom: 15px;
+
+}
+
+#selectResponsable .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+    margin-bottom: 15px;
+
+}
+
+#selectMtto .select2-container--default .select2-selection--single {
+    height: 40px; /* Ajusta la altura */
+    margin-bottom: 15px;
+
+}
+
+/*Select de liquidaciones*/
+
+#filtroTipoVehiculo + .select2 .select2-selection--single {
+    height: 40px !important; /* altura del contenedor */
+    line-height: 40px !important; /* centra texto */
+}
+
+#filtroTipoVehiculo + .select2 .select2-selection__rendered {
+    line-height: 30px !important; /* centra texto renderizado */
+}
+
+#filtroTipoVehiculo + .select2 .select2-selection__arrow {
+    height: 30px !important; /* altura flecha */
+}
+
+#filtroObra + .select2 .select2-selection--single {
+    height: 40px !important;
+    line-height: 40px !important;
+}
+
+#filtroObra + .select2 .select2-selection__rendered {
+    line-height: 30px !important;
+}
+
+#filtroObra + .select2 .select2-selection__arrow {
+    height: 30px !important;
+}
+
+#filtroActividad + .select2 .select2-selection--single {
+    height: 40px !important;
+    line-height: 40px !important;
+}
+
+#filtroActividad + .select2 .select2-selection__rendered {
+    line-height: 30px !important;
+}
+
+#filtroActividad + .select2 .select2-selection__arrow {
+    height: 30px !important;
+}
+
+
+/* Cambiar el color del icono para los submenús específicos (por ejemplo, Consultas) */
+.nav-item .nav-treeview .nav-link .nav-icon {
+    color: white; /* Color blanco */
+}
+
+/* Asegurarte de que los iconos de la "Consulta" se mantengan blancos al pasar el ratón (hover) */
+.nav-item .nav-treeview .nav-link:hover .nav-icon {
+    color: white; /* Asegura que el icono se mantenga blanco incluso al pasar el mouse */
+}
+.btn-orange {
+    background-color: rgb(232, 119, 6) !important;
+    border-color: rgb(232, 119, 6) !important;
+    color: white !important; /* Ajusta el texto a un color que contraste */
+}
+
+/* Aplica sólo a tu tabla, evita afectar a otras */
+#data_liquidacion td.control::before {
+  /* Ejemplo: sitúalo a 50% del alto y compénsalo con translateY */
+  top: 80%;
+  transform: translateY(-10%);
+  
+  /* Si prefieres un margin-top fijo en vez de centrarlo: */
+  /* top: auto; */
+  /* margin-top: 8px !important; */
+}
+
+/* Asegúrate de que la celda tenga posición relativa */
+#data_liquidacion td.control {
+  position: relative;
+}
+
+
+

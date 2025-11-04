@@ -1,0 +1,36 @@
+<div id="modaloper" class="modal fade bd-example-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+        <div class="modal-header bg-info text-center">
+          <h3 class="modal-title w-100" id="mdltitulo"></h3>
+          <button type="button" class="close" data-dismiss="modal"><i class="fas fa-times" style="color: red;" data-toggle="tooltip" title="Cerrar"></i></button>
+        </div>
+            <form method="post" id="oper_form">
+                <div class="modal-body">
+                    <input type="hidden" id="oper_id" name="oper_id">
+                    <div class="form-group">
+                      <label for="user_nombre">Nombre de la Operacion:<sup>*</sup></label>
+                      <input type="text" class="form-control mt-2" name="oper_nombre" id="oper_nombre" placeholder="Digite la operación" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="oper_estado" id="lbestado"></label>
+                        <div id="oper_estado">    
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" name="action" id="#" value="add" class="btn btn-rounded btn-primary"> <i class="fas fa-save"></i>&nbsp;  Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<?php
+/* DESAROOLLADO POR:
+ESTUDIANTE: JACKSON DANIEL BORJA RUEDA
+UNIDADES TECNOLOGICAS DE SANTANDER
+BUCARAMANGA-SANTANDER
+2023 */
+?>
+

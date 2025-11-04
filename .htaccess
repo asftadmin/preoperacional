@@ -1,0 +1,18 @@
+# Activar el módulo de expiración
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Configuración por defecto
+    ExpiresDefault "access plus 1 month"
+
+    # Específico para tipos de archivo
+    ExpiresByType text/css "access plus 1 day"
+    ExpiresByType application/javascript "access plus 1 day"
+</IfModule>
+<IfModule mod_headers.c>
+    Header set Cache-Control "max-age=604800, public"
+</IfModule>
+# Configuración adicional para otros tipos de archivos (opcional)
+# ExpiresByType image/jpeg "access plus 1 month"
+# ExpiresByType image/png "access plus 1 month"
+# ExpiresByType image/gif "access plus 1 month"
