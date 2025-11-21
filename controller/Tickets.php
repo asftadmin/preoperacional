@@ -36,6 +36,8 @@ switch ($_REQUEST["op"]) {
         echo json_encode($results);
 
         break;
+
+
     case 'detalleTicket':
         //header('Content-Type: application/json'); // Añadir cabecera JSON
 
@@ -87,20 +89,25 @@ switch ($_REQUEST["op"]) {
         break;
 
     case 'listarTicketsRevision':
+
         $coordinador = $_SESSION["user_rol_usuario"];
         $datos = $ticket->get_tickets_revision($coordinador);
         $data = array();
         //$tickets = [];
         foreach ($datos as $solicitud) {
             $sub_array = array();
-            $sub_array[] = $solicitud["repo_numb"];
+            $sub_array[] = $solicitud["num_otm"];
+            $sub_array[] = $solicitud["num_soli"];
             $sub_array[] = $solicitud["vehi_placa"];
             $sub_array[] = date('d-m-Y / H:i', strtotime($solicitud["fech_creac_soli"]));
             $sub_array[] = $solicitud["tipo_mantenimiento"];
 
             $sub_array[] = '<div class="button-container text-center" >
-                    <button type="button" onClick="" id="" class="btn btn-secondary btn-icon " >
-                        <div><i class="fas fa-envelope"></i></div>
+                    <button type="button" onClick="" id="" class="btn btn-dark btn-icon " >
+                        <div><i class="fas fa-search-plus"></i></div>
+                    </button>
+                    <button type="button" onClick="verOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-danger btn-icon " >
+                        <div><i class="fas fa-file-pdf"></i></i></div>
                     </button>
                 </div>';
 
@@ -114,6 +121,7 @@ switch ($_REQUEST["op"]) {
             "aaData" => $data
         );
         echo json_encode($results);
+
         break;
 }
 

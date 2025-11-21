@@ -3,8 +3,8 @@
 require_once("../config/conexion.php");
 require_once("../models/ReportesDiarios.php");
 
-require_once("../models/Whatsapp.php");
-$whatsapp = new Whatsapp();
+//require_once("../models/Whatsapp.php");
+//$whatsapp = new Whatsapp();
 
 $reportes_diarios = new ReportesDiarios();
 
@@ -28,11 +28,32 @@ switch ($_POST["opcion"]) {
             echo json_encode(array("status" => "errores", "message" => "El Reporte ya se encuentra cerrado"));
         } else {
             if (empty($repdia_id)) {
-                $reportes_diarios->guardar_preguntas($_POST['repdia_cond'], $_POST['repdia_vehi'], $_POST['repdia_actv'], $_POST['repdia_volu'], 
-                $repdia_recib, $_POST['repdia_gaso'], $_POST['repdia_acpm'], $_POST['repdia_acet_moto'], $_POST['repdia_acet_hidr'], 
-                $_POST['repdia_acet_tram'], $_POST['repdia_acet_gras'], $_POST['repdia_kilo'], $_POST['repdia_estado'], $repdia_placa, 
-                $_POST['repdia_observa'], $_POST['repdia_obras'], $_POST['repdia_kilo_final'], $_POST['repdia_puntas'],$repdia_mtprima,
-                $_POST['repdia_residente'],$_POST['repdia_inspec'],$repdia_ca,$repdia_km_hm,$repdia_num_viajes);
+                $reportes_diarios->guardar_preguntas(
+                    $_POST['repdia_cond'],
+                    $_POST['repdia_vehi'],
+                    $_POST['repdia_actv'],
+                    $_POST['repdia_volu'],
+                    $repdia_recib,
+                    $_POST['repdia_gaso'],
+                    $_POST['repdia_acpm'],
+                    $_POST['repdia_acet_moto'],
+                    $_POST['repdia_acet_hidr'],
+                    $_POST['repdia_acet_tram'],
+                    $_POST['repdia_acet_gras'],
+                    $_POST['repdia_kilo'],
+                    $_POST['repdia_estado'],
+                    $repdia_placa,
+                    $_POST['repdia_observa'],
+                    $_POST['repdia_obras'],
+                    $_POST['repdia_kilo_final'],
+                    $_POST['repdia_puntas'],
+                    $repdia_mtprima,
+                    $_POST['repdia_residente'],
+                    $_POST['repdia_inspec'],
+                    $repdia_ca,
+                    $repdia_km_hm,
+                    $repdia_num_viajes
+                );
             }
             echo json_encode(array("status" => "success", "message" => "Se envio correctamente"));
         }
@@ -47,7 +68,7 @@ switch ($_POST["opcion"]) {
             // GENERAR EL HTML DE LAS PREGUNTAS 
             $html = '';
 
-            if ($_POST["tipo_id"] == 2 || $_POST["tipo_id"] == 5 || $_POST["tipo_id"] == 6 || $_POST["tipo_id"] == 7 || $_POST["tipo_id"] == 8 || $_POST["tipo_id"] == 9 || $_POST["tipo_id"] == 11 || $_POST["tipo_id"] == 12 || $_POST["tipo_id"] == 14 || $_POST["tipo_id"] == 15 || $_POST["tipo_id"] == 16 || $_POST["tipo_id"] == 17|| $_POST["tipo_id"] == 20) {
+            if ($_POST["tipo_id"] == 2 || $_POST["tipo_id"] == 5 || $_POST["tipo_id"] == 6 || $_POST["tipo_id"] == 7 || $_POST["tipo_id"] == 8 || $_POST["tipo_id"] == 9 || $_POST["tipo_id"] == 11 || $_POST["tipo_id"] == 12 || $_POST["tipo_id"] == 14 || $_POST["tipo_id"] == 15 || $_POST["tipo_id"] == 16 || $_POST["tipo_id"] == 17 || $_POST["tipo_id"] == 20) {
 
                 $html .= '<div class="row mt-3">
                                 <div class="col-md-4">
@@ -95,7 +116,7 @@ switch ($_POST["opcion"]) {
             $html .= "</select>
                     </div>";
 
-            if ( $_POST["tipo_id"] == 2 || $_POST["tipo_id"] == 5 || $_POST["tipo_id"] == 6 || $_POST["tipo_id"] == 7 || $_POST["tipo_id"] == 8 || $_POST["tipo_id"] == 9 || $_POST["tipo_id"] == 12 || $_POST["tipo_id"] == 14 || $_POST["tipo_id"] == 15 || $_POST["tipo_id"] == 19|| $_POST["tipo_id"] == 17|| $_POST["tipo_id"] == 16|| $_POST["tipo_id"] == 20) {
+            if ($_POST["tipo_id"] == 2 || $_POST["tipo_id"] == 5 || $_POST["tipo_id"] == 6 || $_POST["tipo_id"] == 7 || $_POST["tipo_id"] == 8 || $_POST["tipo_id"] == 9 || $_POST["tipo_id"] == 12 || $_POST["tipo_id"] == 14 || $_POST["tipo_id"] == 15 || $_POST["tipo_id"] == 19 || $_POST["tipo_id"] == 17 || $_POST["tipo_id"] == 16 || $_POST["tipo_id"] == 20) {
                 $html .= '
                     <div class="row mt-3">
                                 <div class="col-md-4">
@@ -150,8 +171,8 @@ switch ($_POST["opcion"]) {
                                     </div>
                                 </div>
                             </div> ';
-            }else if ($_POST["tipo_id"] == 1) {
-               $html .= '
+            } else if ($_POST["tipo_id"] == 1) {
+                $html .= '
                     <div class="form-group d-flex align-items-center mb-3" id="input_extra_act">
                         <!-- Aquí el JS insertará el campo ID 4 si aplica -->
                     </div>
@@ -166,13 +187,13 @@ switch ($_POST["opcion"]) {
                         <label for="repdia_mtprima" class="mr-2 mb-0" style="min-width: 90px;">Material:</label>
                         <select class="form-control select2" id="repdia_mtprima" name="repdia_mtprima" style="max-width: 300px;">
                             <option value="" disabled selected>--Selecciona un Material--</option>';
-                            foreach ($materia_prima as $row) {
-                                $html .= "<option value='" . $row['mtprm_id'] . "'>" . $row['mtprm_nombre'] . "</option>";
-                            }
+                foreach ($materia_prima as $row) {
+                    $html .= "<option value='" . $row['mtprm_id'] . "'>" . $row['mtprm_nombre'] . "</option>";
+                }
                 $html .= '
                         </select>
                     </div>';
-            }  else {
+            } else {
                 $html .= '<div class="row mt-4 text-center">
                 <div class="col-md-12">
                     <div class="form-group">
@@ -196,19 +217,19 @@ switch ($_POST["opcion"]) {
             } else if ($_POST["tipo_id"] == 2 || $_POST["tipo_id"] == 16 || $_POST["tipo_id"] == 17 || $_POST["tipo_id"] == 20) {
                 $obras = $obras_cnct; // Directamente obras de concreto para estos tipos de vehículo
             }
-            
+
             // Generamos el select de obras
             $html .= "<div class='form-group d-flex align-items-center'>
                         <label for='repdia_obras' class='mr-2'>Obras:</label>
                         <select class='form-control select2' id='repdia_obras' name='repdia_obras' style='width: 100%;' required>";
             $html .= "<option value='' disabled selected>--Selecciona una Obra--</option>";
-            
+
             foreach ($obras as $row) {
                 $html .= "<option value='" . $row['obras_id'] . "'>" . $row['obras_nom'] . "</option>";
             }
-            
+
             $html .= "</select></div>";
-            
+
             $html .= "</div></div>";
 
             echo $html;

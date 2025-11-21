@@ -151,7 +151,7 @@ var getURLParameter = function(sParam) {
 const ES_TARIFA_FIJA = new Set([71,72,9,10,43,15,45,44,67]);
 const POR_KM         = new Set([25,73,74,75,11,12,13,14,37,40,23,62,28,30,34,31,33,22,41,42,26,27]);
 const POR_VOLUMEN    = new Set([8,4,2,80]); // 8 (volumen), 4/2/80 también volumen según tu lógica
-const POR_VIAJE_VOL  = new Set([6,7,82]);   // viajes * volumen * tarifa
+const POR_VIAJE_VOL  = new Set([6,82]);   // viajes * volumen * tarifa
 
 //Funcion calcular subtotal
 
@@ -270,7 +270,7 @@ function cargarTabla() {
           const kmin  = parseFloat(row[4]) || 0;
           const kfin  = parseFloat(row[5]) || 0;
           const actId = parseInt(row[9])   || 0; // USAMOS EL ID DE LA FILA
-          let tarifa  = parseFloat(
+          const tarifa  = parseFloat(
             (row[6]||'').toString()
               .replace(/[^\d.,]/g,'')
               .replace(/\./g,'')

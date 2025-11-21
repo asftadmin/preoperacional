@@ -74,7 +74,7 @@ if (is_array($datos) and count($datos) > 0) {
 
                                 </div>
                                 <div class="card-footer">
-                                    <button type="button" id="btnCrearReporte" class="btn btn-default"><i
+                                    <button type="button" id="btnCrearOrden" class="btn btn-default"><i
                                             class="fas fa-file-signature"></i>
                                         Crear Reporte</button>
                                     <button type="button" class="btn btn-default" id="btnVolver"><i
@@ -93,7 +93,7 @@ if (is_array($datos) and count($datos) > 0) {
             <!-- /.content-wrapper -->
         </div>
 
-        <?php require_once("modalReporte.php") ?>
+        <?php require_once("modal_orden.php") ?>
         <?php require_once("../MainFooter/footer.php") ?>
 
         <!-- ./wrapper -->

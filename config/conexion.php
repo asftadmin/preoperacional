@@ -7,13 +7,13 @@ BUCARAMANGA-SANTANDER
 ?>
 <?php
 session_start();
-class Conectar{
+class Conectar {
     protected $dbh;
-    protected function Conexion(){
+    protected function Conexion() {
         try {
             // Cambiar los valores según tu configuración de PostgreSQL   192.168.0.200  masterd_asft
-            $host = "172.16.5.2";
-            $dbname = "preoperacional_vehiculos";
+            $host = "172.16.5.2"; //172.16.5.2
+            $dbname = "preoperacional_prueba";
             $usuario = "postgres";
             $contrasena = "masterd_asft";
 
@@ -24,14 +24,15 @@ class Conectar{
             die();
         }
     }
-    public function set_names(){
-        return $this ->dbh ->query("SET NAMES 'utf8'");
+    public function set_names() {
+        return $this->dbh->query("SET NAMES 'utf8'");
     }
-	public function getConexion(){
-        return $this ->Conexion();
+    public function getConexion() {
+        return $this->Conexion();
     }
-    public static function ruta(){
-        return "http://181.204.219.154:3396/preoperacional/";
+    public static function ruta() {
+        //return "http://181.204.219.154:3396/preoperacional/";
+        return "http://localhost/preoperacional/";
     }
 }
 

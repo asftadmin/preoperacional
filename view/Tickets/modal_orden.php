@@ -1,4 +1,4 @@
-<div id="modalRerporteMtto" class="modal fade bd-example-modal" tabindex="-1" role="dialog"
+<div id="modalOrdenMtto" class="modal fade bd-example-modal" tabindex="-1" role="dialog"
     aria-labelledby="myLargeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -7,20 +7,15 @@
                 <button type="button" class="close" data-dismiss="modal"><i class="fas fa-times" style="color: red;"
                         data-toggle="tooltip" title="Cerrar"></i></button>
             </div>
-            <form method="post" id="rpte_form">
+            <form method="post" id="orden_form">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="numb_reporte">Número Reporte:</label>
-                        <input type="text" class="form-control" id="numb_reporte" name="numb_reporte" placeholder=""
-                            readonly>
+                        <label for="num_orden">Número OT:</label>
+                        <input type="text" class="form-control" id="num_orden" name="num_orden" placeholder="" readonly>
                     </div>
+
                     <div class="form-group">
-                        <label for="hora_reporte">Horas Programadas (*):</label>
-                        <input type="text" class="form-control" id="hora_reporte" name="hora_reporte"
-                            placeholder="Horas Programadas" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="fech_reporte">Fecha Asignacion (*):</label>
+                        <label for="fech_reporte">Fecha(*):</label>
                         <div class="input-group date" id="reservationdate" data-target-input="nearest">
                             <input type="text" id="fecha_reporte" name="fecha_reporte"
                                 class="form-control datetimepicker-input" data-target="#reservationdate" required />
@@ -29,13 +24,7 @@
                             </div>
                         </div>
                     </div>
-                    <span class="form-group" id="selectObra">
-                        <label for="nomb_obra">Ubicacion (Obra) * :</label>
-                        <select class="select2" name="nomb_obra" id="nomb_obra" data-placeholder="Buscar Obra"
-                            style="width: 100%;" required>
 
-                        </select>
-                    </span>
                     <span class="form-group" id="selectMtto">
                         <label for="tipo_mtto">Tipo de Mantenimiento (*):</label>
                         <select class="select2" name="tipo_mtto" id="tipo_mtto" data-placeholder="Tipo Mantenimiento"
@@ -44,6 +33,35 @@
                         </select>
 
                     </span>
+
+                    <span class="form-group" id="selectMtto">
+                        <label for="prioridad_orden">Prioridad (*):</label>
+                        <select class="select2" name="prioridad_orden" id="prioridad_orden" data-placeholder="Prioridad"
+                            style="width: 100%;" required>
+
+                            <option value='' disabled selected>--Selecciona el tipo de mtto--</option>
+                            <option value='A'>Alta</option>
+                            <option value='M'>Media</option>
+                            <option value='B'>Baja</option>
+
+                        </select>
+
+                    </span>
+
+                    <div class="form-group">
+                        <label for="tecnico_orden">Tecnico / Proveedor (*):</label>
+                        <input type="text" class="form-control" id="tecnico_orden" name="tecnico_orden"
+                            placeholder="Tecnico / Proveedor" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="activ_orden">Actividad a realizar (*) :</label>
+                        <div class="row justify-content-center"><textarea id="activ_orden" class="textarea"
+                                style="resize: none;" name="activ_orden" rows="4" cols="100"
+                                placeholder="Actividad a Realizar" autocapitalize="sentences" spellcheck="true"
+                                maxlength="400"></textarea></div>
+                    </div>
+
 
 
                 </div>

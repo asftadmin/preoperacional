@@ -53,18 +53,18 @@ if (is_array($datos) and count($datos) > 0) {
                 <div class="content">
                     <div class="container-fluid">
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
 
                                 <?php require_once "carpetas.php"; ?>
 
                             </div>
-                            <div class="col-md-9">
+                            <div class="col-md-10">
                                 <div class="card card-primary card-outline">
                                     <div class="card-header">
                                         <h3 class="card-title">Tickets</h3>
                                     </div>
 
-                                    <div class="card-body p-0">
+                                    <div class="card-body p-2">
 
                                         <div class="table-responsive mailbox-messages">
                                             <table class="table table-hover table-striped" id="tableTickets">

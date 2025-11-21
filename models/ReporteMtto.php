@@ -212,7 +212,7 @@ class ReporteMtto extends Conectar {
             // Actualizar el estado en la tabla 'solicitudes_mtto'
             $sql_solicitud = "UPDATE solicitudes_mtto SET esta_soli = :estado WHERE codi_soli = :codigo";
             $smt_solicitud = $conectar->prepare($sql_solicitud);
-            $smt_solicitud->bindValue(':estado', 'en_revision', PDO::PARAM_STR);
+            $smt_solicitud->bindValue(':estado', '2', PDO::PARAM_STR);
             $smt_solicitud->bindValue(':codigo', $ticket, PDO::PARAM_INT);
             $smt_solicitud->execute();
 

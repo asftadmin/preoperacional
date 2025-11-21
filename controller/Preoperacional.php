@@ -1,5 +1,3 @@
-
-
 <?php
 // Resto de tu código
 /* CONTROLADOR PREOPERACIONAL  - FORMULARIO */
@@ -75,6 +73,25 @@ switch ($_POST["opcion"]) {
             $html .= '<div class="row justify-content-center mt-3">';
             $html .= '<button type="button" id="btnmodal" class="btn btn-info" data-toggle="modal" data-target=".bd-example-modal-lg" onclick="showPlate()">Formulario Fallas</button>';
             $html .= '</div>';
+            $html .= '<div class="row mt-3 text-center justify-content-center">';
+            $html .= '<div class="col-md-4">';
+            $html .= '<label class="mb-0" style="white-space: nowrap;">¿El vehículo/equipo presenta fallas?</label>';
+            $html .= '</div>';
+
+            $html .= '<div class="col-md-2">';
+            $html .= '<div class="custom-control custom-radio custom-control-inline">';
+            $html .= '<input class="custom-control-input" type="radio" id="fallas_si" name="vehiculo_fallas" value="si" required>';
+            $html .= '<label for="fallas_si" class="custom-control-label">Sí</label>';
+            $html .= '</div>';
+
+            $html .= '<div class="custom-control custom-radio custom-control-inline">';
+            $html .= '<input class="custom-control-input" type="radio" id="fallas_no" name="vehiculo_fallas" value="no" required>';
+            $html .= '<label for="fallas_no" class="custom-control-label">No</label>';
+            $html .= '</div>';
+
+
+            $html .= '</div>';
+            $html .= '</div>';
             $html .= '<div class="row justify-content-center mt-3">';
             $html .= '<h5 style="font-weight: bold;">Observaciones</h5>';
             $html .= '</div>';
@@ -90,6 +107,74 @@ switch ($_POST["opcion"]) {
 
     case 'guardar_respuestas':
         /* TRAEMOS LOS DATOS */
+        $pre_id                  = $_POST['select_placa'];
+        $pre_observaciones       = $_POST['pre_observaciones'];
+        $pre_kilometraje_inicial = $_POST['pre_kilometraje_inicial'];
+        $pre_fecha               = date('Ymd');
+        $pre_placa               = $_POST['vehi_placa'];
+        $pre_formulario          = trim($pre_fecha . $pre_placa);
+        $pre_usuario             = $_POST['user_id'];
+        $vehiculo_fallas         = $_POST['vehiculo_fallas'];
+        $tipo_id                 = $_POST['tipo_id'];
+
+        // Consulto las preguntas para ese tipo de vehículo
+        $preguntasDelModelo = $preoperacional->listar_preguntas($tipo_id);
+
+        // Verifico si ya existe el formulario del día
+        if ($preoperacional->preExiste($pre_formulario)) {
+            echo json_encode([
+                "status"  => "errores",
+                "message" => "El Formulario ya se encuentra registrado"
+            ]);
+            break;
+        }
+
+        // Preparo array con cada pregunta y su respuesta
+        $preguntasConRespuestas = [];
+        foreach ($preguntasDelModelo as $pregunta) {
+            $suboper_id = $pregunta['suboper_id'];
+            $resp       = $_POST['respuesta_' . $suboper_id];
+            $preguntasConRespuestas[] = [
+                'suboper_id' => $suboper_id,
+                'respuesta'  => $resp
+            ];
+        }
+
+        // Llamo al método que guarda todo en transacción
+        $ok = $preoperacional->guardarPreopYCrearSolicitud(
+            $pre_id,
+            $pre_observaciones,
+            $pre_formulario,
+            $pre_kilometraje_inicial,
+            $pre_usuario,
+            $vehiculo_fallas,
+            $preguntasConRespuestas
+        );
+
+        if ($ok) {
+            // Éxito
+            if (strtolower($vehiculo_fallas) === "si") {
+
+                $msg = "Preoperacional guardado y solicitud creada correctamente.";
+            } else {
+
+                $msg = "Preoperacional guardado exitosamente.";
+            }
+            echo json_encode([
+                "status"  => "success",
+                "message" => $msg
+            ]);
+        } else {
+            // Algún execute() falló y ya se hizo rollback
+            echo json_encode([
+                "status"  => "errores",
+                "message" => "Ocurrió un error al guardar. Por favor intente nuevamente."
+            ]);
+        }
+        break;
+
+    /*case 'guardar_respuestas':
+        TRAEMOS LOS DATOS 
         $tipo_id = $_POST['tipo_id'];
         $pre_placa = $_POST['vehi_placa'];
         $pre_id = $_POST['select_placa'];
@@ -102,11 +187,11 @@ switch ($_POST["opcion"]) {
         // CARGA LAS PREGUTNAS SEGUN EL TIPO DE VEHICULO
         $preguntas = $preoperacional->listar_preguntas($tipo_id);
 
-        /* SI EL FORMULARIO DE ESE DIA YA SE ENCUENTRA REGISTRADO */
+         SI EL FORMULARIO DE ESE DIA YA SE ENCUENTRA REGISTRADO 
         if ($preoperacional->preExiste($pre_formulario)) {
             echo json_encode(array("status" => "errores", "message" => "El Formulario ya se encuentra registrado"));
         } else {
-            /* GUARDA LAS RESPUESTAS */
+            GUARDA LAS RESPUESTAS 
             foreach ($preguntas as $pregunta) {
                 $suboper_id = $pregunta['suboper_id'];
                 $respuesta = $_POST['respuesta_' . $suboper_id];
@@ -114,9 +199,9 @@ switch ($_POST["opcion"]) {
             }
             echo json_encode(array("status" => "success", "message" => "Se envio correctamente"));
         }
-        break;
+        break;*/
 
-        /* GRAFICO KILOMETRAJE */
+    /* GRAFICO KILOMETRAJE */
     case 'grafico':
 
         $datos = $preoperacional->get_kilometraje_grafico($_POST['vehi_placax']);

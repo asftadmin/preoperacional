@@ -1,6 +1,6 @@
 function init() {
     // Inicialización si es necesario
-    $("#rpte_form").on("submit", function(e){
+    $("#orden_form").on("submit", function(e){
         guardar(e);
     });
 }
@@ -40,19 +40,94 @@ $(document).ready(function() {
 
 //Post para crear reporte de mantenimiento
 
-$(document).ready(function() {
-    $('#btnCrearReporte').on('click', function() {
+/* $(document).ready(function() {
+    $('#btnCrearOrden').on('click', function() {
         let solicitud = $('#ticket_id').val(); 
         $('#mdltitulo').html('No. Solicitud: '+ solicitud);
         $('#codi_vehi').val();      // Llenar el campo codi_vehi
         $('#codi_cond').val();      // Llenar el campo codi_cond
         $('#diag_rpte').val();      // Llenar el campo diag_rpte
-        $('#modalRerporteMtto').modal('show');  // Abrir el modal
+        $('#modalOrdenMtto').modal('show');  // Abrir el modal
+    });
+
+}); */
+
+$(document).ready(function() {
+    $('#btnCrearOrden').on('click', function() {
+        let solicitud = $('#ticket_id').val(); 
+        $('#mdltitulo').html('No. Solicitud: '+ solicitud);
+        $('#modalOrdenMtto').modal('show');  // Abrir el modal
     });
 
 });
 
 function guardar(e){
+     e.preventDefault();
+     let num_orden = $('#num_orden').val();
+     let fecha_asignacion = $('#fecha_reporte').val();
+     let mantenimiento = $('#tipo_mtto').val();
+     let tecnico = $('#tecnico_orden').val();
+     let actividad = $('#activ_orden').val();
+     let prioridad = $('#prioridad_orden').val();
+     let ticket_id = $('#ticket_id').val();
+
+     let data = {
+        num_orden: num_orden,
+        fecha_asignacion: fecha_asignacion,
+        mantenimiento : mantenimiento,
+        tecnico : tecnico,
+        actividad : actividad,
+        prioridad : prioridad,
+        ticket_id : ticket_id
+     };
+
+     console.log(data);
+
+     $.ajax({
+
+        url: '../../controller/OrdenTrabajo.php?op=guardarOrdenTrabajo',
+        type: 'POST',
+        data: data,
+        success: function(response) {
+            console.log(response);
+                const result = JSON.parse(response);  // Asumimos que la respuesta es JSON
+
+                // Mostrar mensaje de éxito o error con Swal
+                if (result.status === 'success') {
+                    Swal.fire({
+                        title: '¡Guardado Exitosamente!',
+                        text: 'El reporte fue creado correctamente.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+
+                    // Cerrar el modal
+                    $('#modalOrdenMtto').modal('hide');
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: result.message,
+                        icon: 'error',
+                        confirmButtonText: 'Intentar de nuevo'
+                    });
+                }
+
+        },
+        error: function() {
+            // En caso de error en la solicitud AJAX
+            Swal.fire({
+                title: 'Error',
+                text: 'Hubo un problema al crear el reporte.',
+                icon: 'error',
+                confirmButtonText: 'Intentar de nuevo'
+            });
+        },
+
+    });
+
+}
+
+/* function guardar(e){
      e.preventDefault();
      let num_reporte = $('#numb_reporte').val();
      let horas_prog = $('#hora_reporte').val();
@@ -121,7 +196,7 @@ function guardar(e){
 
     });
 
-}
+} */
 
 //Boton Regresar a la bandeja de Abiertos
 $('#btnVolver').click(function() {
@@ -151,10 +226,10 @@ $('#reservationdate').datetimepicker({
 });
 
 $.post(
-    "../../controller/ReporteMtto.php?op=numeroReporte",
+    "../../controller/OrdenTrabajo.php?op=numeroOrden",
     function (data, status) {
         //console.log("Respuesta del servidor:", data);
-        $("#numb_reporte").val(data);
+        $("#num_orden").val(data);
     }
 );
 
