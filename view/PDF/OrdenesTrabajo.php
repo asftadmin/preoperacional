@@ -164,9 +164,6 @@ $pdf->Cell(75, 8, utf8_decode($tecnico), 0, 1, 'L');
 $pdf->Cell(45, 8, utf8_decode('ACTIVIDAD A REALIZAR:'), 'LB', 0, 'L');
 $pdf->MultiCell(145, 8, utf8_decode($notas_solicitud), 0, 'L');
 
-
-
-
 $yFin = $pdf->GetY();
 
 $xInicio = 10;  // margen izquierdo por defecto
@@ -176,125 +173,132 @@ $pdf->Rect($xInicio, $yInicio, $anchoTotal, $alto);
 
 $pdf->Ln(5);
 
-// ======== BLOQUE COMPLETO RECEPCIÓN DE MANTENIMIENTO ========
+// ================================================
+// ======== BLOQUE RECEPCION MANTENIMIENTO ========
+// ================================================
+// PRIMER BLOQUE: RECEPCION DE MANTENIMIENTO
+$startX = 10;
+$startY = $pdf->GetY();
+$blockWidth = 185;
+$blockHeight = 60; // Altura solo para RECEPCION
 
-// ====== POSICION INICIAL ======
-$startX = 12;
-$startY = $pdf->GetY() + 10;
-$blockWidth = 190;
+// DIBUJAR MARCO EXTERNO SOLO PARA RECEPCION
+$pdf->Rect($startX, $startY, $blockWidth, $blockHeight);
 
-// ====== MARCAR Y INICIAL ======
-$yInicio = $startY;
+// TITULO CENTRADO CON BORDE
+$pdf->SetXY($startX, $startY);
+$pdf->SetFont('Helvetica', 'B', 10);
+$pdf->Cell($blockWidth, 8, 'RECEPCION DE MANTENIMIENTO', 1, 1, 'C');
 
-// ====== TITULO ======
-$pdf->SetXY($startX, $yInicio);
-$pdf->SetFont('Arial', 'B', 12);
-$pdf->Cell($blockWidth, 10, 'RECEPCION DE MANTENIMIENTO', 1, 1, 'C');
-
-$pdf->Ln(3);
-
-// ====== FECHA / HORA / ESTADO ======
-$pdf->SetX($startX + 4);
+// FECHA / HORA / ESTADO DE LIMPIEZA
 $pdf->SetFont('Arial', '', 10);
+$pdf->SetXY($startX + 5, $startY + 10);
 
-$pdf->Cell(25, 7, 'FECHA:', 0, 0);
-$pdf->Cell(25, 7, '_________', 0, 0);
+$pdf->Cell(15, 6, 'FECHA:', 0, 0);
+$pdf->Cell(20, 6, '_________', 0, 0);
+$pdf->Cell(3, 6, '', 0, 0);
 
-$pdf->Cell(20, 7, 'HORA:', 0, 0);
-$pdf->Cell(25, 7, '_________', 0, 0);
+$pdf->Cell(20, 6, 'HORA:', 0, 0);
+$pdf->Cell(20, 6, '_________', 0, 0);
+$pdf->Cell(3, 6, '', 0, 0);
 
-$pdf->Cell(40, 7, 'ESTADO DE LIMPIEZA:', 0, 0);
 
-$pdf->Cell(14, 7, 'Bueno', 0, 0);
-$pdf->Rect($pdf->GetX(), $pdf->GetY() + 2, 4, 4);
-$pdf->Cell(10, 7, '', 0, 0);
+$pdf->Cell(45, 6, 'ESTADO DE LIMPIEZA:', 0, 0);
 
-$pdf->Cell(18, 7, 'Regular', 0, 0);
-$pdf->Rect($pdf->GetX(), $pdf->GetY() + 2, 4, 4);
-$pdf->Cell(10, 7, '', 0, 0);
+// Casillas de verificación
+$pdf->Cell(20, 6, 'Bueno', 0, 0);
+$pdf->Rect($pdf->GetX() - 1, $pdf->GetY() + 1, 4, 4);
+$pdf->Cell(8, 6, '', 0, 0);
 
-$pdf->Cell(10, 7, 'Bajo', 0, 0);
-$pdf->Rect($pdf->GetX(), $pdf->GetY() + 2, 4, 4);
+$pdf->Cell(18, 6, 'Regular', 0, 0);
+$pdf->Rect($pdf->GetX() - 1, $pdf->GetY() + 1, 4, 4);
+// No hay casilla para "Bajo" según la imagen
 
 $pdf->Ln(10);
 
-// ====== NOMBRE ======
-$pdf->SetX($startX + 4);
-$pdf->Cell(60, 7, 'NOMBRE DE QUIEN EJECUTA:', 0, 0);
-$pdf->Cell(110, 7, str_repeat('_', 55), 0, 1);
+// NOMBRE QUIEN EJECUTA
+$pdf->SetXY($startX + 5, $startY + 23);
+$pdf->Cell(55, 6, 'NOMBRE DE QUIEN EJECUTA:', 0, 0);
+$pdf->Cell(130, 6, '_________________________________________________', 0, 1);
 
-$pdf->Ln(4);
-
-// ====== TABLA ======
+// TABLA TRABAJOS
+$pdf->SetXY($startX + 0, $startY + 32);
 $pdf->SetFont('Arial', 'B', 10);
-$pdf->SetX($startX + 4);
 
-$w1 = 60;
-$w2 = 70;
-$w3 = 20;
-$w4 = 20;
-$w5 = 20;
+// Definir anchos de columnas
+$w1 = 60; // ACTIVIDADES PROGRAMADAS
+$w2 = 60; // DETALLE DE TRABAJOS
+$w3 = 25; // REPUESTO
+$w4 = 20; // UM
+$w5 = 20; // CANT
 
-$pdf->Cell($w1, 8, 'ACTIVIDADES PROGRAMADAS', 1, 0, 'C');
-$pdf->Cell($w2, 8, 'DETALLE DE TRABAJOS', 1, 0, 'C');
-$pdf->Cell($w3, 8, 'REPUESTO', 1, 0, 'C');
-$pdf->Cell($w4, 8, 'UM', 1, 0, 'C');
-$pdf->Cell($w5, 8, 'CANT', 1, 1, 'C');
+// Encabezado de tabla
+$pdf->Cell($w1, 7, 'ACTIVIDADES PROGRAMADAS', 1, 0, 'C');
+$pdf->Cell($w2, 7, 'DETALLE DE TRABAJOS', 1, 0, 'C');
+$pdf->Cell($w3, 7, 'REPUESTO', 1, 0, 'C');
+$pdf->Cell($w4, 7, 'UM', 1, 0, 'C');
+$pdf->Cell($w5, 7, 'CANT', 1, 1, 'C');
 
+// Filas de la tabla (3 filas vacías)
 $pdf->SetFont('Arial', '', 10);
-
 for ($i = 0; $i < 3; $i++) {
-
-    $pdf->SetX($startX + 4);
-    $pdf->Cell($w1, 12, '', 1, 0);
-    $pdf->Cell($w2, 12, '', 1, 0);
-    $pdf->Cell($w3, 12, '', 1, 0);
-    $pdf->Cell($w4, 12, '', 1, 0);
-    $pdf->Cell($w5, 12, '', 1, 1);
+    $pdf->SetX($startX + 0);
+    $pdf->Cell($w1, 7, '', 1, 0);
+    $pdf->Cell($w2, 7, '', 1, 0);
+    $pdf->Cell($w3, 7, '', 1, 0);
+    $pdf->Cell($w4, 7, '', 1, 0);
+    $pdf->Cell($w5, 7, '', 1, 1);
 }
 
-$pdf->Ln(4);
+// ================================================
+// ============ BLOQUE FIRMA SEPARADO =============
+// ================================================
+$startX = 10;
+$startY = $pdf->GetY()+5;
+$blockWidth = 185;
+$blockHeight = 80; // Altura solo para RECEPCION
 
-// ====== FIRMA ======
+// DIBUJAR MARCO EXTERNO SOLO PARA RECEPCION
+$pdf->Rect($startX, $startY, $blockWidth, $blockHeight);
+
+// BLOQUE "FIRMA" CENTRADO
+$pdf->SetXY($startX, $startY);
 $pdf->SetFont('Arial', 'B', 10);
-$pdf->SetX($startX + 4);
-$pdf->Cell($blockWidth - 8, 8, 'FIRMA', 1, 1, 'C');
+$pdf->Cell($blockWidth, 6, 'FIRMA', 1, 1, 'C');
 
-$pdf->Ln(3);
+// Líneas de firma
 $pdf->SetFont('Arial', '', 10);
+$pdf->SetXY($startX + 20, $startY + 25); // Más a la izquierda
+$pdf->Cell(70, 6, '_______________________', 0, 0, 'L');
+$pdf->Cell(20, 6, '', 0, 0); // espacio entre líneas
+$pdf->Cell(70, 6, '_______________________', 0, 1, 'L');
 
-// Dos firmas
-$pdf->SetX($startX + 4);
-$pdf->Cell(90, 7, '_______________________________', 0, 0);
-$pdf->Cell(90, 7, '_______________________________', 0, 1);
+// Textos debajo de las líneas
+$pdf->SetX($startX + 20);
+$pdf->Cell(70, 5, 'FIRMA DE MANTENIMIENTO', 0, 0, 'L');
+$pdf->Cell(20, 5, '', 0, 0);
+$pdf->Cell(70, 5, 'Vo.Bo Y FIRMA DE QUIEN RECIBE', 0, 1, 'L');
 
-$pdf->SetX($startX + 4);
-$pdf->Cell(90, 7, 'FIRMA DE MANTENIMIENTO', 0, 0);
-$pdf->Cell(90, 7, 'Vo.Bo Y FIRMA DE QUIEN RECIBE', 0, 1);
+// Campos "NOMBRE:"
+$pdf->SetX($startX + 20);
+$pdf->Cell(70, 5, 'NOMBRE:', 0, 0, 'L');
+$pdf->Cell(20, 5, '', 0, 0);
+$pdf->Cell(70, 5, 'NOMBRE:', 0, 1, 'L');
 
-$pdf->SetX($startX + 4);
-$pdf->Cell(90, 7, 'NOMBRE:', 0, 0);
-$pdf->Cell(90, 7, 'NOMBRE:', 0, 1);
+// Línea para firma del jefe
+$pdf->SetX($startX + 20);
+$pdf->Cell(70, 10, '', 0, 1); // espacio
 
-$pdf->Ln(6);
+$pdf->SetXY($startX + 20, $startY + 55);
+$pdf->Cell(70, 6, '_______________________', 0, 1, 'L');
 
-// Firma jefe
-$pdf->SetX($startX + 4);
-$pdf->Cell(90, 7, '_______________________________', 0, 1);
+$pdf->SetX($startX + 20);
+$pdf->Cell(70, 5, 'FIRMA JEFE MANTENIMIENTO', 0, 1, 'L');
 
-$pdf->SetX($startX + 4);
-$pdf->Cell(90, 7, 'FIRMA JEFE MANTENIMIENTO', 0, 1);
+$pdf->SetX($startX + 20);
+$pdf->Cell(70, 5, 'NOMBRE:', 0, 1, 'L');
 
-$pdf->SetX($startX + 4);
-$pdf->Cell(90, 7, 'NOMBRE:', 0, 1);
-
-// ====== MEDIR Y FINAL ======
-$yFinal = $pdf->GetY();
-
-// ====== DIBUJAR MARCO EXACTO ======
-$alturaReal = $yFinal - $startY;
-
-$pdf->Rect($startX, $startY, $blockWidth, $alturaReal); 
-
+// DIBUJAR MARCO ALREDEDOR DE LAS FIRMAS (opcional, si quieres el borde)
+// $pdf->Rect($startX, $firmaStartY - 2, $blockWidth, $firmaHeight + 4);
 
 $pdf->Output();
