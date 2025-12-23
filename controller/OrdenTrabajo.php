@@ -24,7 +24,7 @@ switch ($_REQUEST["op"]) {
         } else {
             $nuevoNumero = "000001";
         }
-
+ 
         // Generar el nuevo código con el año actual
         $nuevoReporte = "OTM-" . date("Y") . "-" . $nuevoNumero;
 

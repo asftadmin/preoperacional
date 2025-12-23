@@ -63,7 +63,7 @@ $notas_solicitud = isset($tikets[0]['desc_soli']) ? $tikets[0]['desc_soli'] : 'N
 $fechaObj = new DateTime($fecha_solicitud);
 
 $fechaFormateada = $fechaObj->format('d/m/Y'); // 06/11/2025
-$horaFormateada  = $fechaObj->format('H:i A');   // 11:38
+$horaFormateada  = $fechaObj->format('H:i A');   // 11:38 
 
 //orden de trabajo datos
 
@@ -77,6 +77,9 @@ $vehiPlaca = isset($tikets[0]['vehi_placa']) ? $tikets[0]['vehi_placa'] : 'N/A';
 $vehiNumCosto = isset($tikets[0]['vehi_costo']) ? $tikets[0]['vehi_costo'] : 'N/A';
 $vehiNumCodi = isset($tikets[0]['vehi_codigo']) ? $tikets[0]['vehi_codigo'] : 'N/A';
 $tipoMantenimiento = isset($tikets[0]['tipo_mantenimiento']) ? $tikets[0]['tipo_mantenimiento'] : 'N/A';
+$lectura_anterior = isset($tikets[0]['lectura_anterior']) ? $tikets[0]['lectura_anterior'] : 'N/A';
+$lectura_actual = isset($tikets[0]['lect_soli']) ? $tikets[0]['lect_soli'] : 'N/A';
+$tecnico = isset($tikets[0]['tecn_otm']) ? $tikets[0]['tecn_otm'] : 'N/A';
 
 
 
@@ -147,20 +150,21 @@ $pdf->Cell(140, 8, utf8_decode($vehiNumCodi . ' - ' . $vehiMarca . ' ' . $vehiPl
 $pdf->Cell(45, 8, utf8_decode('TIPO DE MANTENIMIENTO:'), 0, 0, 'L');
 $pdf->Cell(20, 8, utf8_decode($tipoMantenimiento), 0, 0, 'L');
 $pdf->Cell(25, 8, utf8_decode('LECTURA ANT:'), 0, 0, 'L');
-$pdf->Cell(25, 8, utf8_decode($tipoMantenimiento), 0, 0, 'L');
+$pdf->Cell(25, 8, utf8_decode($lectura_anterior), 0, 0, 'L');
 $pdf->Cell(30, 8, utf8_decode('NUEVA LECTURA:'), 0, 0, 'L');
-$pdf->Cell(20, 8, utf8_decode($tipoMantenimiento), 0, 1, 'L');
+$pdf->Cell(20, 8, utf8_decode($lectura_actual), 0, 1, 'L');
 
 
 $pdf->Cell(45, 8, utf8_decode('FECHA NUEVA LECTURA:'), 0, 0, 'L');
-$pdf->Cell(30, 8, utf8_decode($tipoMantenimiento), 0, 0, 'L');
+$pdf->Cell(30, 8, utf8_decode($fechaOT), 0, 0, 'L');
 $pdf->Cell(40, 8, utf8_decode('TECNICO / PROVEEDOR:'), 0, 0, 'L');
-$pdf->Cell(75, 8, utf8_decode($tipoMantenimiento), 0, 1, 'L');
-
+$pdf->Cell(75, 8, utf8_decode($tecnico), 0, 1, 'L');
 
 // Notas
 $pdf->Cell(45, 8, utf8_decode('ACTIVIDAD A REALIZAR:'), 'LB', 0, 'L');
 $pdf->MultiCell(145, 8, utf8_decode($notas_solicitud), 0, 'L');
+
+
 
 
 $yFin = $pdf->GetY();
@@ -169,6 +173,128 @@ $xInicio = 10;  // margen izquierdo por defecto
 $anchoTotal = $pdf->GetPageWidth() - 25; // margen izq+der
 $alto = $yFin - $yInicio;
 $pdf->Rect($xInicio, $yInicio, $anchoTotal, $alto);
+
+$pdf->Ln(5);
+
+// ======== BLOQUE COMPLETO RECEPCIÓN DE MANTENIMIENTO ========
+
+// ====== POSICION INICIAL ======
+$startX = 12;
+$startY = $pdf->GetY() + 10;
+$blockWidth = 190;
+
+// ====== MARCAR Y INICIAL ======
+$yInicio = $startY;
+
+// ====== TITULO ======
+$pdf->SetXY($startX, $yInicio);
+$pdf->SetFont('Arial', 'B', 12);
+$pdf->Cell($blockWidth, 10, 'RECEPCION DE MANTENIMIENTO', 1, 1, 'C');
+
+$pdf->Ln(3);
+
+// ====== FECHA / HORA / ESTADO ======
+$pdf->SetX($startX + 4);
+$pdf->SetFont('Arial', '', 10);
+
+$pdf->Cell(25, 7, 'FECHA:', 0, 0);
+$pdf->Cell(25, 7, '_________', 0, 0);
+
+$pdf->Cell(20, 7, 'HORA:', 0, 0);
+$pdf->Cell(25, 7, '_________', 0, 0);
+
+$pdf->Cell(40, 7, 'ESTADO DE LIMPIEZA:', 0, 0);
+
+$pdf->Cell(14, 7, 'Bueno', 0, 0);
+$pdf->Rect($pdf->GetX(), $pdf->GetY() + 2, 4, 4);
+$pdf->Cell(10, 7, '', 0, 0);
+
+$pdf->Cell(18, 7, 'Regular', 0, 0);
+$pdf->Rect($pdf->GetX(), $pdf->GetY() + 2, 4, 4);
+$pdf->Cell(10, 7, '', 0, 0);
+
+$pdf->Cell(10, 7, 'Bajo', 0, 0);
+$pdf->Rect($pdf->GetX(), $pdf->GetY() + 2, 4, 4);
+
+$pdf->Ln(10);
+
+// ====== NOMBRE ======
+$pdf->SetX($startX + 4);
+$pdf->Cell(60, 7, 'NOMBRE DE QUIEN EJECUTA:', 0, 0);
+$pdf->Cell(110, 7, str_repeat('_', 55), 0, 1);
+
+$pdf->Ln(4);
+
+// ====== TABLA ======
+$pdf->SetFont('Arial', 'B', 10);
+$pdf->SetX($startX + 4);
+
+$w1 = 60;
+$w2 = 70;
+$w3 = 20;
+$w4 = 20;
+$w5 = 20;
+
+$pdf->Cell($w1, 8, 'ACTIVIDADES PROGRAMADAS', 1, 0, 'C');
+$pdf->Cell($w2, 8, 'DETALLE DE TRABAJOS', 1, 0, 'C');
+$pdf->Cell($w3, 8, 'REPUESTO', 1, 0, 'C');
+$pdf->Cell($w4, 8, 'UM', 1, 0, 'C');
+$pdf->Cell($w5, 8, 'CANT', 1, 1, 'C');
+
+$pdf->SetFont('Arial', '', 10);
+
+for ($i = 0; $i < 3; $i++) {
+
+    $pdf->SetX($startX + 4);
+    $pdf->Cell($w1, 12, '', 1, 0);
+    $pdf->Cell($w2, 12, '', 1, 0);
+    $pdf->Cell($w3, 12, '', 1, 0);
+    $pdf->Cell($w4, 12, '', 1, 0);
+    $pdf->Cell($w5, 12, '', 1, 1);
+}
+
+$pdf->Ln(4);
+
+// ====== FIRMA ======
+$pdf->SetFont('Arial', 'B', 10);
+$pdf->SetX($startX + 4);
+$pdf->Cell($blockWidth - 8, 8, 'FIRMA', 1, 1, 'C');
+
+$pdf->Ln(3);
+$pdf->SetFont('Arial', '', 10);
+
+// Dos firmas
+$pdf->SetX($startX + 4);
+$pdf->Cell(90, 7, '_______________________________', 0, 0);
+$pdf->Cell(90, 7, '_______________________________', 0, 1);
+
+$pdf->SetX($startX + 4);
+$pdf->Cell(90, 7, 'FIRMA DE MANTENIMIENTO', 0, 0);
+$pdf->Cell(90, 7, 'Vo.Bo Y FIRMA DE QUIEN RECIBE', 0, 1);
+
+$pdf->SetX($startX + 4);
+$pdf->Cell(90, 7, 'NOMBRE:', 0, 0);
+$pdf->Cell(90, 7, 'NOMBRE:', 0, 1);
+
+$pdf->Ln(6);
+
+// Firma jefe
+$pdf->SetX($startX + 4);
+$pdf->Cell(90, 7, '_______________________________', 0, 1);
+
+$pdf->SetX($startX + 4);
+$pdf->Cell(90, 7, 'FIRMA JEFE MANTENIMIENTO', 0, 1);
+
+$pdf->SetX($startX + 4);
+$pdf->Cell(90, 7, 'NOMBRE:', 0, 1);
+
+// ====== MEDIR Y FINAL ======
+$yFinal = $pdf->GetY();
+
+// ====== DIBUJAR MARCO EXACTO ======
+$alturaReal = $yFinal - $startY;
+
+$pdf->Rect($startX, $startY, $blockWidth, $alturaReal); 
 
 
 $pdf->Output();

@@ -83,4 +83,4 @@ class OrdenTrabajo extends Conectar {
             return ['success' => false, 'error' => 'Error inesperado: ' . $e->getMessage()];
         }
     }
-}
+} 
