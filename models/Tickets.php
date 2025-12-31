@@ -38,7 +38,7 @@ class Tickets extends Conectar {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
+ 
     public function get_tickets_ordenes($codi_otm) {
         $conectar = parent::conexion();
         parent::set_names();

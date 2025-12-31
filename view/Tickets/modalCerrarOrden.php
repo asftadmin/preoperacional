@@ -9,6 +9,7 @@
             </div>
             <form method="post" id="orden_form_close">
                 <div class="modal-body">
+                    <input type="hidden" class="form-control" id="codi_orden" name="codi_orden">
                     <div class="form-group">
                         <label for="num_orden">Número OT:</label>
                         <input type="text" class="form-control" id="num_orden" name="num_orden" placeholder="" readonly>
@@ -18,18 +19,18 @@
                         <label class="fw-bold">Equipo operativo:</label>
                         <div class="d-flex gap-4 mt-2">
 
-                            <div class="icheck-primary d-inline">
+                            <div class="icheck-primary d-inline mr-2">
                                 <input type="radio" id="equipo_operativo_si" name="equipo_operativo" value="1" required>
                                 <label for="equipo_operativo_si">Sí</label>
                             </div>
 
-                            <div class="icheck-primary d-inline ms-3">
+                            <div class="icheck-primary d-inline ms-3  mr-2">
                                 <input type="radio" id="equipo_operativo_no" name="equipo_operativo" value="0">
                                 <label for="equipo_operativo_no">No</label>
                             </div>
 
                             <div class="icheck-primary d-inline ms-3">
-                                <input type="radio" id="equipo_operativo_pdte" name="equipo_operativo" value="0">
+                                <input type="radio" id="equipo_operativo_pdte" name="equipo_operativo" value="2">
                                 <label for="equipo_operativo_pdte">Si, pero con pendientes</label>
                             </div>
 
@@ -46,7 +47,7 @@
                         <label class="fw-bold">Requiere solicitud en SIESA:</label>
                         <div class="d-flex gap-4 mt-2">
 
-                            <div class="icheck-primary d-inline">
+                            <div class="icheck-primary d-inline mr-2">
                                 <input type="radio" id="req_compra_si" name="requiere_compra" value="1">
                                 <label for="req_compra_si">Sí</label>
                             </div>
@@ -64,6 +65,19 @@
                         <input type="text" class="form-control" id="num_siesa" name="num_solicitud_siesa"
                             placeholder="Ej: 001-SCS-1223">
                     </div>
+
+                    <div class="form-group mt-3">
+                        <label class="fw-bold" for="horas_progma">Horas Programadas de Mantenimiento:</label>
+                        <input type="text" class="form-control" id="horas_progma" name="horas_progma"
+                            placeholder="Ej: 5.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="desp_obra" class="col-form-label">Obra:</label>
+                        <select class="form-control select2bs4" id="selectObras" name="selectObras" required>
+                        </select>
+                    </div>
+
 
 
                 </div>

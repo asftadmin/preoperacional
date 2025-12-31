@@ -5,6 +5,10 @@ function init() {
     inicializarTabla();
     inicializarTablaR();
 
+    $("#orden_form_close").on("submit", function (e) {
+        cerrarOrdenTrabajo(e);
+    });
+
 }
 
 // Botones de carpeta
@@ -18,6 +22,10 @@ $('#revision-btn').on('click', function () {
     if (tablaOpen) tablaOpen.clear().destroy();
 });
 
+$('.select2bs4').select2({
+    theme: 'bootstrap4',
+    width: '100%'
+})
 
 function inicializarTabla() {
     tablaOpen = $('#tableTickets').DataTable({
@@ -218,6 +226,12 @@ $(document).ready(function () {
 
 function cerrarOTM(ticketID) {
     $('#mdltitulo').html('Cerrar Orden de Trabajo');
+    $.post("../../controller/OrdenTrabajo.php?op=verOrdenes", { ticketID: ticketID }, function (data) {
+        data = JSON.parse(data);
+        $('#codi_orden').val(data.codi_otm);
+        $('#num_orden').val(data.num_otm);
+
+    });
     $('#modalCerrarOrden').modal('show');
 }
 
@@ -236,15 +250,87 @@ $('input[name="requiere_compra"]').on('change', function () {
 
 $('input[name="equipo_operativo"]').on('change', function () {
 
-    if ($(this).val() == "1") {
-        $("#campo_siesa").slideDown();
-        $("#num_siesa").attr("required", true);
+    if ($(this).val() == "2") {
+        $("#campo_observaciones").slideDown();
+        $("#observaciones_pdtes").attr("required", true);
     } else {
-        $("#campo_siesa").slideUp();
-        $("#num_siesa").val("");
-        $("#num_siesa").attr("required", false);
+        $("#campo_observaciones").slideUp();
+        $("#observaciones_pdtes").val("");
+        $("#observaciones_pdtes").attr("required", false);
     }
 });
+
+$.post("../../controller/Obras.php?op=comboObras", function (data) {
+    $('#selectObras').html(data);
+});
+
+
+function cerrarOrdenTrabajo(e) {
+
+    e.preventDefault(); // Detiene el submit tradicional del formulario
+
+    let formData = new FormData($("#orden_form_close")[0]);
+
+    // Obtener valores de radio button
+    let equipo_operativo = $('input[name="equipo_operativo"]:checked').val();
+    let requiere_compra = $('input[name="requiere_compra"]:checked').val();
+    //let solicitud_siesa = $("#num_siesa").val().trim();
+
+    // ================================
+    // VALIDACIONES CORRECTAS
+    // ================================
+
+    // Validación RADIO: equipo operativo
+    if (typeof equipo_operativo === "undefined") {
+        Swal.fire("Campo requerido", "Debe seleccionar si el equipo quedó operativo.", "warning");
+        return;
+    }
+
+    // Validación RADIO: requiere compra
+    if (typeof requiere_compra === "undefined") {
+        Swal.fire("Campo requerido", "Debe indicar si requiere solicitud de compra.", "warning");
+        return;
+    }
+
+
+    // ================================
+    // ENVÍO AJAX
+    // ================================
+    $.ajax({
+        url: "../../controller/OrdenTrabajo.php?op=close_otm",
+        type: "POST",
+        data: formData,
+        contentType: false,
+        processData: false,
+        dataType: "json",
+
+        success: function (data) {
+
+            if (data.status === "success") {
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Orden cerrada correctamente",
+                    text: "Se generó el reporte de mantenimiento."
+                }).then(() => {
+                    // Cerrar modal
+                    $("#modalCerrarOrden").modal("hide");
+
+                    // Recargar tabla
+                    $("#tableTktRev").DataTable().ajax.reload();
+                });
+
+            } else {
+                Swal.fire("Error", data.message, "error");
+            }
+        },
+
+        error: function () {
+            Swal.fire("Error", "No se pudo cerrar la OT.", "error");
+        }
+    });
+}
+
 
 
 

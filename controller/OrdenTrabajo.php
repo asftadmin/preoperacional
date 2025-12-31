@@ -24,7 +24,7 @@ switch ($_REQUEST["op"]) {
         } else {
             $nuevoNumero = "000001";
         }
- 
+
         // Generar el nuevo código con el año actual
         $nuevoReporte = "OTM-" . date("Y") . "-" . $nuevoNumero;
 
@@ -72,5 +72,34 @@ switch ($_REQUEST["op"]) {
         }
 
 
+        break;
+
+    case 'verOrdenes':
+
+        $datos = $ordenes->get_ordenes_id($_POST["ticketID"]);
+        if (is_array($datos) == true && count($datos) > 0) {
+            foreach ($datos as $row) {
+                $output["codi_otm"] = $row['codi_otm'];
+                $output["num_otm"] = $row['num_otm'];
+            }
+            echo json_encode($output);
+        }
+
+        break;
+
+
+    case "close_otm":
+
+        $datos = $ordenes->cerrarOrdenTrabajo(
+            $_POST["codi_orden"],
+            $_POST["num_solicitud_siesa"],
+            $_POST["equipo_operativo"],
+            $_POST["observaciones_pdtes"],
+            $_POST["selectObras"],
+            $_POST["horas_progma"],
+            $_SESSION["user_id"]
+        );
+
+        echo json_encode($datos);
         break;
 }

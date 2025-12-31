@@ -1,8 +1,10 @@
 <?php
 
-class OrdenTrabajo extends Conectar {
+class OrdenTrabajo extends Conectar
+{
 
-    public function obternerUltimoConsecutivo() {
+    public function obternerUltimoConsecutivo()
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT num_otm FROM ordenes_trabajo 
@@ -83,4 +85,166 @@ class OrdenTrabajo extends Conectar {
             return ['success' => false, 'error' => 'Error inesperado: ' . $e->getMessage()];
         }
     }
-} 
+
+    public function get_ordenes_id($ticket_id)
+    {
+
+        $conectar = parent::conexion();
+        parent::set_names();
+        $sql = "SELECT * FROM ordenes_trabajo WHERE codi_otm=?";
+        $sql = $conectar->prepare($sql);
+        $sql->bindValue(1, $ticket_id);
+        $sql->execute();
+        return $resultado = $sql->fetchAll();
+    }
+
+    public function cerrarOrdenTrabajo(
+        $id_orden,
+        $solicitud_siesa,
+        $equipo_operativo,
+        $pendientes,
+        $obras,
+        $horas,
+        $usuario
+    ) {
+        $conectar = parent::Conexion();
+
+        try {
+
+            $conectar->beginTransaction();
+
+            // =========================================================
+            // 1. ACTUALIZAR ORDEN DE TRABAJO
+            // =========================================================
+            $sql = "UPDATE ordenes_trabajo SET
+                    solicitud_otm = :solicitud_siesa,
+                    equipo_operativo_otm = :equipo_operativo,
+                    pendientes_otm = :pendientes,
+                    esta_otm = 2
+                WHERE codi_otm = :id_orden";
+
+            $stmt = $conectar->prepare($sql);
+
+            $stmt->bindValue(":solicitud_siesa", $solicitud_siesa, PDO::PARAM_STR);
+            $stmt->bindValue(":equipo_operativo", $equipo_operativo, PDO::PARAM_INT);
+            $stmt->bindValue(":pendientes", $pendientes, PDO::PARAM_STR);
+            $stmt->bindValue(":id_orden", $id_orden, PDO::PARAM_INT);
+
+            if (!$stmt->execute()) {
+                print_r($stmt->errorInfo());
+                die("ERROR EN UPDATE");
+            }
+
+            // =========================================================
+            // 2. OBTENER SOLICITUD ASOCIADA A ESTA OT
+            // =========================================================
+            $sql = "SELECT codi_solc_otm
+                    FROM ordenes_trabajo
+                    WHERE codi_otm = :id_orden";
+
+            $stmt = $conectar->prepare($sql);
+            $stmt->bindValue(":id_orden", $id_orden, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $solicitud = $stmt->fetchColumn();
+
+            if (!$solicitud) {
+                throw new Exception("No se encontró solicitud asociada a la OT.");
+            }
+
+            // =========================================================
+            // 3. ACTUALIZAR ESTADO DE LA SOLICITUD A 3
+            // =========================================================
+            $sql = "UPDATE solicitudes_mtto 
+                    SET esta_soli = 3
+                    WHERE codi_soli = :id_solicitud";
+
+            $stmt = $conectar->prepare($sql);
+            $stmt->bindValue(":id_solicitud", $solicitud, PDO::PARAM_INT);
+
+            if (!$stmt->execute()) {
+                print_r($stmt->errorInfo());
+                die("ERROR EN UPDATE SOLICITUD");
+            }
+
+            // =========================================================
+            // 4. GENERAR CONSECUTIVO MTTO-YYYY-XXXX (POSTGRESQL)
+            // =========================================================
+            $sql = "    SELECT 
+                        'MTTO-' || EXTRACT(YEAR FROM CURRENT_DATE)::text || '-' ||
+                        LPAD(
+                            (
+                                COALESCE(
+                                    MAX(
+                                        (regexp_replace(repo_mtto_num_reporte, '^MTTO-[0-9]{4}-', '', 'g'))::integer
+                                    ),
+                                0) + 1
+                            )::text,
+                        4,
+                        '0'
+                        ) AS numero_reporte
+                    FROM reporte_mtto
+                    WHERE repo_mtto_num_reporte LIKE 
+                        'MTTO-' || EXTRACT(YEAR FROM CURRENT_DATE)::text || '-%'
+
+                    UNION ALL
+
+                    -- Caso donde NO existen reportes en el año actual
+                    SELECT 
+                        'MTTO-' || EXTRACT(YEAR FROM CURRENT_DATE)::text || '-0001'
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM reporte_mtto 
+                        WHERE repo_mtto_num_reporte LIKE 
+                            'MTTO-' || EXTRACT(YEAR FROM CURRENT_DATE)::text || '-%'
+                    )
+                    LIMIT 1;";
+
+            $stmt = $conectar->prepare($sql);
+            if (!$stmt->execute()) {
+                print_r($stmt->errorInfo());
+                die("ERROR SQL");
+            }
+
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+
+            if (!$row) {
+                throw new Exception("No se pudo generar el número de reporte");
+            }
+
+            $num_reporte = $row["numero_reporte"];
+
+            // =========================================================
+            // 3. INSERTAR EN reporte_mtto
+            // =========================================================
+            $sql = "INSERT INTO reporte_mtto 
+                    (repo_mtto_num_reporte, repo_mtto_obra_id, repo_mtto_horas_programadas, repo_mtto_estado, repo_mtto_usuario_creacion_id)
+                VALUES (:num_reporte, :obra, :horas, 1, :usuario)";
+
+            $stmt = $conectar->prepare($sql);
+
+            $stmt->bindValue(":num_reporte", $num_reporte, PDO::PARAM_STR);
+            $stmt->bindValue(":obra", $obras, PDO::PARAM_INT);
+            $stmt->bindValue(":horas", number_format($horas, 2, '.', ''), PDO::PARAM_STR);
+            $stmt->bindValue(":usuario", $usuario, PDO::PARAM_INT);
+
+            $stmt->execute();
+
+            $conectar->commit();
+
+            return [
+                "status" => "success",
+                "message" => "Orden cerrada exitosamente"
+            ];
+        } catch (Exception $e) {
+
+            $conectar->rollBack();
+
+            return [
+                "status" => "error",
+                "message" => "Error al cerrar la OT: " . $e->getMessage()
+            ];
+        }
+    }
+}
