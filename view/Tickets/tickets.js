@@ -185,7 +185,7 @@ function verDetalleTicket(ticketID) {
 
 function verOTM(codi_otm) {
     console.log(codi_otm);
-    var url = BASE_URL +'/view/PDF/OrdenesTrabajo.php?ID=' + codi_otm;
+    var url = BASE_URL + '/view/PDF/OrdenesTrabajo.php?ID=' + codi_otm;
     window.open(url, '_blank');
 }
 
@@ -205,6 +205,45 @@ $(document).on('click', '.btn-volver-tickets', function () {
         </div>
     `);
     history.pushState(null, null, 'tickets.php');
+});
+
+$(document).ready(function () {
+    $('#btnCrearOrden').on('click', function () {
+        let solicitud = $('#ticket_id').val();
+        $('#mdltitulo').html('No. Solicitud: ' + solicitud);
+        $('#modalOrdenMtto').modal('show');  // Abrir el modal
+    });
+
+});
+
+function cerrarOTM(ticketID) {
+    $('#mdltitulo').html('Cerrar Orden de Trabajo');
+    $('#modalCerrarOrden').modal('show');
+}
+
+// Mostrar/Ocultar campo SIESA automáticamente
+$('input[name="requiere_compra"]').on('change', function () {
+
+    if ($(this).val() == "1") {
+        $("#campo_siesa").slideDown();
+        $("#num_siesa").attr("required", true);
+    } else {
+        $("#campo_siesa").slideUp();
+        $("#num_siesa").val("");
+        $("#num_siesa").attr("required", false);
+    }
+});
+
+$('input[name="equipo_operativo"]').on('change', function () {
+
+    if ($(this).val() == "1") {
+        $("#campo_siesa").slideDown();
+        $("#num_siesa").attr("required", true);
+    } else {
+        $("#campo_siesa").slideUp();
+        $("#num_siesa").val("");
+        $("#num_siesa").attr("required", false);
+    }
 });
 
 

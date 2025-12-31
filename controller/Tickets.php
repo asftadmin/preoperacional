@@ -109,6 +109,9 @@ switch ($_REQUEST["op"]) {
                     <button type="button" onClick="verOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-danger btn-icon " >
                         <div><i class="fas fa-file-pdf"></i></i></div>
                     </button>
+                    <button type="button" onClick="cerrarOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-success btn-icon " >
+                        <div><i class="fas fa-lock"></i></i></div>
+                    </button>
                 </div>';
 
             $data[] = $sub_array;

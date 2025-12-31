@@ -76,7 +76,7 @@ if (is_array($datos) and count($datos) > 0) {
                                 <div class="card-footer">
                                     <button type="button" id="btnCrearOrden" class="btn btn-default"><i
                                             class="fas fa-file-signature"></i>
-                                        Crear Reporte</button>
+                                        Crear OTM</button>
                                     <button type="button" class="btn btn-default" id="btnVolver"><i
                                             class="fas fa-arrow-circle-left"></i>
                                         Regresar</button>

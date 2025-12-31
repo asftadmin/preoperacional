@@ -96,7 +96,7 @@ if (is_array($datos) and count($datos) > 0) {
                 <!-- /.content-wrapper -->
             </div>
 
-
+            <?php require_once("modalCerrarOrden.php") ?>
             <?php require_once("../MainFooter/footer.php") ?>
 
             <!-- ./wrapper -->
