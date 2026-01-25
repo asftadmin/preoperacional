@@ -1,9 +1,11 @@
 let tablaOpen = null;
 let tablaRevision = null;
+let tablaCerrados = null;
 function init() {
 
     inicializarTabla();
     inicializarTablaR();
+    inicializarTablaC();
 
     $("#orden_form_close").on("submit", function (e) {
         cerrarOrdenTrabajo(e);
@@ -101,6 +103,15 @@ function cargarSolicitudesR(tipo = 'Revision') {
     }
 }
 
+function cargarSolicitudesC(tipo = 'Cerrados') {
+    const nuevaURL = `../../controller/tickets.php?op=listarTickets${tipo}`;
+    if (tablaCerrados) {
+        tablaCerrados.ajax.url(nuevaURL).load(); // recarga datos sin reiniciar tabla
+    } else {
+        inicializarTablaC();
+    }
+}
+
 function inicializarTablaR() {
     tablaRevision = $('#tableTktRev').DataTable({
         destroy: true, // permite reiniciar sin conflictos
@@ -155,6 +166,63 @@ function inicializarTablaR() {
             { data: "placa", title: "Placa" },
             { data: "fecha", title: "Fecha Solc." },
             { data: "tipo", title: "Tipo Mant." },
+            { data: "acciones", title: "Acciones" }
+        ]
+    });
+}
+
+function inicializarTablaC() {
+    tablaRevision = $('#tableTktCerrado').DataTable({
+        destroy: true, // permite reiniciar sin conflictos
+        processing: true,
+        serverSide: false, // tu backend ya devuelve todo
+        searching: false,
+        lengthChange: false,
+        responsive: true,
+        pageLength: 7,
+        autoWidth: false,
+        language: {
+            sProcessing: "Procesando...",
+            sZeroRecords: "No se encontraron resultados",
+            sEmptyTable: "Ningún dato disponible en esta tabla",
+            sInfo: "Mostrando un total de _TOTAL_ registros",
+            sInfoEmpty: "Mostrando un total de 0 registros",
+            oPaginate: {
+                sFirst: "Primero",
+                sLast: "Último",
+                sNext: "Siguiente",
+                sPrevious: "Anterior"
+            }
+        },
+        ajax: {
+            url: '../../controller/tickets.php?op=listarTicketsCerrados',
+            type: "POST",
+            dataType: "json",
+            dataSrc: function (json) {
+                console.log("Respuesta del servidor:", json);
+                if (json && json.aaData) {
+                    // convertir las filas [[],[],[]] en objetos
+                    return json.aaData.map(function (r) {
+                        return {
+                            no_reporte: r[0],
+                            no_orden: r[1],
+                            placa: r[2],
+                            fecha_solicitud: r[3],
+                            acciones: r[4]
+                        };
+                    });
+                }
+                return [];
+            },
+            error: function (xhr) {
+                console.error("Error en AJAX:", xhr.responseText);
+            }
+        },
+        columns: [
+            { data: "no_reporte", title: "No.Orden" },
+            { data: "no_orden", title: "No.Solicitud" },
+            { data: "placa", title: "Placa" },
+            { data: "fecha_solicitud", title: "Fecha Solc." },
             { data: "acciones", title: "Acciones" }
         ]
     });
@@ -331,7 +399,10 @@ function cerrarOrdenTrabajo(e) {
     });
 }
 
-
+function verReporte(codigo_reporte) {
+    console.log(codigo_reporte);
+    window.location.href = BASE_URL + '/view/Tickets/detalle_reporte.php?id=' + codigo_reporte; //http://181.204.219.154:3396/preoperacional
+}
 
 
 init();

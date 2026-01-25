@@ -38,7 +38,24 @@ class Tickets extends Conectar {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
- 
+
+    public function get_tickets_cerrados($coordinador_id) {
+        $conectar = parent::conexion();
+        parent::set_names();
+        $sql = "SELECT * FROM solicitudes_mtto 
+				INNER JOIN vehiculos ON codi_vehi_soli = vehi_id 
+                INNER JOIN usuarios ON user_id = codi_cond_soli 
+                INNER JOIN ordenes_trabajo ON ordenes_trabajo.codi_solc_otm = solicitudes_mtto.codi_soli
+				INNER JOIN reporte_mtto ON reporte_mtto.repo_mtto_orden = ordenes_trabajo.codi_otm
+                INNER JOIN tipos_mantenimiento ON tipos_mantenimiento.codigo_tipo_mantenimiento = ordenes_trabajo.mtto_otm
+                WHERE esta_soli = '3' AND asig_soli = ?
+                ";
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(1, $coordinador_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function get_tickets_ordenes($codi_otm) {
         $conectar = parent::conexion();
         parent::set_names();

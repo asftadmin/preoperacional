@@ -126,6 +126,44 @@ switch ($_REQUEST["op"]) {
         echo json_encode($results);
 
         break;
+
+    case 'listarTicketsCerrados':
+
+        $coordinador = $_SESSION["user_rol_usuario"];
+        $datos = $ticket->get_tickets_cerrados($coordinador);
+        $data = array();
+        //$tickets = [];
+        foreach ($datos as $solicitud) {
+            $sub_array = array();
+            $sub_array[] = $solicitud["repo_mtto_num_reporte"];
+            $sub_array[] = $solicitud["num_otm"];
+            $sub_array[] = $solicitud["vehi_placa"];
+            $sub_array[] = date('d-m-Y / H:i', strtotime($solicitud["repo_mtto_fecha_creacion"]));
+
+            $sub_array[] = '<div class="button-container text-center" >
+                    <button type="button" onClick="" id="" class="btn btn-secondary btn-icon " >
+                        <div><i class="fas fa-bars"></i></div>
+                    </button>
+                    <button type="button" onClick="verReporte(' . $solicitud["repo_mtto_id"] . ');" id="' . $solicitud["repo_mtto_id"] . '" class="btn btn-info btn-icon " >
+                        <div><i class="fas fa-folder-open"></i></div>
+                    </button>
+                    <button type="button" onClick="cerrarOTM(' . $solicitud["repo_mtto_id"] . ');" id="' . $solicitud["repo_mtto_id"] . '" class="btn btn-dark btn-icon " >
+                        <div><i class="fas fa-file-signature"></i></div>
+                    </button>
+                </div>';
+
+            $data[] = $sub_array;
+        }
+
+        $results = array(
+            "sEcho" => 1,
+            "iTotalRecords" => count($data),
+            "iTotalDisplayRecords" => count($data),
+            "aaData" => $data
+        );
+        echo json_encode($results);
+
+        break;
 }
 
 

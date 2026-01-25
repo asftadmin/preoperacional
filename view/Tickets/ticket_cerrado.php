@@ -70,9 +70,10 @@ if (is_array($datos) and count($datos) > 0) {
                                         <table class="table table-hover table-striped" id="tableTktCerrado">
                                             <thead>
                                                 <tr>
-                                                    <th>No.Solicitud</th>
+                                                    <th>No. Reporte</th>
+                                                    <th>No. Orden Trabajo</th>
                                                     <th>Placa</th>
-                                                    <th>Fecha</th>
+                                                    <th>Fecha Solicitud</th>
                                                     <th>Acciones</th>
                                                 </tr>
                                             </thead>

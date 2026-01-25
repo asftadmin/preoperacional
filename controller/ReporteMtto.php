@@ -18,41 +18,6 @@ switch ($_GET["op"]) {
             echo $html;
         }
         break;
-    case 'listaRerporte':
-        $datos = $reporte->listaReporte();
-        $data = array();
-        foreach ($datos as $row) {
-            $sub_array = array();
-            $sub_array[] = date_format(new DateTime($row["repo_fech"]), 'd/m/Y');
-            $sub_array[] = $row["repo_numb"];
-            $sub_array[] = $row["vehi_placa"];
-            $sub_array[] = '$ ' . number_format($row["deta_total_mtto"], 0, ',', '.');
-            if ($row["estado"] === "APROBADO") {
-                $sub_array[] = '<div style="text-align: center;"><span style="background-color: #26AE2A; color: #fff; padding: 8px; border-radius: 5px; width: 200px;">APROBADO</span></div>';
-            } else if ($row["estado"] === "ANULADO") {
-                $sub_array[] = '<div style="text-align: center;"><span style="background-color: #dc3545; color: #fff; padding: 8px; border-radius: 5px; width: 200px;">ANULADO</span></div>';
-            }
-            $sub_array[] = '<div class="button-container text-center" >
-                    <button type="button" onClick="anular(' . $row["repo_codi"] . ');" id="' . $row["repo_codi"] . '" class="btn btn-danger btn-icon" >
-                        <div><i class="fas fa-minus-square"></i></div>
-                    </button>
-                     <button type="button" onClick="ver(\'' . $row["repo_numb"] . '\');" id="' . $row["repo_numb"] . '" class="btn btn-info btn-icon">
-                        <div><i class="fa fa-eye"></i></div>
-                    </button>
-                    <button type="button" onClick="pdf(\'' . $row["repo_numb"] . '\');" id="' . $row["repo_numb"] . '" class="btn btn-danger btn-icon">
-                        <div><i class="fa fa-file-pdf"></i></div>
-                    </button></div>';
-            $data[] = $sub_array;
-        }
-
-        $results = array(
-            "sEcho" => 1,
-            "iTotalRecords" => count($data),
-            "iTotalDisplayRecords" => count($data),
-            "aaData" => $data
-        );
-        echo json_encode($results);
-        break;
     case 'numeroReporte':
         $ultimo = $reporte->obternerUltimoConsecutivo();
 
@@ -78,54 +43,7 @@ switch ($_GET["op"]) {
 
 
         break;
-    case 'guardar':
 
-        // Obtener los datos de la solicitud
-        $inputJSON = file_get_contents('php://input');
-        error_log("Contenido de php://input: " . $inputJSON);
-
-        // Decodificar JSON
-        $datos = json_decode($inputJSON, true);
-
-        // Verificar si el JSON es válido
-        if ($datos === null) {
-            error_log("Error al decodificar JSON: " . json_last_error_msg());
-            echo json_encode(['status' => 'error', 'message' => 'Error al decodificar JSON']);
-            exit;
-        }
-
-
-        //Extraer los datos
-
-        $reporteJS = $datos['reporte'] ?? [];
-        $detalle = $datos['detalle'] ?? [];
-        $proveedores = $datos['proveedores'] ?? [];
-        $insumos = $datos['insumos'] ?? [];
-
-        //Validar si los datos no este vacios
-        if (empty($reporteJS) || empty($detalle)) {
-            echo json_encode(['status' => 'error', 'message' => 'No se recibieron datos']);
-            return;
-        }
-
-        // Registrar los datos extraídos en el log del servidor
-        error_log("Reporte: " . print_r($reporte, true));
-        error_log("Detalle: " . print_r($detalle, true));
-        error_log("Proveedores: " . print_r($proveedores, true));
-        error_log("Insumos: " . print_r($insumos, true));
-
-        // Llamar al modelo para guardar los datos
-        $resultado = $reporte->guardarReporte($reporteJS, $detalle, $proveedores, $insumos);
-
-
-        // Devolver la respuesta al frontend
-        if ($resultado) {
-            echo json_encode(['status' => 'success', 'message' => 'Reporte guardado correctamente', 'repo_numb' => $reporteJS['numb_reporte']]);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Error al guardar el reporte']);
-        }
-
-        break;
     case "anulado":
         $datos = $reporte->anulado($_POST["repo_codi"]);
         break;
@@ -162,4 +80,5 @@ switch ($_GET["op"]) {
             echo json_encode(['status' => 'error', 'message' => 'Faltan datos requeridos.']);
         }
         break;
+    
 }
