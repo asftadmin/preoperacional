@@ -38,19 +38,6 @@ $(document).ready(function() {
 
 });
 
-//Post para crear reporte de mantenimiento
-
-/* $(document).ready(function() {
-    $('#btnCrearOrden').on('click', function() {
-        let solicitud = $('#ticket_id').val(); 
-        $('#mdltitulo').html('No. Solicitud: '+ solicitud);
-        $('#codi_vehi').val();      // Llenar el campo codi_vehi
-        $('#codi_cond').val();      // Llenar el campo codi_cond
-        $('#diag_rpte').val();      // Llenar el campo diag_rpte
-        $('#modalOrdenMtto').modal('show');  // Abrir el modal
-    });
-
-}); */
 
 $(document).ready(function() {
     $('#btnCrearOrden').on('click', function() {
@@ -127,76 +114,6 @@ function guardar(e){
 
 }
 
-/* function guardar(e){
-     e.preventDefault();
-     let num_reporte = $('#numb_reporte').val();
-     let horas_prog = $('#hora_reporte').val();
-     let fecha_asignacion = $('#fecha_reporte').val();
-     let obra = $('#nomb_obra').val();
-     let mantenimiento = $('#tipo_mtto').val();
-
-     let vehiculo = $('#codi_vehi').val();
-     let conductor = $('#codi_cond').val();
-     let diagnostico_inicial = $('#diag_rpte').val();
-     let ticket_id = $('#ticket_id').val();
-
-     let data = {
-        num_reporte: num_reporte,
-        horas_prog: horas_prog,
-        fecha_asignacion: fecha_asignacion,
-        obra: obra,
-        mantenimiento : mantenimiento,
-        vehiculo : vehiculo,
-        conductor : conductor,
-        diagnostico_inicial : diagnostico_inicial,
-        ticket_id : ticket_id
-     };
-
-     console.log(data);
-
-     $.ajax({
-
-        url: '../../controller/ReporteMtto.php?op=guardarReporte',
-        type: 'POST',
-        data: data,
-        success: function(response) {
-            console.log(response);
-                const result = JSON.parse(response);  // Asumimos que la respuesta es JSON
-
-                // Mostrar mensaje de éxito o error con Swal
-                if (result.status === 'success') {
-                    Swal.fire({
-                        title: '¡Guardado Exitosamente!',
-                        text: 'El reporte fue creado correctamente.',
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    });
-
-                    // Cerrar el modal
-                    $('#modalRerporteMtto').modal('hide');
-                } else {
-                    Swal.fire({
-                        title: 'Error',
-                        text: result.message,
-                        icon: 'error',
-                        confirmButtonText: 'Intentar de nuevo'
-                    });
-                }
-
-        },
-        error: function() {
-            // En caso de error en la solicitud AJAX
-            Swal.fire({
-                title: 'Error',
-                text: 'Hubo un problema al crear el reporte.',
-                icon: 'error',
-                confirmButtonText: 'Intentar de nuevo'
-            });
-        },
-
-    });
-
-} */
 
 //Boton Regresar a la bandeja de Abiertos
 $('#btnVolver').click(function() {

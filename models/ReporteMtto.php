@@ -1,11 +1,13 @@
 <?php
 
-class ReporteMtto extends Conectar {
+class ReporteMtto extends Conectar
+{
 
 
     /**LISTAR TIPO DE MANTENIMIENTO */
 
-    public function get_tipo_mtto() {
+    public function get_tipo_mtto()
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT * FROM tipos_mantenimiento";
@@ -14,7 +16,8 @@ class ReporteMtto extends Conectar {
         return $resultado = $sql->fetchAll();
     }
 
-    public function obternerUltimoConsecutivo() {
+    public function obternerUltimoConsecutivo()
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repo_numb FROM reporte_mantenimiento 
@@ -27,7 +30,8 @@ class ReporteMtto extends Conectar {
         return $resultado;
     }
 
-    public function listaReporte() {
+    public function listaReporte()
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repo_codi, deta_codi, vehi_id, repo_numb, repo_fech, vehi_placa, deta_total_mtto,
@@ -45,7 +49,109 @@ class ReporteMtto extends Conectar {
         return $resultado = $sql->fetchAll();
     }
 
-    public function guardarReporte($reporte, $detalle, $proveedores, $insumos) {
+    public function get_reporte_detalle($num_reporte)
+    {
+        $conectar = parent::conexion();
+        parent::set_names();
+        // -----------------------------------------------------
+        // 1. REPORTE DE MTTO
+        // -----------------------------------------------------
+        $sql = "SELECT *
+            FROM reporte_mtto
+            WHERE repo_mtto_id = :num_reporte";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":num_reporte", $num_reporte, PDO::PARAM_STR);
+
+        $stmt->execute();
+        $reporte = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$reporte) {
+            return false;
+        }
+
+        // El campo correcto que SI existe = repo_mtto_orden
+        $id_ot = $reporte["repo_mtto_orden"];
+
+
+        // -----------------------------------------------------
+        // 2. ORDEN DE TRABAJO
+        // -----------------------------------------------------
+        $sql = "SELECT *
+            FROM ordenes_trabajo
+            WHERE codi_otm = :id_ot";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":id_ot", $id_ot, PDO::PARAM_INT);
+
+        $stmt->execute();
+        $ot = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+        $id_solic = $ot["codi_solc_otm"];
+
+        // -----------------------------------------------------
+        // 3. SOLICITUD DE MANTENIMIENTO
+        // -----------------------------------------------------
+        $sql = "SELECT *
+            FROM solicitudes_mtto
+            WHERE codi_soli = :id_solic";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":id_solic", $id_solic, PDO::PARAM_INT);
+
+        $stmt->execute();
+        $solicitud = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+
+        $id_vehiculo = $solicitud["codi_vehi_soli"];
+        // -----------------------------------------------------
+        // 4. OBTENER VEHÍCULO (pendiente de confirmar)
+        // -----------------------------------------------------
+        $sql = "SELECT *
+            FROM vehiculos
+            WHERE vehi_id = :id_vehiculo";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":id_vehiculo", $id_vehiculo, PDO::PARAM_INT);
+
+        $stmt->execute();
+        $equipo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        /*
+        ⚠ Necesito que me confirmes:
+
+        - ¿Cómo se relaciona ordenes_trabajo con vehiculos?
+        - ¿Cuál columna contiene el ID del vehículo?
+
+        Según tus imágenes, la tabla OT NO trae vehículo directamente.
+
+        Posibles relaciones:
+        A) ordenes_trabajo.codi_soli_otm → solicitudes.codi_soli → solicitudes.codi_vehi_soli
+        B) algún campo en OT que no hemos visto
+    */
+
+        return [
+            "reporte"   => $reporte,
+            "equipo"    => $equipo,
+            "ot"        => $ot,
+            "solicitud" => $solicitud,
+            "repuestos" => [] // Items vienen de la API SIESA
+        ];
+    }
+
+
+
+
+    /* 
+    ===========================================
+    ===========================================
+    
+    */
+
+    public function guardarReporte($reporte, $detalle, $proveedores, $insumos)
+    {
 
         $conectar = parent::conexion();
         parent::set_names();
@@ -152,7 +258,8 @@ class ReporteMtto extends Conectar {
         }
     }
     /* ACTUALIZAR A UN ESTADO ANULADO */
-    public function anulado($repo_codi) {
+    public function anulado($repo_codi)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE reporte_mantenimiento SET repo_estado = 2 WHERE repo_codi = ? ";

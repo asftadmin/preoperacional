@@ -61,7 +61,7 @@ if (is_array($datos) and count($datos) > 0) {
                             <div class="col-md-9">
                                 <div class="card card-primary card-outline">
                                     <div class="card-header">
-                                        <h3 class="card-title">Reportes Mantenimiento</h3>
+                                        <h3 class="card-title">Detalle Reporte Mantenimiento</h3>
                                     </div>
 
                                     <div id="readMessage">
@@ -93,7 +93,7 @@ if (is_array($datos) and count($datos) > 0) {
                 <!-- /.content-wrapper -->
             </div>
 
-            <?php require_once("modal_orden.php") ?>
+            <?php require_once("modal_importar.php") ?>
             <?php require_once("../MainFooter/footer.php") ?>
 
             <!-- ./wrapper -->
