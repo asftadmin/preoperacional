@@ -32,19 +32,23 @@
                 </div>
 
                 <!-- TABLA DE RESULTADOS -->
-                <table class="table table-bordered table-striped" id="tablaSiesa">
-                    <thead class="bg-light">
-                        <tr>
-                            <th><input type="checkbox" id="checkAll"></th>
-                            <th>Documento</th>
-                            <th>Desc. Item</th>
-                            <th>Cantidad</th>
-                            <th>Valor Neto</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped dt-responsive nowrap" id="tablaSiesa">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="control"></th>
+                                <th><input type="checkbox" id="checkAll"></th>
+                                <th>Fecha</th>
+                                <th>Documento</th>
+                                <th>Desc. Item</th>
+                                <th>Cantidad</th>
+                                <th>Valor Neto</th>
+                                <th>Notas</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="modal-footer">

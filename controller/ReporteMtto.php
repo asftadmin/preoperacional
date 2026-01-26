@@ -108,7 +108,7 @@ switch ($_GET["op"]) {
             exit;
         }
 
-        $reporte  = $detalle["reporte"];
+        $informe  = $detalle["reporte"];
         $equipo   = $detalle["equipo"];
         $ot       = $detalle["ot"];
         $solicitud    = $detalle["solicitud"];
@@ -120,21 +120,34 @@ switch ($_GET["op"]) {
 
         $html = '';
 
+        $estado = intval($informe["repo_mtto_estado"]);
+
+        if ($estado === 1) {
+            $badgeEstado = '<span class="badge bg-success">REPORTE ABIERTO</span>';
+        } elseif ($estado === 2) {
+            $badgeEstado = '<span class="badge bg-danger">REPORTE CERRADO</span>';
+        } else {
+            $badgeEstado = '<span class="badge bg-secondary">ESTADO DESCONOCIDO</span>';
+        }
+
         // ENCABEZADO
         $html .= '<div class="mailbox-read-info border-bottom pb-2 mb-3">';
-        $html .= '<h3><b>Número de Reporte: ' . htmlspecialchars($reporte["repo_mtto_num_reporte"]) . '</b></h3>';
 
+        $html .= '<div class="d-flex justify-content-between align-items-center">';
+        $html .= '    <h3 class="mb-0"><b>Número de Reporte: ' . htmlspecialchars($informe["repo_mtto_num_reporte"]) . '</b></h3>';
+        $html .= '    <div>' . $badgeEstado . '</div>';
+
+        $html .= '</div>';
         $html .= '<h6 class="mb-1 mt-2">Equipo: ' . htmlspecialchars($equipo["vehi_marca"] . " " . $equipo["vehi_placa"]) .
             '<span class="mailbox-read-time float-right">' .
-            date('d/m/Y H:i', strtotime($reporte["repo_mtto_fecha_creacion"])) .
+            date('d/m/Y H:i', strtotime($informe["repo_mtto_fecha_creacion"])) .
             '</span></h6>';
 
         $html .= '<p class="mb-0 mt-2">Código del equipo: ' . htmlspecialchars($equipo["vehi_codigo"]) . '</p>';
         $html .= '</div>';
 
-        $html .= '<input type="hidden" id="id_reporte" value="' . $reporte["repo_mtto_id"] . '">';
+        $html .= '<input type="hidden" id="id_reporte" value="' . $informe["repo_mtto_id"] . '">';
         $html .= '<input type="hidden" id="id_vehiculo" value="' . $equipo["vehi_costo"] . '">';
-
 
         // ESTADO FINAL
 
@@ -143,7 +156,7 @@ switch ($_GET["op"]) {
             2 => "No operativo",
             3 => "Operativo con pendientes"
         ];
-        $reporte["estado_texto"] = $estadoTexto[$reporte["repo_mtto_estado"]] ?? "Sin definir";
+        $informe["estado_texto"] = $estadoTexto[$informe["repo_mtto_estado"]] ?? "Sin definir";
         $html .= '<div class="mailbox-read-message mb-0">';
         $html .= '<h5><b>Estado y/o diagnostico inicial:</b></h5>';
         $html .= '<p>' . nl2br(htmlspecialchars($solicitud["desc_soli"])) . '</p>';
@@ -152,6 +165,24 @@ switch ($_GET["op"]) {
         $html .= '<h5><b>Estado Final:</b></h5>';
         //$html .= '<p>' . nl2br(htmlspecialchars($reporte["estado_texto"])) . '</p>';
         $html .= '</div>';
+
+
+        $items = $reporte->get_repuestos_por_reporte($reporteID);
+
+        /*         echo json_encode($items);
+        exit; */
+
+
+
+        // ===========================================
+        // FUNCIÓN PARA LIMPIAR VALORES VACÍOS
+        // ===========================================
+
+        function na($v) {
+            return ($v === null || $v === "" || $v === "0" || $v == 0)
+                ? "N/A"
+                : htmlspecialchars($v);
+        }
 
         // REPUESTOS E INSUMOS
         $html .= '<div class="mailbox-read-message"><hr>';
@@ -162,7 +193,7 @@ switch ($_GET["op"]) {
                 </button>';
         $html .= '</div>';
 
-        $html .= '<table table-striped table-bordered table-sm">';
+        $html .= '<table class="table table-striped table-bordered table-sm" id="tablaRepuestos">';
         $html .= '<thead class="thead-light">';
         $html .= '<tr>
                 <th>Nombre</th>
@@ -173,31 +204,65 @@ switch ($_GET["op"]) {
                 <th>Cant</th>
                 <th>Costo</th>
                 <th>OC</th>
+                <th class="text-center">Acciones</th>
               </tr>';
         $html .= '</thead><tbody>';
 
 
         $total = 0;
 
-        foreach ($items as $it) {
-            $line_total = floatval($it["costo"]) * floatval($it["cantidad"]);
-            $total += $line_total;
+        // ===========================================
+        // SI NO HAY ITEMS → MOSTRAR MENSAJE AMIGABLE
+        // ===========================================
+        if (empty($items)) {
 
-            $html .= '<tr>
-                    <td>' . htmlspecialchars($it["nombre"]) . '</td>
-                    <td>' . htmlspecialchars($it["ref"]) . '</td>
-                    <td>' . htmlspecialchars($it["marca"]) . '</td>
-                    <td>' . htmlspecialchars($it["modelo"]) . '</td>
-                    <td>' . htmlspecialchars($it["serial"]) . '</td>
-                    <td>' . htmlspecialchars($it["cantidad"]) . '</td>
-                    <td>$' . number_format($it["costo"], 0, ',', '.') . '</td>
-                    <td>' . htmlspecialchars($it["oc"]) . '</td>
-                 </tr>';
+            $html .= '
+        <tr>
+            <td colspan="8" class="text-center text-muted">
+                No hay repuestos registrados para este reporte.<br>
+                <small>Use el botón "<b>Importar desde SIESA</b>" para agregar insumos.</small>
+            </td>
+        </tr>
+    ';
+        } else {
+
+            // ===========================================
+            // RENDER DE LOS ITEMS
+            // ===========================================
+            foreach ($items as $it) {
+
+                $idItem = isset($it["repo_rpts_id"]) ? $it["repo_rpts_id"] : 0;
+
+                // evitar errores si falta algún índice                
+                $descripcion = na($it["rpts_refr"] ?? "N/A");
+                $referencia  = na($it["repo_item"] ?? "N/A");
+                $cant        = na($it["rpts_cant"] ?? "N/A");
+                $costo       = floatval($it["rpts_vlr_neto"] ?? 0);
+                $documento   = na($it["rpts_docu"] ?? "N/A");
+
+                $total += $costo;
+
+                $html .= "<tr>
+                        <td>$descripcion</td>
+                        <td>$referencia</td>
+                        <td>N/A</td>         <!-- Marca no existe -->
+                        <td>N/A</td>         <!-- Modelo no existe -->
+                        <td>N/A</td>         <!-- Serial no existe -->
+                        <td>$cant</td>
+                        <td>$" . number_format($costo, 0, ',', '.') . "</td>
+                        <td>$documento</td>
+                        <td class='text-center'>
+                            <button class='btn btn-danger btn-sm' 
+                                    onclick=\"eliminarRepuesto('$idItem')\">
+                                    <i class=\"fas fa-trash\"></i>
+                            </button>
+                        </td>
+                        </tr>";
+            }
         }
 
         $html .= '</tbody></table>';
-
-        $html .= '</div>';
+        $html .= '</div>'; // cierre mailbox-read-message
 
         $html .= '<h4 class="text-right"><b>Total Repuestos:</b> $' . number_format($total, 0, ',', '.') . '</h4>';
 
@@ -205,7 +270,7 @@ switch ($_GET["op"]) {
         $html .= '<hr>';
         $html .= '<h4><b>Entrega del Trabajo</b></h4>';
 
-        $html .= '<p><b>Horas programadas:</b> ' . $reporte["repo_mtto_horas_programadas"] . '</p>';
+        $html .= '<p><b>Horas programadas:</b> ' . $informe["repo_mtto_horas_programadas"] . '</p>';
         $html .= '<p><b>Horas ejecutadas:</b></p>';
 
         // FIN
@@ -230,7 +295,7 @@ switch ($_GET["op"]) {
         // ---------------------------------------
         // Preparar rango de fechas
         // ---------------------------------------
-        $rango = explode(" - ", $fechas);
+        $rango = explode(" / ", $fechas);
         $f_ini = $rango[0];
         $f_fin = $rango[1];
 
@@ -259,21 +324,28 @@ switch ($_GET["op"]) {
             exit;
         }
 
-        if (!isset($response->detalle->Table) || !is_array($response->detalle->Table)) {
+        if (!isset($response->detalle->Datos) || !is_array($response->detalle->Datos)) {
             echo json_encode(["status" => "error", "message" => "Sin datos para mostrar"]);
             exit;
         }
 
         $items = [];
 
-        foreach ($response->detalle->Table as $row) {
+        foreach ($response->detalle->Datos as $row) {
+            // Filtrar solo documentos OCC
+            if (trim($row->f420_id_tipo_docto ?? "") !== "OCC") {
+                continue;
+            }
             $items[] = [
-                "documento"     => trim(($row->f420_id_tipo_docto ?? "") . "-" . ($row->f420_consec_docto  ?? "")),
-                "descripcion"   => $row->f120_descripcion ?? "",
-                "cantidad" => $row->f421_cant_pedida ?? 0,
-                "valor"    => $row->f421_vlr_neto ?? 0,
-                
-                "id"       => uniqid() // ID temporal del item
+                "fecha"       => $row->f421_fecha ?? 0,
+                "documento"   => trim(($row->f420_id_tipo_docto ?? "") . "-" . ($row->f420_consec_docto ?? "")),
+                "descripcion" => $row->f120_descripcion ?? "",
+                "cantidad"    => $row->f421_cant_pedida ?? 0,
+                "valor"       => $row->f421_vlr_neto ?? 0,
+                "notas"       => $row->f420_notas ?? 0,
+                "proveedor"   => $row->f202_descripcion_sucursal ?? 0,
+                "referencia"   => $row->f120_referencia ?? 0,
+                "id"          => uniqid()
             ];
         }
 
@@ -281,6 +353,47 @@ switch ($_GET["op"]) {
             "status" => "success",
             "items"  => $items
         ]);
+
+        break;
+
+    // ============================================================
+    // 3. GUARDAR LOS ÍTEMS IMPORTADOS EN LA BASE DE DATOS
+    // ============================================================
+    case "guardar_insumos":
+
+        $reporteID = $_POST["reporte"];
+        $items     = json_decode($_POST["items"], true);
+
+        if (!$reporteID || empty($items)) {
+            echo json_encode(["status" => "error", "message" => "Datos incompletos"]);
+            exit;
+        }
+
+        $save = $reporte->insertar_insumos($reporteID, $items);
+
+        if ($save) {
+            echo json_encode(["status" => "success"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "No se pudieron guardar los insumos", "reload" => true]);
+        }
+
+        break;
+
+    case 'delete_item':
+
+        if (!isset($_POST["id"])) {
+            echo json_encode(["status" => "error", "message" => "ID no recibido"]);
+            exit;
+        }
+
+        $id = $_POST["id"];
+        $result = $reporte->delete_item($id);
+
+        if ($result) {
+            echo json_encode(["status" => "success"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "No se pudo eliminar", "reload" => true]);
+        }
 
         break;
 }

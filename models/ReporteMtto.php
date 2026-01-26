@@ -1,13 +1,11 @@
 <?php
 
-class ReporteMtto extends Conectar
-{
+class ReporteMtto extends Conectar {
 
 
     /**LISTAR TIPO DE MANTENIMIENTO */
 
-    public function get_tipo_mtto()
-    {
+    public function get_tipo_mtto() {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT * FROM tipos_mantenimiento";
@@ -16,8 +14,7 @@ class ReporteMtto extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function obternerUltimoConsecutivo()
-    {
+    public function obternerUltimoConsecutivo() {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repo_numb FROM reporte_mantenimiento 
@@ -30,8 +27,7 @@ class ReporteMtto extends Conectar
         return $resultado;
     }
 
-    public function listaReporte()
-    {
+    public function listaReporte() {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repo_codi, deta_codi, vehi_id, repo_numb, repo_fech, vehi_placa, deta_total_mtto,
@@ -49,8 +45,7 @@ class ReporteMtto extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function get_reporte_detalle($num_reporte)
-    {
+    public function get_reporte_detalle($num_reporte) {
         $conectar = parent::conexion();
         parent::set_names();
         // -----------------------------------------------------
@@ -119,19 +114,6 @@ class ReporteMtto extends Conectar
         $stmt->execute();
         $equipo = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        /*
-        ⚠ Necesito que me confirmes:
-
-        - ¿Cómo se relaciona ordenes_trabajo con vehiculos?
-        - ¿Cuál columna contiene el ID del vehículo?
-
-        Según tus imágenes, la tabla OT NO trae vehículo directamente.
-
-        Posibles relaciones:
-        A) ordenes_trabajo.codi_soli_otm → solicitudes.codi_soli → solicitudes.codi_vehi_soli
-        B) algún campo en OT que no hemos visto
-    */
-
         return [
             "reporte"   => $reporte,
             "equipo"    => $equipo,
@@ -140,6 +122,70 @@ class ReporteMtto extends Conectar
             "repuestos" => [] // Items vienen de la API SIESA
         ];
     }
+
+    public function insertar_insumos($idReporte, $items) {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        foreach ($items as $it) {
+
+            $sql = "INSERT INTO reporte_repuestos
+                (repo_mtto_id, rpts_docu, rpts_refr, rpts_cant, rpts_vlr_neto, rpts_notas, rpts_prov, repo_item)
+                VALUES (:id, :docto, :ref, :cant, :costo, :notas, :prove, :item)";
+
+            $stmt = $conectar->prepare($sql);
+
+            $stmt->bindValue(":id", $idReporte, PDO::PARAM_STR);
+            $stmt->bindValue(":docto", $it["documento"], PDO::PARAM_STR);
+            $stmt->bindValue(":ref", $it["descripcion"], PDO::PARAM_STR);
+            $stmt->bindValue(":cant", $it["cantidad"], PDO::PARAM_STR);
+            $stmt->bindValue(":costo", $it["valor"], PDO::PARAM_STR);
+            $stmt->bindValue(":notas", $it["notas"], PDO::PARAM_STR);
+            $stmt->bindValue(":prove", $it["proveedor"], PDO::PARAM_STR);
+            $stmt->bindValue(":item", $it["referencia"], PDO::PARAM_STR);
+
+            $stmt->execute();
+        }
+
+        return true;
+    }
+
+    public function get_repuestos_por_reporte($idReporte) {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "SELECT
+                repo_rpts_id, 
+                rpts_docu,
+                rpts_refr,
+                rpts_cant,
+                rpts_vlr_neto,
+                rpts_notas,
+                rpts_prov,
+                repo_item
+            FROM reporte_repuestos
+            WHERE repo_mtto_id = :id
+            ORDER BY rpts_docu ASC";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":id", $idReporte, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function delete_item($idItem) {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "DELETE FROM reporte_repuestos WHERE repo_rpts_id = :id";
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":id", $idItem, PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
+
+
 
 
 
@@ -150,8 +196,7 @@ class ReporteMtto extends Conectar
     
     */
 
-    public function guardarReporte($reporte, $detalle, $proveedores, $insumos)
-    {
+    public function guardarReporte($reporte, $detalle, $proveedores, $insumos) {
 
         $conectar = parent::conexion();
         parent::set_names();
@@ -258,8 +303,7 @@ class ReporteMtto extends Conectar
         }
     }
     /* ACTUALIZAR A UN ESTADO ANULADO */
-    public function anulado($repo_codi)
-    {
+    public function anulado($repo_codi) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE reporte_mantenimiento SET repo_estado = 2 WHERE repo_codi = ? ";
