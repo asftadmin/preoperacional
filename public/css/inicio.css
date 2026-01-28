@@ -174,5 +174,11 @@ i.nav-icon{
   position: relative;
 }
 
+.icon-super-upload {
+    font-size: 90px !important;  /* tamaño sin afectar nada más */
+    color: #009BA9;
+    margin-bottom: 10px;
+}
+
 
 

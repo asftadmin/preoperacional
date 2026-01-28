@@ -1,10 +1,8 @@
 <?php
 
-class OrdenTrabajo extends Conectar
-{
+class OrdenTrabajo extends Conectar {
 
-    public function obternerUltimoConsecutivo()
-    {
+    public function obternerUltimoConsecutivo() {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT num_otm FROM ordenes_trabajo 
@@ -86,8 +84,7 @@ class OrdenTrabajo extends Conectar
         }
     }
 
-    public function get_ordenes_id($ticket_id)
-    {
+    public function get_ordenes_id($ticket_id) {
 
         $conectar = parent::conexion();
         parent::set_names();
@@ -215,12 +212,13 @@ class OrdenTrabajo extends Conectar
 
             $num_reporte = $row["numero_reporte"];
 
+
             // =========================================================
             // 3. INSERTAR EN reporte_mtto
             // =========================================================
             $sql = "INSERT INTO reporte_mtto 
-                    (repo_mtto_num_reporte, repo_mtto_obra_id, repo_mtto_horas_programadas, repo_mtto_estado, repo_mtto_usuario_creacion_id)
-                VALUES (:num_reporte, :obra, :horas, 1, :usuario)";
+                    (repo_mtto_num_reporte, repo_mtto_obra_id, repo_mtto_horas_programadas, repo_mtto_estado, repo_mtto_usuario_creacion_id, repo_mtto_orden)
+                VALUES (:num_reporte, :obra, :horas, 1, :usuario, :orden)";
 
             $stmt = $conectar->prepare($sql);
 
@@ -228,6 +226,7 @@ class OrdenTrabajo extends Conectar
             $stmt->bindValue(":obra", $obras, PDO::PARAM_INT);
             $stmt->bindValue(":horas", number_format($horas, 2, '.', ''), PDO::PARAM_STR);
             $stmt->bindValue(":usuario", $usuario, PDO::PARAM_INT);
+            $stmt->bindValue(":orden", $id_orden, PDO::PARAM_INT);
 
             $stmt->execute();
 

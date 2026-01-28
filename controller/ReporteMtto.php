@@ -8,6 +8,33 @@ require_once("curl.php");
 $reporte = new ReporteMtto();
 
 
+function ftp_mksubdirs_safe($ftp, $path) {
+    $parts = explode('/', trim($path, '/'));
+    $fullpath = "";
+
+    foreach ($parts as $part) {
+
+        if ($part == "") continue;
+
+        $fullpath .= "/" . $part;
+
+        // Intentar cambiar
+        if (@ftp_chdir($ftp, $fullpath)) {
+            // Existe → regresar a raíz y seguir
+            ftp_chdir($ftp, "/");
+            continue;
+        }
+
+        // Si no existe → intentar crearlo
+        if (!@ftp_mkdir($ftp, $fullpath)) {
+            return false; // No se pudo crear
+        }
+    }
+
+    return true;
+}
+
+
 switch ($_GET["op"]) {
     case 'comboTipoMtto':
         $datos = $reporte->get_tipo_mtto();
@@ -230,6 +257,7 @@ switch ($_GET["op"]) {
                 <th>Costo</th>
                 <th>OC</th>
                 <th>Factura</th>
+                <th class="col-proveedor d-none">Proveedor</th>
                 <th class="text-center">Acciones</th>
               </tr>';
         $html .= '</thead><tbody>';
@@ -286,6 +314,7 @@ switch ($_GET["op"]) {
                         <td>$" . number_format($costo, 0, ',', '.') . "</td>
                         <td>$documento</td>
                         <td>$factura</td>         <!-- Factura no existe -->
+                        <td class='col-proveedor d-none'>N/A</td>
                         <td class='text-center'>
                             <button class='btn btn-danger btn-sm' 
                                     onclick=\"eliminarRepuesto('$idItem')\">
@@ -394,10 +423,24 @@ switch ($_GET["op"]) {
         $html .= '</tbody></table>';
 
         $html .= '</div>';
+        $html .= '<div class="mailbox-read-message"><hr>';
+        $html .= '<h4 class="mb-3"><b>Soportes Facturas</b></h4>';
+        $html .= '<ul id="listaFacturas" class="list-group mt-3 mb-3"></ul>';
+        $html .= '</div>';
 
         $html .= '<div class="mailbox-read-message"><hr>';
+
         $html .= '<h4 class="mb-3"><b>Cargar Facturas</b></h4>';
 
+        $html .= '<form action="" class="dropzone" id="uploadZona">';
+        $html .= '<div class="dz-default dz-message">';
+        $html .= '<button class="dz-button" type="button">';
+        $html .= '<i class="fas fa-cloud-upload-alt icon-super-upload"></i>';
+        $html .= '<div style="font-size: 18px; font-weight: bold; margin-top: 10px; text-aling: center;"> Arrastra tus archivos o haz clic aquí </div>';
+        $html .= '</button>';
+        $html .= '</div>';
+
+        $html .= '</form>';
         $html .= '</div>';
 
 
@@ -580,6 +623,170 @@ switch ($_GET["op"]) {
         } else {
             echo json_encode(["status" => "error", "message" => "No se pudo actualizar"]);
         }
+
+        break;
+
+    case "subirFacturas":
+
+        $reporte_id   = $_POST["reporte_id"];
+
+        $datosReporte = $reporte->get_reporte_by_id($reporte_id);
+
+        if (!$datosReporte) {
+            echo json_encode([
+                "success" => false,
+                "message" => "Permiso no encontrado."
+            ]);
+            exit;
+        }
+
+        $placa    = str_replace(" ", "_", trim($datosReporte["vehi_placa"]));
+
+        // ===========================
+        // 2. DATOS DEL ARCHIVO
+        // ===========================
+
+        $tmpFile      = $_FILES["file"]["tmp_name"];
+        $fileName     = $_FILES["file"]["name"];
+
+        $fecha        = date("Y-m-d");
+
+        // Ruta remota final donde irá el archivo
+        $remotePath     = "rpts01/vehiculos/$placa/$fecha";
+        $remoteFullPath = "/$remotePath/$fileName";
+
+        // ===========================
+        // 3. CREAR CARPETAS VÍA FTP
+        // ===========================
+
+        $ftp_server   = "172.16.5.3";
+        $ftp_user     = "asfaltart_admin";
+        $ftp_pass     = "s1st3m4s19..";
+
+        $ftp = ftp_connect($ftp_server);
+        ftp_login($ftp, $ftp_user, $ftp_pass);
+
+        // Modo pasivo recomendado
+        ftp_pasv($ftp, true);
+
+        // Crear recursivamente: data01/permisos/{empleado}/{fecha}
+        // Crear recursivamente: data01/permisos/{empleado}/{fecha}
+        if (!ftp_mksubdirs_safe($ftp, "rpts01/vehiculos/$placa/$fecha")) {
+            echo json_encode([
+                "success" => false,
+                "message" => "No fue posible crear las carpetas en el NAS."
+            ]);
+            ftp_close($ftp);
+            exit;
+        }
+
+        ftp_close($ftp);
+
+
+        // ===========================
+        // 2. SUBIR ARCHIVO CON WinSCP
+        // ===========================
+
+        $scriptPath = "C:\\xampp\\htdocs\\preoperacional\\public\\winscp\\script_temp.txt";
+        $winscpCom  = "C:\\xampp\\htdocs\\preoperacional\\public\\winscp\\WinSCP.com";
+
+        $scriptContent =
+            "open ftp://$ftp_user:$ftp_pass@$ftp_server\n" .
+            "put \"$tmpFile\" \"$remoteFullPath\"\n" .
+            "exit\n";
+
+        file_put_contents($scriptPath, $scriptContent);
+
+        $cmd = "\"$winscpCom\" /ini=nul /script=\"$scriptPath\"";
+        exec($cmd . " 2>&1", $output, $resultCode);
+
+        unlink($scriptPath);
+
+
+        if ($resultCode === 0) {
+
+            $reporte->registrar_soporte_factura(
+                $reporte_id,
+                $fileName,
+                $remoteFullPath
+            );
+
+            echo json_encode([
+                "success" => true,
+                "message" => "Soporte subido correctamente"
+            ]);
+        } else {
+
+            echo json_encode([
+                "success" => false,
+                "message" => "Error subiendo archivo",
+                "debug"   => $output
+            ]);
+        }
+
+        break;
+
+    case "listarFacturas":
+
+        $reporte_id = $_POST["reporte_id"];
+        $data = $reporte->get_soportes_factura($reporte_id);
+
+        echo json_encode($data);
+        break;
+
+    case "descargarFactura":
+
+        if (!isset($_GET["file"])) {
+            echo "Archivo no especificado";
+            exit;
+        }
+
+        $ruta_remota = urldecode($_GET["file"]);
+        $ruta_remota = ltrim($ruta_remota, '/');
+
+        $directorio_remoto = dirname($ruta_remota);
+        $archivo_remoto    = basename($ruta_remota);
+
+        $nombre_archivo = $archivo_remoto;
+
+        $temp_local = "C:\\xampp\\htdocs\\preoperacional\\public\\temp\\";
+        if (!is_dir($temp_local)) {
+            mkdir($temp_local, 0777, true);
+        }
+
+        $ruta_local = $temp_local . $nombre_archivo;
+
+        $scriptPath = "C:\\xampp\\htdocs\\preoperacional\\public\\winscp\\script_descarga.txt";
+        $winscpCom  = "C:\\xampp\\htdocs\\preoperacional\\public\\winscp\\WinSCP.com";
+
+        $scriptContent =
+            "open ftp://asfaltart_admin:s1st3m4s19..@172.16.5.3\n" .
+            "option transfer binary\n" .
+            "cd \"$directorio_remoto\"\n" .
+            "get \"$archivo_remoto\" \"$ruta_local\"\n" .
+            "exit\n";
+
+        file_put_contents($scriptPath, $scriptContent);
+
+        $cmd = "\"$winscpCom\" /ini=nul /script=\"$scriptPath\"";
+        exec($cmd . " 2>&1", $output, $result);
+
+        unlink($scriptPath);
+
+        if (!file_exists($ruta_local)) {
+            echo "<pre>";
+            print_r($output);
+            echo "</pre>";
+            exit;
+        }
+
+        header("Content-Type: application/octet-stream");
+        header("Content-Disposition: attachment; filename=\"$nombre_archivo\"");
+        header("Content-Length: " . filesize($ruta_local));
+
+        readfile($ruta_local);
+        unlink($ruta_local);
+
 
         break;
 }

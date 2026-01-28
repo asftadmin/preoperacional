@@ -1,4 +1,3 @@
-
 <!-- jQuery -->
 <script src="../../public/plugins/jquery/jquery.min.js"></script>
 <!-- Bootstrap -->
@@ -29,6 +28,9 @@
 <script src="../../public/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
 <!-- Summernote -->
 <script src="../../public/plugins/summernote/summernote-bs4.min.js"></script>
+<!-- Dropzone -->
+
+<link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
 
 
 <?php

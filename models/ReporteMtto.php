@@ -239,9 +239,10 @@ class ReporteMtto extends Conectar {
                  rpts_vlr_neto, 
                  rpts_docu, 
                  rpts_fact, 
-                 repo_item)
+                 repo_item,
+                 rpts_prov)
                 VALUES 
-                (:id, :ref, :cant, :costo, :oc, :fact, :item)";
+                (:id, :ref, :cant, :costo, :oc, :fact, :item, :prov)";
 
             $stmt = $conectar->prepare($sql);
 
@@ -254,6 +255,7 @@ class ReporteMtto extends Conectar {
                 $costo      = floatval($it["costo"] ?? 0);
                 $oc         = strtoupper(trim($it["oc"] ?? ""));
                 $factura    = strtoupper(trim($it["factura"] ?? ""));
+                $proveedor    = strtoupper(trim($it["proveedor"] ?? ""));
 
                 $stmt->bindValue(":id", $idReporte, PDO::PARAM_INT);
                 $stmt->bindValue(":ref", $nombre, PDO::PARAM_STR);
@@ -262,6 +264,7 @@ class ReporteMtto extends Conectar {
                 $stmt->bindValue(":oc", $oc, PDO::PARAM_STR);
                 $stmt->bindValue(":fact", $factura, PDO::PARAM_STR);
                 $stmt->bindValue(":item", $ref, PDO::PARAM_STR);
+                $stmt->bindValue(":prov", $proveedor, PDO::PARAM_STR);
 
                 if (!$stmt->execute()) {
                     $conectar->rollBack();
@@ -277,6 +280,53 @@ class ReporteMtto extends Conectar {
             return "Error SQL: " . $e->getMessage();
         }
     }
+
+    public function get_reporte_by_id($reporte_id) {
+        $conectar = parent::Conexion();
+        $sql = "SELECT  *
+                FROM reporte_repuestos rr
+                INNER JOIN reporte_mtto rm ON rr.repo_mtto_id = rm.repo_mtto_id
+                INNER JOIN ordenes_trabajo ot ON ot.codi_otm = rm.repo_mtto_orden
+                INNER JOIN solicitudes_mtto ON solicitudes_mtto.codi_soli = ot.codi_solc_otm
+                INNER JOIN vehiculos ON vehiculos.vehi_id = solicitudes_mtto.codi_vehi_soli
+                WHERE rr.repo_mtto_id = ?";
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(1, $reporte_id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function registrar_soporte_factura($reporte_id, $nombre_archivo, $ruta_remota) {
+        $conectar = parent::Conexion();
+        parent::set_names();
+
+        $sql = "INSERT INTO facturas_soportes 
+            (fact_sopo_reporte, fact_sopo_nombre, fact_sopo_ruta, fact_sopo_fecha)
+            VALUES (?, ?, ?, NOW())";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(1, $reporte_id);
+        $stmt->bindValue(2, $nombre_archivo);
+        $stmt->bindValue(3, $ruta_remota);
+
+        return $stmt->execute();
+    }
+
+    public function get_soportes_factura($reporte_id) {
+        $conectar = parent::Conexion();
+        parent::set_names();
+
+        $sql = "SELECT * FROM facturas_soportes 
+            WHERE fact_sopo_reporte = ?
+            ORDER BY fact_sopo_fecha ASC";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(1, $reporte_id);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 
 
 

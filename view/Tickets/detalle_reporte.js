@@ -33,6 +33,7 @@ $(document).ready(function () {
 
             if (data.status === 'success') {
                 $('#readMessage').html(data.html);
+                cargarSoportes(reporte_id)
             } else {
                 alert(data.message || 'Error desconocido');
             }
@@ -356,7 +357,7 @@ function editarHoras() {
 
 function guardarHoras() {
     let nuevasHoras = $("#inputHorasEjec").val();
-    let idReporte   = $("#id_reporte").val();
+    let idReporte = $("#id_reporte").val();
 
     if (nuevasHoras === "" || nuevasHoras < 0) {
         Swal.fire({
@@ -413,6 +414,13 @@ function guardarHoras() {
 
 function agregarFactura() {
 
+    $(".col-proveedor").removeClass("d-none");
+
+    // Mostrar columna proveedor en filas existentes
+    $("#tablaRepuestos tbody tr").each(function(){
+        $(this).find("td.col-proveedor").removeClass("d-none");
+    }); //Encontrar la columna con la clase col-proveedor
+
     let nuevaFila = `
         <tr class="fila-editable">
             <td><input type="text" class="form-control form-control-sm fact-nombre" placeholder="Nombre" oninput="this.value=this.value.toUpperCase()"></td>
@@ -424,6 +432,9 @@ function agregarFactura() {
             <td><input type="number" class="form-control form-control-sm fact-costo" placeholder="Costo 0.00"></td>
             <td><input type="text" class="form-control form-control-sm fact-oc" placeholder="Orden de Compra" oninput="this.value=this.value.toUpperCase()"></td>
             <td><input type="text" class="form-control form-control-sm fact-docu" placeholder="N° Factura" oninput="this.value=this.value.toUpperCase()"></td>
+            <td class="col-proveedor">
+                <input type="text" class="form-control form-control-sm fact-prov uppercase" oninput="this.value=this.value.toUpperCase()" placeholder="Proveedor">
+            </td>
 
             <!-- Acciones -->
             <td class="text-center">
@@ -438,6 +449,21 @@ function agregarFactura() {
 
     mostrarBotonGuardarFacturas();
 }
+
+function verificarProveedorColumna() {
+
+    if ($(".fila-editable").length === 0) {
+
+        // Ocultar encabezado
+        $(".col-proveedor").addClass("d-none");
+
+        // Ocultar columna proveedor en todas las filas
+        $("#tablaRepuestos tbody tr").each(function(){
+            $(this).find("td.col-proveedor").addClass("d-none");
+        });
+    }
+}
+
 
 
 function mostrarBotonGuardarFacturas() {
@@ -454,6 +480,7 @@ function mostrarBotonGuardarFacturas() {
 function eliminarFila(btn) {
     $(btn).closest("tr").remove();
     mostrarBotonGuardarFacturas();
+    verificarProveedorColumna();
 }
 
 
@@ -470,7 +497,8 @@ function guardarFacturasEnLote() {
             cantidad: $(this).find(".fact-cant").val(),
             costo: $(this).find(".fact-costo").val(),
             oc: $(this).find(".fact-oc").val(),
-            factura: $(this).find(".fact-docu").val()
+            factura: $(this).find(".fact-docu").val(),
+            proveedor: $(this).find(".fact-prov").val()
         });
 
     });
@@ -495,10 +523,93 @@ function guardarFacturasEnLote() {
                     icon: "success",
                     timer: 1500,
                     showConfirmButton: false
-                }).then(() => location.reload());
+                }).then(() =>{
+                    verificarProveedorColumna();
+                    location.reload()} );
             } else {
                 Swal.fire("Error", data.message, "error");
             }
+        }
+    });
+}
+
+
+var reporte_id_drop = getURLParameter('id');
+
+Dropzone.autoDiscover = false;
+
+setTimeout(function () {
+
+    if ($("#uploadZona").length) {
+
+        console.log("Inicializando Dropzone en #uploadZona...");
+
+        let myDropzone = new Dropzone("#uploadZona", {
+
+            url: BASE_URL + "/controller/ReporteMtto.php?op=subirFacturas",
+            maxFilesize: 10,
+            acceptedFiles: ".jpg,.jpeg,.png,.pdf,.doc,.docx",
+            addRemoveLinks: true,
+            dictRemoveFile: "Eliminar",
+
+            init: function () {
+                var dz = this;
+
+                this.on("sending", function (file, xhr, formData) {
+                    formData.append("reporte_id", reporte_id_drop);
+                });
+
+                this.on("success", function (file, response) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Subido correctamente",
+                        showConfirmButton: false,
+                        timer: 1200
+                    });
+
+                    cargarSoportes(reporte_id_drop);
+
+                    setTimeout(() => dz.removeFile(file), 1000);
+                });
+
+                this.on("error", function (file, message) {
+                    Swal.fire("Error", message, "error");
+                    setTimeout(() => this.removeFile(file), 1000);
+                });
+            }
+        });
+
+    } else {
+        console.error("Dropzone no encontró #uploadZona");
+    }
+
+}, 300);
+
+
+function cargarSoportes(reporte_id) {
+
+    $.ajax({
+        url: BASE_URL + "/controller/ReporteMtto.php?op=listarFacturas",
+        type: "POST",
+        data: { reporte_id: reporte_id },
+        success: function (response) {
+
+            let lista = JSON.parse(response);
+            let html = "";
+
+            lista.forEach(r => {
+
+                html += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a href="../../controller/ReporteMtto.php?op=descargarFactura&file=${encodeURIComponent(r.fact_sopo_ruta)}" target="_blank">
+                            ${r.fact_sopo_nombre}
+                        </a>
+                        <span class="badge badge-secondary">${r.fact_sopo_fecha}</span>
+                    </li>
+                `;
+            });
+
+            $("#listaFacturas").html(html);
         }
     });
 }

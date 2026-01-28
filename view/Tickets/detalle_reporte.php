@@ -100,6 +100,7 @@ if (is_array($datos) and count($datos) > 0) {
         </div>
 
         <?php require_once "../MainJS/JS.php" ?>
+        <script src="../../config/config.js"></script>
         <script type="text/javascript" src="detalle_reporte.js"></script>
         <!-- date-range-picker -->
         <!-- SweetAlert -->
