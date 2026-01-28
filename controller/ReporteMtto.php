@@ -246,6 +246,13 @@ switch ($_GET["op"]) {
                 $documento   = na($it["rpts_docu"] ?? "N/A");
                 $factura   = na($it["rpts_fact"] ?? "N/A");
 
+                if (
+                    $descripcion === "N/A" && $referencia === "N/A" &&
+                    $documento === "N/A" && $factura === "N/A"
+                ) {
+                    continue;
+                }
+
                 $total += $costo * $cant;
 
                 $html .= "<tr>
