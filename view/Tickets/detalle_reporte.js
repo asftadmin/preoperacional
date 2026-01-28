@@ -335,6 +335,178 @@ function eliminarRepuesto(idItem) {
     });
 }
 
+function editarHoras() {
+    let valorActual = $("#txtHorasEjecutadas").text().trim();
+
+    $("#txtHorasEjecutadas").html(`
+        <input type="number" step="0.01" id="inputHorasEjec" 
+               class="form-control form-control-sm" 
+               style="width:120px; display:inline-block" 
+               value="${valorActual}">
+    `);
+
+    // Reemplazar botón por "Guardar"
+    $("button[onclick='editarHoras()']").replaceWith(`
+        <button class="btn btn-sm btn-info ml-2" onclick="guardarHoras()">
+            <i class="fas fa-save"></i> Guardar
+        </button>
+    `);
+}
+
+
+function guardarHoras() {
+    let nuevasHoras = $("#inputHorasEjec").val();
+    let idReporte   = $("#id_reporte").val();
+
+    if (nuevasHoras === "" || nuevasHoras < 0) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Ingrese un valor válido",
+            timer: 6000,
+            timerProgressBar: true
+        });
+        return;
+    }
+
+    $.ajax({
+        url: "../../controller/ReporteMtto.php?op=guardar_horas_ejecutadas",
+        type: "POST",
+        data: { id: idReporte, horas: nuevasHoras },
+        dataType: "json",
+
+        success: function (data) {
+            if (data.status === "success") {
+
+                // Mostrar el nuevo valor como texto
+                $("#txtHorasEjecutadas").text(nuevasHoras);
+
+                // Restaurar botón Editar
+                $("button[onclick='guardarHoras()']").replaceWith(`
+                    <button class="btn btn-sm btn-primary ml-2" onclick="editarHoras()">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                `);
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Éxito",
+                    text: "Horas actualizadas correctamente",
+                    timer: 6000,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                });
+
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: data.message,
+                    timer: 15000,
+                    timerProgressBar: true
+                });
+            }
+        }
+    });
+}
+
+
+function agregarFactura() {
+
+    let nuevaFila = `
+        <tr class="fila-editable">
+            <td><input type="text" class="form-control form-control-sm fact-nombre" placeholder="Nombre" oninput="this.value=this.value.toUpperCase()"></td>
+            <td><input type="text" class="form-control form-control-sm fact-ref" placeholder="Referencia" oninput="this.value=this.value.toUpperCase()"></td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td><input type="number" class="form-control form-control-sm fact-cant" placeholder="Cantidad"></td>
+            <td><input type="number" class="form-control form-control-sm fact-costo" placeholder="Costo 0.00"></td>
+            <td><input type="text" class="form-control form-control-sm fact-oc" placeholder="Orden de Compra" oninput="this.value=this.value.toUpperCase()"></td>
+            <td><input type="text" class="form-control form-control-sm fact-docu" placeholder="N° Factura" oninput="this.value=this.value.toUpperCase()"></td>
+
+            <!-- Acciones -->
+            <td class="text-center">
+                <button class="btn btn-danger btn-sm" onclick="eliminarFila(this)">
+                    <i class="fas fa-minus-circle"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+
+    $("#tablaRepuestos tbody").append(nuevaFila);
+
+    mostrarBotonGuardarFacturas();
+}
+
+
+function mostrarBotonGuardarFacturas() {
+    let hayFilas = $(".fila-editable").length > 0;
+
+    if (hayFilas) {
+        $("#areaGuardarFacturas").show();
+    } else {
+        $("#areaGuardarFacturas").hide();
+    }
+}
+
+
+function eliminarFila(btn) {
+    $(btn).closest("tr").remove();
+    mostrarBotonGuardarFacturas();
+}
+
+
+function guardarFacturasEnLote() {
+
+    let idReporte = $("#id_reporte").val();
+    let filas = [];
+
+    $(".fila-editable").each(function () {
+
+        filas.push({
+            nombre: $(this).find(".fact-nombre").val(),
+            referencia: $(this).find(".fact-ref").val(),
+            cantidad: $(this).find(".fact-cant").val(),
+            costo: $(this).find(".fact-costo").val(),
+            oc: $(this).find(".fact-oc").val(),
+            factura: $(this).find(".fact-docu").val()
+        });
+
+    });
+
+    if (filas.length === 0) {
+        Swal.fire("Aviso", "No hay facturas para guardar.", "warning");
+        return;
+    }
+
+    $.ajax({
+        url: "../../controller/ReporteMtto.php?op=guardar_facturas_lote",
+        type: "POST",
+        data: { id: idReporte, items: filas },
+        dataType: "json",
+
+        success: function (data) {
+
+            if (data.status === "success") {
+                Swal.fire({
+                    title: "Guardado",
+                    text: "Las facturas fueron registradas correctamente",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+            } else {
+                Swal.fire("Error", data.message, "error");
+            }
+        }
+    });
+}
+
+
+
+
+
 
 
 

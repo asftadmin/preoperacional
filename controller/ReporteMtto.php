@@ -112,7 +112,6 @@ switch ($_GET["op"]) {
         $equipo   = $detalle["equipo"];
         $ot       = $detalle["ot"];
         $solicitud    = $detalle["solicitud"];
-        $items    = $detalle["repuestos"];
 
         // ================================
         // ARMAR HTML IGUAL A TU EJEMPLO
@@ -188,9 +187,14 @@ switch ($_GET["op"]) {
         $html .= '<div class="mailbox-read-message"><hr>';
         $html .= '<div class="d-flex justify-content-between align-items-center mb-2">';
         $html .= '    <h4 class="mb-0"><b>Repuestos e Insumos</b></h4>';
+        $html .= '<div class="btn-group" role="group">';
         $html .= '    <button type="button" onclick="importarRepuestos()" class="btn btn-dark btn-md" title="Importar desde SIESA">
                     <i class="fas fa-file-import"></i> Importar desde SIESA 
                 </button>';
+        $html .= ' <button type="button" onclick="agregarFactura()" class="btn btn-primary btn-md ml-2">
+            <i class="fas fa-file-invoice"></i> Ingresar Facturas / Reembolsos
+          </button>';
+        $html .= '</div>';
         $html .= '</div>';
 
         $html .= '<table class="table table-striped table-bordered table-sm" id="tablaRepuestos">';
@@ -204,6 +208,7 @@ switch ($_GET["op"]) {
                 <th>Cant</th>
                 <th>Costo</th>
                 <th>OC</th>
+                <th>Factura</th>
                 <th class="text-center">Acciones</th>
               </tr>';
         $html .= '</thead><tbody>';
@@ -239,6 +244,7 @@ switch ($_GET["op"]) {
                 $cant        = na($it["rpts_cant"] ?? "N/A");
                 $costo       = floatval($it["rpts_vlr_neto"] ?? 0);
                 $documento   = na($it["rpts_docu"] ?? "N/A");
+                $factura   = na($it["rpts_fact"] ?? "N/A");
 
                 $total += $costo;
 
@@ -251,6 +257,7 @@ switch ($_GET["op"]) {
                         <td>$cant</td>
                         <td>$" . number_format($costo, 0, ',', '.') . "</td>
                         <td>$documento</td>
+                        <td>$factura</td>         <!-- Factura no existe -->
                         <td class='text-center'>
                             <button class='btn btn-danger btn-sm' 
                                     onclick=\"eliminarRepuesto('$idItem')\">
@@ -264,14 +271,107 @@ switch ($_GET["op"]) {
         $html .= '</tbody></table>';
         $html .= '</div>'; // cierre mailbox-read-message
 
-        $html .= '<h4 class="text-right"><b>Total Repuestos:</b> $' . number_format($total, 0, ',', '.') . '</h4>';
+        $html .= '<div id="areaGuardarFacturas" class="text-center mt-3" style="display:none;">
+            <button onclick="guardarFacturasEnLote()" class="btn btn-info btn-md">
+                <i class="fas fa-save"></i> Guardar Facturas
+            </button>
+         </div>';
+
+
+        $html .= '<h4 class="text-right p-2"><b>Total Repuestos:</b> $' . number_format($total, 0, ',', '.') . '</h4>';
+
+        $horasEjec = $informe["repo_mtto_horas_ejec"];
+        if ($horasEjec === null || $horasEjec === "") {
+            $horasEjec = "0.00";
+        }
 
         // ENTREGA DE TRABAJO
         $html .= '<hr>';
-        $html .= '<h4><b>Entrega del Trabajo</b></h4>';
+        $html .= '<div class="mb-3 p-2">';
 
-        $html .= '<p><b>Horas programadas:</b> ' . $informe["repo_mtto_horas_programadas"] . '</p>';
-        $html .= '<p><b>Horas ejecutadas:</b></p>';
+        $html .= '<h4 class="mb-3"><b>Entrega del Trabajo</b></h4>';
+
+        $html .= '<p class="mb-2">
+            <b class="mr-2">Horas programadas:</b> 
+            ' . $informe["repo_mtto_horas_programadas"] . '
+         </p>';
+
+        $html .= '<p class="mb-2 d-flex align-items-center">
+            <b class="mr-2">Horas ejecutadas:</b> 
+            <span id="txtHorasEjecutadas" class="mr-2">' . $horasEjec . '</span>
+
+            <button class="btn btn-sm btn-dark" onclick="editarHoras()">
+                <i class="fas fa-edit"></i> Editar
+            </button>
+         </p>';
+
+        $html .= '<input type="hidden" id="id_reporte" value="' . $informe["repo_mtto_id"] . '">';
+
+        $html .= '</div>';
+
+        $proveedores = $reporte->get_proveedores_reporte($reporteID);
+
+
+        // PROVEEDORES
+        $html .= '<div class="mailbox-read-message"><hr>';
+        $html .= '<h4 class="mb-3"><b>Personal involucrado en mantenimiento</b></h4>';
+
+        $html .= '<table class="table table-striped table-bordered table-sm" id="tablaProveedores">';
+        $html .= '<thead class="thead-light">';
+        $html .= '<tr>
+                <th>Proveedor</th>
+                <th>N° Orden de Trabajo</th>
+                <th>N° Orden de Compras</th>
+                <th>Factura</th>
+              </tr>';
+        $html .= '</thead><tbody>';
+
+        // ===========================================
+        // SI NO HAY PROVEEDORES → MOSTRAR MENSAJE AMIGABLE
+        // ===========================================
+        if (empty($proveedores)) {
+
+            $html .= '
+        <tr>
+            <td colspan="8" class="text-center text-muted">
+                No hay repuestos registrados para este reporte.<br>
+                <small>Use el botón "<b>Importar desde SIESA</b>" para agregar insumos.</small>
+            </td>
+        </tr>
+    ';
+        } else {
+
+            // ===========================================
+            // RENDER DE LOS ITEMS
+            // ===========================================
+            foreach ($proveedores as $pv) {
+
+                //$idItem = isset($it["repo_rpts_id"]) ? $it["repo_rpts_id"] : 0;
+
+                // evitar errores si falta algún índice                
+                $nombre = na($pv["rpts_prov"] ?? "N/A");
+                $orden_trabajo  = na($pv["num_otm"] ?? "N/A");
+                $orden_comp        = na($pv["rpts_docu"] ?? "N/A");
+                $factura       = na($pv["rpts_fact"] ?? "N/A");
+
+                $html .= "<tr>
+                            <td>$nombre</td>
+                            <td>$orden_trabajo</td>
+                            <td>$orden_comp  </td>
+                            <td>$factura </td>
+                        </tr>";
+            }
+        }
+
+        $html .= '</tbody></table>';
+
+        $html .= '</div>';
+
+        $html .= '<div class="mailbox-read-message"><hr>';
+        $html .= '<h4 class="mb-3"><b>Cargar Facturas</b></h4>';
+
+        $html .= '</div>';
+
 
         // FIN
         echo json_encode(['status' => 'success', 'html' => $html]);
@@ -356,6 +456,48 @@ switch ($_GET["op"]) {
 
         break;
 
+    /****************************************************
+     * GUARDAR FACTURAS / REEMBOLSOS EN LOTE
+     ****************************************************/
+    case "guardar_facturas_lote":
+
+        if (!isset($_POST["id"]) || !isset($_POST["items"])) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Parámetros incompletos"
+            ]);
+            exit;
+        }
+
+        $idReporte = $_POST["id"];
+        $items = $_POST["items"];
+
+        // Validación básica
+        if (!is_array($items) || count($items) === 0) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "No hay facturas para registrar"
+            ]);
+            exit;
+        }
+
+        $resp = $reporte->insertar_facturas_lote($idReporte, $items);
+
+        if ($resp === true) {
+            echo json_encode([
+                "status" => "success",
+                "message" => "Facturas guardadas correctamente"
+            ]);
+        } else {
+            echo json_encode([
+                "status" => "error",
+                "message" => $resp   // mensaje de error del modelo
+            ]);
+        }
+
+        break;
+
+
     // ============================================================
     // 3. GUARDAR LOS ÍTEMS IMPORTADOS EN LA BASE DE DATOS
     // ============================================================
@@ -393,6 +535,22 @@ switch ($_GET["op"]) {
             echo json_encode(["status" => "success"]);
         } else {
             echo json_encode(["status" => "error", "message" => "No se pudo eliminar", "reload" => true]);
+        }
+
+        break;
+
+    case "guardar_horas_ejecutadas":
+
+        $id   = $_POST["id"];
+        $hora = $_POST["horas"];
+
+
+        $ok = $reporte->actualizar_horas_ejecutadas($id, $hora);
+
+        if ($ok) {
+            echo json_encode(["status" => "success"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "No se pudo actualizar"]);
         }
 
         break;

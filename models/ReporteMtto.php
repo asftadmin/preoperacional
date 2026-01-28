@@ -162,7 +162,8 @@ class ReporteMtto extends Conectar {
                 rpts_vlr_neto,
                 rpts_notas,
                 rpts_prov,
-                repo_item
+                repo_item,
+                rpts_fact
             FROM reporte_repuestos
             WHERE repo_mtto_id = :id
             ORDER BY rpts_docu ASC";
@@ -183,6 +184,98 @@ class ReporteMtto extends Conectar {
         $stmt->bindValue(":id", $idItem, PDO::PARAM_INT);
 
         return $stmt->execute();
+    }
+
+
+    public function actualizar_horas_ejecutadas($id, $horas) {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "UPDATE reporte_mtto 
+            SET repo_mtto_horas_ejec = :horas
+            WHERE repo_mtto_id = :id";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":horas", $horas, PDO::PARAM_STR);
+        $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
+
+    public function get_proveedores_reporte($idReporte) {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "SELECT  rpts_prov, rpts_docu, num_otm
+                FROM reporte_repuestos rr
+                INNER JOIN reporte_mtto rm ON rr.repo_mtto_id = rm.repo_mtto_id
+                INNER JOIN ordenes_trabajo ot ON ot.codi_otm = rm.repo_mtto_orden
+                WHERE rr.repo_mtto_id = :id
+                ORDER BY rpts_docu ASC";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":id", $idReporte, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    /****************************************************
+     * INSERTAR FACTURAS / REEMBOLSOS EN LOTE
+     ****************************************************/
+    public function insertar_facturas_lote($idReporte, $items) {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        try {
+
+            $conectar->beginTransaction();
+
+            $sql = "INSERT INTO reporte_repuestos 
+                (repo_mtto_id, 
+                 rpts_refr, 
+                 rpts_cant, 
+                 rpts_vlr_neto, 
+                 rpts_docu, 
+                 rpts_fact, 
+                 repo_item)
+                VALUES 
+                (:id, :ref, :cant, :costo, :oc, :fact, :item)";
+
+            $stmt = $conectar->prepare($sql);
+
+            foreach ($items as $it) {
+
+                // Normalización (evitar errores)
+                $nombre     = strtoupper(trim($it["nombre"] ?? ""));
+                $ref        = strtoupper(trim($it["referencia"] ?? ""));
+                $cant       = floatval($it["cantidad"] ?? 0);
+                $costo      = floatval($it["costo"] ?? 0);
+                $oc         = strtoupper(trim($it["oc"] ?? ""));
+                $factura    = strtoupper(trim($it["factura"] ?? ""));
+
+                $stmt->bindValue(":id", $idReporte, PDO::PARAM_INT);
+                $stmt->bindValue(":ref", $nombre, PDO::PARAM_STR);
+                $stmt->bindValue(":cant", $cant, PDO::PARAM_STR);
+                $stmt->bindValue(":costo", $costo, PDO::PARAM_STR);
+                $stmt->bindValue(":oc", $oc, PDO::PARAM_STR);
+                $stmt->bindValue(":fact", $factura, PDO::PARAM_STR);
+                $stmt->bindValue(":item", $ref, PDO::PARAM_STR);
+
+                if (!$stmt->execute()) {
+                    $conectar->rollBack();
+                    return print_r($stmt->errorInfo(), true);
+                }
+            }
+
+            $conectar->commit();
+            return true;
+        } catch (Exception $e) {
+
+            $conectar->rollBack();
+            return "Error SQL: " . $e->getMessage();
+        }
     }
 
 
