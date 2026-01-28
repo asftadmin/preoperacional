@@ -239,12 +239,12 @@ switch ($_GET["op"]) {
                 $idItem = isset($it["repo_rpts_id"]) ? $it["repo_rpts_id"] : 0;
 
                 // evitar errores si falta algún índice                
-                $descripcion = na($it["rpts_refr"] ?? "N/A");
-                $referencia  = na($it["repo_item"] ?? "N/A");
-                $cant        = na($it["rpts_cant"] ?? "N/A");
-                $costo       = floatval($it["rpts_vlr_neto"] ?? 0);
-                $documento   = na($it["rpts_docu"] ?? "N/A");
-                $factura   = na($it["rpts_fact"] ?? "N/A");
+                $descripcion = na(trim($it["descripcion"] ?? ''));
+                $referencia  = na(trim($it["referencia"] ?? ''), true);  // true = es referencia
+                $cant        = na(trim($it["cantidad"] ?? ''));
+                $costo       = floatval($it["valor"] ?? 0);
+                $documento   = na(trim($it["documento"] ?? ''));
+                $factura     = na(trim($it["factura"] ?? ''));
 
                 if (
                     $descripcion === "N/A" && $referencia === "N/A" &&

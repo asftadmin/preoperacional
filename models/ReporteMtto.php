@@ -155,15 +155,15 @@ class ReporteMtto extends Conectar {
         parent::set_names();
 
         $sql = "SELECT
-                repo_rpts_id, 
-                rpts_docu,
-                rpts_refr,
-                rpts_cant,
-                rpts_vlr_neto,
-                rpts_notas,
-                rpts_prov,
-                repo_item,
-                rpts_fact
+                repo_rpts_id AS id,
+                rpts_refr AS descripcion,
+                rpts_docu AS documento,
+                rpts_cant AS cantidad,
+                rpts_vlr_neto AS valor,
+                rpts_notas AS notas,
+                rpts_prov AS proveedor,
+                repo_item AS referencia,
+                rpts_fact AS factura
             FROM reporte_repuestos
             WHERE repo_mtto_id = :id
             ORDER BY rpts_docu ASC";
