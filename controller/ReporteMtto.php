@@ -246,7 +246,7 @@ switch ($_GET["op"]) {
                 $documento   = na($it["rpts_docu"] ?? "N/A");
                 $factura   = na($it["rpts_fact"] ?? "N/A");
 
-                $total += $costo;
+                $total += $costo * $cant;
 
                 $html .= "<tr>
                         <td>$descripcion</td>
