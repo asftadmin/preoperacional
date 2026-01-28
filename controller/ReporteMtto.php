@@ -177,10 +177,31 @@ switch ($_GET["op"]) {
         // FUNCIÓN PARA LIMPIAR VALORES VACÍOS
         // ===========================================
 
-        function na($v) {
-            return ($v === null || $v === "" || $v === "0" || $v == 0)
-                ? "N/A"
-                : htmlspecialchars($v);
+        function na($v, $esReferencia = false) {
+            // Si es null o vacío
+            if ($v === null || $v === "") {
+                return "N/A";
+            }
+
+            // Si es string, trim y verificar
+            if (is_string($v)) {
+                $v = trim($v);
+                if ($v === "" || $v === "0" || strtoupper($v) === "N/A" || strtoupper($v) === "NA") {
+                    return "N/A";
+                }
+            }
+
+            // Si es numérico cero
+            if (is_numeric($v) && floatval($v) == 0) {
+                return "N/A";
+            }
+
+            // Si es referencia y no es numérica después de limpiar
+            if ($esReferencia && !is_numeric($v)) {
+                return "N/A";
+            }
+
+            return htmlspecialchars($v);
         }
 
         // REPUESTOS E INSUMOS
@@ -236,7 +257,7 @@ switch ($_GET["op"]) {
             // ===========================================
             foreach ($items as $it) {
 
-                $idItem = isset($it["repo_rpts_id"]) ? $it["repo_rpts_id"] : 0;
+                $idItem = isset($it["id"]) ? $it["id"] : 0;
 
                 // evitar errores si falta algún índice                
                 $descripcion = na(trim($it["descripcion"] ?? ''));
