@@ -208,7 +208,9 @@ function inicializarTablaC() {
                             no_orden: r[1],
                             placa: r[2],
                             fecha_solicitud: r[3],
-                            acciones: r[4]
+                            estado: r[4],
+                            estado_num: r[5],
+                            acciones: r[6]
                         };
                     });
                 }
@@ -223,7 +225,12 @@ function inicializarTablaC() {
             { data: "no_orden", title: "No.Solicitud" },
             { data: "placa", title: "Placa" },
             { data: "fecha_solicitud", title: "Fecha Solc." },
+            { data: "estado", title: "Estado" },
+            { data: "estado_num" }, 
             { data: "acciones", title: "Acciones" }
+        ],
+        columnDefs: [
+            { targets: 5, visible: false }, // ← oculta la columna estado_num
         ]
     });
 }
@@ -409,6 +416,67 @@ function verPdf(reporteID) {
     var url = BASE_URL + '/view/PDF/ReporteMtto.php?id=' + reporteID; //http://181.204.219.154:3396/preoperacional
     window.open(url, '_blank');
 }
+
+
+$('#tableTktCerrado').on('draw.dt', function () {
+
+    $('#tableTktCerrado tbody tr').each(function () {
+
+        let rowData = tablaRevision.row(this).data();
+
+        // Validar que rowData exista
+        if (!rowData) return;
+
+        let estado = rowData.estado_num;
+
+        let botonPDF = $(this).find(".btn-pdf");
+
+        if (estado != 2) {
+            botonPDF.prop("disabled", true).css("opacity", "0.4");
+        }
+    });
+
+});
+
+$('#filtroFecha').daterangepicker({
+    locale: {
+        format: "YYYY-MM-DD",
+        separator: " / ",
+        applyLabel: "Aplicar",
+        cancelLabel: "Cancelar",
+        fromLabel: "Desde",
+        toLabel: "Hasta",
+        customRangeLabel: "Personalizado",
+        weekLabel: "S",
+        daysOfWeek: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+        monthNames: [
+            "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+            "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+        ],
+        firstDay: 1
+    },
+    opens: "right",
+    drops: "down",
+    autoUpdateInput: false
+});
+
+$('#filtroFecha').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(picker.startDate.format('YYYY-MM-DD') + " / " + picker.endDate.format('YYYY-MM-DD'));
+});
+
+
+$("#btnBuscar").click(function () {
+    tablaRevision.ajax.reload();
+});
+
+$("#btnLimpiar").click(function () {
+    $("#filtroPlaca").val("").trigger("change");
+    $("#filtroFecha").val("");
+    tablaRevision.ajax.reload();
+});
+
+
+
 
 
 

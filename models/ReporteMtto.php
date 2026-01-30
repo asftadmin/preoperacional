@@ -1,11 +1,13 @@
 <?php
 
-class ReporteMtto extends Conectar {
+class ReporteMtto extends Conectar
+{
 
 
     /**LISTAR TIPO DE MANTENIMIENTO */
 
-    public function get_tipo_mtto() {
+    public function get_tipo_mtto()
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT * FROM tipos_mantenimiento";
@@ -14,7 +16,10 @@ class ReporteMtto extends Conectar {
         return $resultado = $sql->fetchAll();
     }
 
-    public function obternerUltimoConsecutivo() {
+
+
+    public function obternerUltimoConsecutivo()
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repo_numb FROM reporte_mantenimiento 
@@ -27,7 +32,8 @@ class ReporteMtto extends Conectar {
         return $resultado;
     }
 
-    public function listaReporte() {
+    public function listaReporte()
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repo_codi, deta_codi, vehi_id, repo_numb, repo_fech, vehi_placa, deta_total_mtto,
@@ -45,7 +51,8 @@ class ReporteMtto extends Conectar {
         return $resultado = $sql->fetchAll();
     }
 
-    public function get_reporte_detalle($num_reporte) {
+    public function get_reporte_detalle($num_reporte)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         // -----------------------------------------------------
@@ -101,6 +108,7 @@ class ReporteMtto extends Conectar {
 
 
         $id_vehiculo = $solicitud["codi_vehi_soli"];
+
         // -----------------------------------------------------
         // 4. OBTENER VEHÍCULO (pendiente de confirmar)
         // -----------------------------------------------------
@@ -114,16 +122,33 @@ class ReporteMtto extends Conectar {
         $stmt->execute();
         $equipo = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        $id_conductor = $solicitud["codi_cond_soli"];
+
+        // -----------------------------------------------------
+        // 5. OBTENER CONDUCTOR (pendiente de confirmar)
+        // -----------------------------------------------------
+        $sql = "SELECT *
+            FROM usuarios
+            WHERE user_id = :id_user";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":id_user", $id_conductor, PDO::PARAM_INT);
+
+        $stmt->execute();
+        $conductor = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return [
             "reporte"   => $reporte,
             "equipo"    => $equipo,
             "ot"        => $ot,
             "solicitud" => $solicitud,
+            "conductor" => $conductor,
             "repuestos" => [] // Items vienen de la API SIESA
         ];
     }
 
-    public function insertar_insumos($idReporte, $items) {
+    public function insertar_insumos($idReporte, $items)
+    {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -150,7 +175,8 @@ class ReporteMtto extends Conectar {
         return true;
     }
 
-    public function get_repuestos_por_reporte($idReporte) {
+    public function get_repuestos_por_reporte($idReporte)
+    {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -175,7 +201,8 @@ class ReporteMtto extends Conectar {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function delete_item($idItem) {
+    public function delete_item($idItem)
+    {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -187,7 +214,8 @@ class ReporteMtto extends Conectar {
     }
 
 
-    public function actualizar_horas_ejecutadas($id, $horas) {
+    public function actualizar_horas_ejecutadas($id, $horas)
+    {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -202,7 +230,8 @@ class ReporteMtto extends Conectar {
         return $stmt->execute();
     }
 
-    public function get_proveedores_reporte($idReporte) {
+    public function get_proveedores_reporte($idReporte)
+    {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -225,7 +254,8 @@ class ReporteMtto extends Conectar {
     /****************************************************
      * INSERTAR FACTURAS / REEMBOLSOS EN LOTE
      ****************************************************/
-    public function insertar_facturas_lote($idReporte, $items) {
+    public function insertar_facturas_lote($idReporte, $items)
+    {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -282,7 +312,8 @@ class ReporteMtto extends Conectar {
         }
     }
 
-    public function get_reporte_by_id($reporte_id) {
+    public function get_reporte_by_id($reporte_id)
+    {
         $conectar = parent::Conexion();
         $sql = "SELECT  *
                 FROM reporte_repuestos rr
@@ -297,7 +328,8 @@ class ReporteMtto extends Conectar {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function registrar_soporte_factura($reporte_id, $nombre_archivo, $ruta_remota) {
+    public function registrar_soporte_factura($reporte_id, $nombre_archivo, $ruta_remota)
+    {
         $conectar = parent::Conexion();
         parent::set_names();
 
@@ -313,7 +345,8 @@ class ReporteMtto extends Conectar {
         return $stmt->execute();
     }
 
-    public function get_soportes_factura($reporte_id) {
+    public function get_soportes_factura($reporte_id)
+    {
         $conectar = parent::Conexion();
         parent::set_names();
 
@@ -328,7 +361,8 @@ class ReporteMtto extends Conectar {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function cerrar_reporte($idReporte, $estadoFinal, $total) {
+    public function cerrar_reporte($idReporte, $estadoFinal, $total)
+    {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -361,7 +395,8 @@ class ReporteMtto extends Conectar {
     
     */
 
-    public function guardarReporte($reporte, $detalle, $proveedores, $insumos) {
+    public function guardarReporte($reporte, $detalle, $proveedores, $insumos)
+    {
 
         $conectar = parent::conexion();
         parent::set_names();
@@ -468,7 +503,8 @@ class ReporteMtto extends Conectar {
         }
     }
     /* ACTUALIZAR A UN ESTADO ANULADO */
-    public function anulado($repo_codi) {
+    public function anulado($repo_codi)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE reporte_mantenimiento SET repo_estado = 2 WHERE repo_codi = ? ";

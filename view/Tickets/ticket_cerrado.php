@@ -6,113 +6,157 @@ $datos = $rol->validacion_acceso($_SESSION["user_id"], "inboxTickets");
 if (is_array($datos) and count($datos) > 0) {
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
+    <!DOCTYPE html>
+    <html lang="es">
 
-<?php require_once "../MainHead/head.php"; ?>
-<link rel="stylesheet" href="../../public/css/inicio.css">
-<!-- SweetAlert -->
-<link rel="stylesheet" href="../../public/plugins/sweetalert2/sweetalert2.css">
-
-
-<title>Gestion Mantenimiento</title>
-</head>
+    <?php require_once "../MainHead/head.php"; ?>
+    <link rel="stylesheet" href="../../public/css/inicio.css">
+    <!-- SweetAlert -->
+    <link rel="stylesheet" href="../../public/plugins/sweetalert2/sweetalert2.css">
 
 
-<body class="hold-transition sidebar-mini">
+    <title>Gestion Mantenimiento</title>
+    </head>
 
-    <div class="wrapper">
 
-        <!-- Navbar -->
-        <?php require_once "../MainNav/nav.php"; ?>
-        <!-- /.navbar -->
+    <body class="hold-transition sidebar-mini">
 
-        <!-- Main Sidebar Container -->
-        <?php require_once "../MainMenu/menu.php"; ?>
+        <div class="wrapper">
 
-        <!-- Content Wrapper. Contains page content -->
-        <div class="content-wrapper">
-            <!-- Content Header (Page header) -->
-            <div class="content-header">
-                <div class="container-fluid">
-                    <div class="row mb-2">
-                        <div class="col-sm-6">
-                            <h1 class="m-0">Gestion Solicitudes - Bandeja de Entrada</h1>
-                        </div><!-- /.col -->
-                        <div class="col-sm-6">
-                            <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="#">Inicio</a></li>
-                                <li class="breadcrumb-item active">Tickets - Cerrados</li>
-                            </ol>
-                        </div><!-- /.col -->
-                    </div><!-- /.row -->
-                </div><!-- /.container-fluid -->
-            </div><!-- /.content-header -->
+            <!-- Navbar -->
+            <?php require_once "../MainNav/nav.php"; ?>
+            <!-- /.navbar -->
 
-            <!-- Main content -->
-            <div class="content">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-3">
+            <!-- Main Sidebar Container -->
+            <?php require_once "../MainMenu/menu.php"; ?>
 
-                            <?php require_once "carpetas.php"; ?>
+            <!-- Content Wrapper. Contains page content -->
+            <div class="content-wrapper">
+                <!-- Content Header (Page header) -->
+                <div class="content-header">
+                    <div class="container-fluid">
+                        <div class="row mb-2">
+                            <div class="col-sm-6">
+                                <h1 class="m-0">Gestion Solicitudes - Bandeja de Entrada</h1>
+                            </div><!-- /.col -->
+                            <div class="col-sm-6">
+                                <ol class="breadcrumb float-sm-right">
+                                    <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+                                    <li class="breadcrumb-item active">Tickets - Cerrados</li>
+                                </ol>
+                            </div><!-- /.col -->
+                        </div><!-- /.row -->
+                    </div><!-- /.container-fluid -->
+                </div><!-- /.content-header -->
 
-                        </div>
-                        <div class="col-md-9">
-                            <div class="card card-primary card-outline">
-                                <div class="card-header">
-                                    <h3 class="card-title">Tickets - Cerrados</h3>
-                                </div>
+                <!-- Main content -->
+                <div class="content">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-3">
 
-                                <div class="card-body p-0">
+                                <?php require_once "carpetas.php"; ?>
 
-                                    <div class="table-responsive mailbox-messages">
-                                        <table class="table table-hover table-striped" id="tableTktCerrado">
-                                            <thead>
-                                                <tr>
-                                                    <th>No. Reporte</th>
-                                                    <th>No. Orden Trabajo</th>
-                                                    <th>Placa</th>
-                                                    <th>Fecha Solicitud</th>
-                                                    <th>Acciones</th>
-                                                </tr>
-                                            </thead>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="card card-primary card-outline">
 
-                                            <tbody>
-                                                <!-- Las filas se llenarán dinámicamente con JS -->
-                                            </tbody>
-                                        </table>
 
+                                    <div class="card-header">
+
+                                        <h3 class="card-title">Tickets - Cerrados</h3>
+
+
+
+                                        </br>
+
+                                        <hr>
+
+                                        <div class="row mb-3">
+
+                                            <!-- Filtro por placa -->
+                                            <div class="col-md-4">
+                                                <label><b>Filtrar por Placa:</b></label>
+                                                <select id="filtroPlaca" class="form-control select2bs4" style="width:100%;">
+                                                    <option value="">-- Todas --</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Filtro por fecha -->
+                                            <div class="col-md-4">
+                                                <label><b>Rango de Fechas:</b></label>
+                                                <input type="text" id="filtroFecha" class="form-control">
+                                            </div>
+
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button class="btn btn-primary btn-block" id="btnBuscar">
+                                                    <i class="fas fa-search"></i> Buscar
+                                                </button>
+                                            </div>
+
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button class="btn btn-secondary btn-block" id="btnLimpiar">
+                                                    <i class="fas fa-eraser"></i> Limpiar
+                                                </button>
+                                            </div>
+
+                                        </div>
+
+
+                                    </div>
+
+
+                                    <div class="card-body p-0">
+
+                                        <div class="table-responsive mailbox-messages">
+                                            <table class="table table-hover table-striped" id="tableTktCerrado">
+                                                <thead>
+                                                    <tr>
+                                                        <th>No. Reporte</th>
+                                                        <th>No. Orden Trabajo</th>
+                                                        <th>Placa</th>
+                                                        <th>Fecha Solicitud</th>
+                                                        <th>Estado</th>
+                                                        <th>Estado Num</th>
+                                                        <th>Acciones</th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+                                                    <!-- Las filas se llenarán dinámicamente con JS -->
+                                                </tbody>
+                                            </table>
+
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <!-- /.container-fluid -->
                         </div>
-                        <!-- /.container-fluid -->
                     </div>
+                    <!-- /.content -->
                 </div>
-                <!-- /.content -->
+                <!-- /.content-wrapper -->
             </div>
-            <!-- /.content-wrapper -->
+
+
+            <?php require_once("../MainFooter/footer.php") ?>
+
+            <!-- ./wrapper -->
         </div>
 
-
-        <?php require_once("../MainFooter/footer.php") ?>
-
-        <!-- ./wrapper -->
-    </div>
-
-    <?php require_once "../MainJS/JS.php" ?>
-    <script src="../../config/config.js"></script>
-    <script type="text/javascript" src="tickets.js"></script>
-    <!-- date-range-picker -->
-    <!-- SweetAlert -->
-    <script src="../../public/plugins/sweetalert2/sweetalert2.js"></script>
+        <?php require_once "../MainJS/JS.php" ?>
+        <script src="../../config/config.js"></script>
+        <script type="text/javascript" src="tickets.js"></script>
+        <!-- date-range-picker -->
+        <!-- SweetAlert -->
+        <script src="../../public/plugins/sweetalert2/sweetalert2.js"></script>
 
 
 
-</body>
+    </body>
 
-</html>
+    </html>
 
 <?php
 } else {

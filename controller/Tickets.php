@@ -134,17 +134,33 @@ switch ($_REQUEST["op"]) {
         $data = array();
         //$tickets = [];
         foreach ($datos as $solicitud) {
+
+            // =====================================
+            //  BADGE DE ESTADO
+            // =====================================
+            $estado = intval($solicitud["repo_mtto_estado"]);
+
+            if ($estado === 1) {
+                $badge = '<span class="badge bg-success">ABIERTO</span>';
+            } elseif ($estado === 2) {
+                $badge = '<span class="badge bg-danger">CERRADO</span>';
+            } else {
+                $badge = '<span class="badge bg-secondary">DESCONOCIDO</span>';
+            }
             $sub_array = array();
             $sub_array[] = $solicitud["repo_mtto_num_reporte"];
             $sub_array[] = $solicitud["num_otm"];
             $sub_array[] = $solicitud["vehi_placa"];
+
             $sub_array[] = date('d-m-Y / H:i', strtotime($solicitud["repo_mtto_fecha_creacion"]));
+            $sub_array[] = $badge;
+            $sub_array[] = $estado;
 
             $sub_array[] = '<div class="button-container text-center" >
                     <button type="button" onClick="verReporte(' . $solicitud["repo_mtto_id"] . ');" id="' . $solicitud["repo_mtto_id"] . '" class="btn btn-warning btn-icon " >
                         <div><i class="fas fa-folder-open"></i></div>
                     </button>
-                    <button type="button" onClick="verPdf(' . $solicitud["repo_mtto_id"] . ');" id="' . $solicitud["repo_mtto_id"] . '" class="btn btn-danger btn-icon " >
+                    <button type="button" onClick="verPdf(' . $solicitud["repo_mtto_id"] . ');" id="' . $solicitud["repo_mtto_id"] . '" class="btn btn-danger btn-icon btn-pdf" >
                         <div><i class="fas fa-file-pdf"></i></div>
                     </button>
                 </div>';
