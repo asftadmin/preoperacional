@@ -211,6 +211,7 @@ class ReporteMtto extends Conectar {
                 INNER JOIN reporte_mtto rm ON rr.repo_mtto_id = rm.repo_mtto_id
                 INNER JOIN ordenes_trabajo ot ON ot.codi_otm = rm.repo_mtto_orden
                 WHERE rr.repo_mtto_id = :id
+				GROUP BY num_otm, rpts_prov, rpts_docu
                 ORDER BY rpts_docu ASC";
 
         $stmt = $conectar->prepare($sql);
@@ -326,6 +327,27 @@ class ReporteMtto extends Conectar {
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function cerrar_reporte($idReporte, $estadoFinal, $total) {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "UPDATE reporte_mtto 
+            SET 
+                repo_mtto_estado_final   = ?,
+                repo_mtto_vlr_total = ?,
+                repo_mtto_estado = 2,
+                repo_mtto_fecha_cierre = NOW()
+            WHERE repo_mtto_id = ?";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(1, $estadoFinal);
+        $stmt->bindValue(2, $total);
+        $stmt->bindValue(3, $idReporte);
+
+        return $stmt->execute();
+    }
+
 
 
 

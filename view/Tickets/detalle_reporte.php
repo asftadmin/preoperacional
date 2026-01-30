@@ -73,13 +73,16 @@ if (is_array($datos) and count($datos) > 0) {
 
 
                                     </div>
-                                    <div class="card-footer">
-                                        <button type="button" id="btnCrearOrden" class="btn btn-default"><i
-                                                class="fas fa-file-signature"></i>
-                                            Crear OTM</button>
-                                        <button type="button" class="btn btn-default" id="btnVolver"><i
-                                                class="fas fa-arrow-circle-left"></i>
-                                            Regresar</button>
+                                    <div class="card-footer d-flex justify-content-center">
+                                        <div class="btn-group text-center" role="group">
+                                            <button type="button" id="btnCrearOrden" class="btn btn-default"
+                                                onclick="cerrarReporteSwal()"><i class="fas fa-file-signature"
+                                                    style="color: red;"></i>
+                                                Cerrar Reporte</button>
+                                            <button type="button" class="btn btn-default" onclick="regresarPagina()"
+                                                id="btnVolver"><i class="fas fa-arrow-circle-left"></i>
+                                                Regresar</button>
+                                        </div>
                                     </div>
                                     <!-- /.card-footer -->
                                 </div>

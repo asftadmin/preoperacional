@@ -33,7 +33,8 @@ $(document).ready(function () {
 
             if (data.status === 'success') {
                 $('#readMessage').html(data.html);
-                cargarSoportes(reporte_id)
+                cargarSoportes(reporte_id);
+                validarEstadoReporte();
             } else {
                 alert(data.message || 'Error desconocido');
             }
@@ -417,7 +418,7 @@ function agregarFactura() {
     $(".col-proveedor").removeClass("d-none");
 
     // Mostrar columna proveedor en filas existentes
-    $("#tablaRepuestos tbody tr").each(function(){
+    $("#tablaRepuestos tbody tr").each(function () {
         $(this).find("td.col-proveedor").removeClass("d-none");
     }); //Encontrar la columna con la clase col-proveedor
 
@@ -458,7 +459,7 @@ function verificarProveedorColumna() {
         $(".col-proveedor").addClass("d-none");
 
         // Ocultar columna proveedor en todas las filas
-        $("#tablaRepuestos tbody tr").each(function(){
+        $("#tablaRepuestos tbody tr").each(function () {
             $(this).find("td.col-proveedor").addClass("d-none");
         });
     }
@@ -523,9 +524,10 @@ function guardarFacturasEnLote() {
                     icon: "success",
                     timer: 1500,
                     showConfirmButton: false
-                }).then(() =>{
+                }).then(() => {
                     verificarProveedorColumna();
-                    location.reload()} );
+                    location.reload()
+                });
             } else {
                 Swal.fire("Error", data.message, "error");
             }
@@ -613,6 +615,158 @@ function cargarSoportes(reporte_id) {
         }
     });
 }
+
+
+function cerrarReporteSwal() {
+
+    let idReporte = $("#id_reporte").val();          // ID tomado del input hidden
+    let totalRepuestos = $("#total_repuestos").val(); // TOTAL tomado del input hidden
+
+    Swal.fire({
+        title: "Cerrar Reporte",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        html: `
+            <div style="text-align:left; width:100%; margin-top:10px;">
+                <label><b>Estado final del equipo:</b></label><br>
+
+                <textarea id="txtEstadoFinal"
+                    placeholder="Describa el estado final..."
+                    style="
+                        height:120px;
+                        width:450px;
+                        resize:none;
+                        margin-top:6px;
+                        border:1px solid #ccc;
+                        border-radius:5px;
+                        padding:6px;
+                        font-size:20px;
+                    "
+                ></textarea>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Cerrar Reporte",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#17a2b8",
+        cancelButtonColor: "#6c757d",
+        focusConfirm: false,
+        preConfirm: () => {
+
+            let estadoFinal = document.getElementById("txtEstadoFinal").value.trim();
+
+            if (!estadoFinal) {
+                Swal.showValidationMessage("Debe escribir el estado final del equipo");
+                return false;
+            }
+
+            return estadoFinal;
+        }
+    }).then((result) => {
+
+        if (!result.isConfirmed) return;
+
+        let estadoFinal = result.value;
+
+        $.ajax({
+            url: "../../controller/ReporteMtto.php?op=cerrar_reporte",
+            type: "POST",
+            data: {
+                id: idReporte,
+                estado_final: estadoFinal,
+                total: totalRepuestos          // ← SE AGREGA AQUÍ
+            },
+            dataType: "json",
+
+            success: function (data) {
+                if (data.status === "success") {
+                    Swal.fire({
+                        title: "Reporte Cerrado",
+                        text: "El estado final fue registrado correctamente.",
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire("Error", data.message, "error");
+                }
+            }
+        });
+
+    });
+}
+
+function validarEstadoReporte() {
+
+    let estado = parseInt($("#estado_reporte").val());
+
+    if (estado === 2) {
+        deshabilitarBotonesReporte();
+    }
+}
+
+
+
+function deshabilitarBotonesReporte() {
+
+    let botones = [
+        "buttonImportar",
+        "buttonRebolsos",
+        "editarTrabajo",
+        "subirSoportes",
+        "btnCrearOrden",
+        "removerButton"
+    ];
+
+    botones.forEach(id => {
+        let btn = document.getElementById(id);
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add("disabled");
+            btn.style.pointerEvents = "none";
+            btn.style.opacity = "0.5";
+            btn.title = "Reporte cerrado";
+        }
+    });
+
+    $(".removerButton").each(function () {
+        $(this).prop("disabled", true);
+        $(this).css({
+            "pointer-events": "none",
+            "opacity": "0.5"
+        });
+        $(this).attr("title", "No permitido — el reporte está cerrado");
+    });
+
+
+    let dz = document.getElementById("uploadZona"); // ← Cambiar si tu ID es otro
+
+    if (dz) {
+        // Bloquea interacción
+        dz.style.pointerEvents = "none";
+        dz.style.opacity = "0.4";
+
+        // Si ya hay un objeto Dropzone activo, lo deshabilitamos
+        if (Dropzone.instances.length > 0) {
+            Dropzone.instances.forEach(dzInstance => {
+                dzInstance.disable(); // 🔥 bloquea la subida de archivos
+            });
+        }
+
+        // Tooltip informativo
+        dz.title = "Subida deshabilitada — el reporte está cerrado";
+    }
+
+}
+
+function regresarPagina() {
+    window.history.back();
+}
+
+
+
+
+
 
 
 

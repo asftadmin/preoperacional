@@ -141,14 +141,11 @@ switch ($_REQUEST["op"]) {
             $sub_array[] = date('d-m-Y / H:i', strtotime($solicitud["repo_mtto_fecha_creacion"]));
 
             $sub_array[] = '<div class="button-container text-center" >
-                    <button type="button" onClick="" id="" class="btn btn-secondary btn-icon " >
-                        <div><i class="fas fa-bars"></i></div>
-                    </button>
-                    <button type="button" onClick="verReporte(' . $solicitud["repo_mtto_id"] . ');" id="' . $solicitud["repo_mtto_id"] . '" class="btn btn-info btn-icon " >
+                    <button type="button" onClick="verReporte(' . $solicitud["repo_mtto_id"] . ');" id="' . $solicitud["repo_mtto_id"] . '" class="btn btn-warning btn-icon " >
                         <div><i class="fas fa-folder-open"></i></div>
                     </button>
-                    <button type="button" onClick="cerrarOTM(' . $solicitud["repo_mtto_id"] . ');" id="' . $solicitud["repo_mtto_id"] . '" class="btn btn-dark btn-icon " >
-                        <div><i class="fas fa-file-signature"></i></div>
+                    <button type="button" onClick="verPdf(' . $solicitud["repo_mtto_id"] . ');" id="' . $solicitud["repo_mtto_id"] . '" class="btn btn-danger btn-icon " >
+                        <div><i class="fas fa-file-pdf"></i></div>
                     </button>
                 </div>';
 

@@ -148,6 +148,9 @@ switch ($_GET["op"]) {
 
         $estado = intval($informe["repo_mtto_estado"]);
 
+        $html .= '<input type="hidden" id="estado_reporte" value="' . $estado . '">';
+
+
         if ($estado === 1) {
             $badgeEstado = '<span class="badge bg-success">REPORTE ABIERTO</span>';
         } elseif ($estado === 2) {
@@ -177,19 +180,14 @@ switch ($_GET["op"]) {
 
         // ESTADO FINAL
 
-        $estadoTexto = [
-            1 => "Operativo",
-            2 => "No operativo",
-            3 => "Operativo con pendientes"
-        ];
-        $informe["estado_texto"] = $estadoTexto[$informe["repo_mtto_estado"]] ?? "Sin definir";
+
         $html .= '<div class="mailbox-read-message mb-0">';
         $html .= '<h5><b>Estado y/o diagnostico inicial:</b></h5>';
         $html .= '<p>' . nl2br(htmlspecialchars($solicitud["desc_soli"])) . '</p>';
         $html .= '<h5><b>Descripcion del mantenimiento:</b></h5>';
         $html .= '<p>' . nl2br(htmlspecialchars($ot["desc_atcv_otm"])) . '</p>';
         $html .= '<h5><b>Estado Final:</b></h5>';
-        //$html .= '<p>' . nl2br(htmlspecialchars($reporte["estado_texto"])) . '</p>';
+        $html .= '<p>' . nl2br(htmlspecialchars($informe["repo_mtto_estado_final"])) . '</p>';
         $html .= '</div>';
 
 
@@ -236,12 +234,12 @@ switch ($_GET["op"]) {
         $html .= '<div class="d-flex justify-content-between align-items-center mb-2">';
         $html .= '    <h4 class="mb-0"><b>Repuestos e Insumos</b></h4>';
         $html .= '<div class="btn-group" role="group">';
-        $html .= '    <button type="button" onclick="importarRepuestos()" class="btn btn-dark btn-md" title="Importar desde SIESA">
-                    <i class="fas fa-file-import"></i> Importar desde SIESA 
-                </button>';
-        $html .= ' <button type="button" onclick="agregarFactura()" class="btn btn-primary btn-md ml-2">
-            <i class="fas fa-file-invoice"></i> Ingresar Facturas / Reembolsos
-          </button>';
+        $html .= '    <button type="button" onclick="importarRepuestos()" id="buttonImportar" class="btn btn-dark btn-md" title="Importar desde SIESA">
+                        <i class="fas fa-file-import"></i> Importar desde SIESA 
+                      </button>';
+        $html .= ' <button type="button" onclick="agregarFactura()" id="buttonRebolsos" class="btn btn-primary btn-md ml-2">
+                        <i class="fas fa-file-invoice"></i> Ingresar Facturas / Reembolsos
+                    </button>';
         $html .= '</div>';
         $html .= '</div>';
 
@@ -316,7 +314,7 @@ switch ($_GET["op"]) {
                         <td>$factura</td>         <!-- Factura no existe -->
                         <td class='col-proveedor d-none'>N/A</td>
                         <td class='text-center'>
-                            <button class='btn btn-danger btn-sm' 
+                            <button class='btn btn-danger btn-sm removerButton'
                                     onclick=\"eliminarRepuesto('$idItem')\">
                                     <i class=\"fas fa-trash\"></i>
                             </button>
@@ -336,6 +334,8 @@ switch ($_GET["op"]) {
 
 
         $html .= '<h4 class="text-right p-2"><b>Total Repuestos:</b> $' . number_format($total, 0, ',', '.') . '</h4>';
+        $html .= '<input type="hidden" id="total_repuestos" value="' . $total . '">';
+
 
         $horasEjec = $informe["repo_mtto_horas_ejec"];
         if ($horasEjec === null || $horasEjec === "") {
@@ -357,7 +357,7 @@ switch ($_GET["op"]) {
             <b class="mr-2">Horas ejecutadas:</b> 
             <span id="txtHorasEjecutadas" class="mr-2">' . $horasEjec . '</span>
 
-            <button class="btn btn-sm btn-dark" onclick="editarHoras()">
+            <button class="btn btn-sm btn-dark" onclick="editarHoras()" id="editarTrabajo">
                 <i class="fas fa-edit"></i> Editar
             </button>
          </p>';
@@ -434,7 +434,7 @@ switch ($_GET["op"]) {
 
         $html .= '<form action="" class="dropzone" id="uploadZona">';
         $html .= '<div class="dz-default dz-message">';
-        $html .= '<button class="dz-button" type="button">';
+        $html .= '<button class="dz-button" type="button" id="subirSoportes">';
         $html .= '<i class="fas fa-cloud-upload-alt icon-super-upload"></i>';
         $html .= '<div style="font-size: 18px; font-weight: bold; margin-top: 10px; text-aling: center;"> Arrastra tus archivos o haz clic aquí </div>';
         $html .= '</button>';
@@ -787,6 +787,26 @@ switch ($_GET["op"]) {
         readfile($ruta_local);
         unlink($ruta_local);
 
+
+        break;
+
+    case "cerrar_reporte":
+
+        $id      = $_POST["id"];
+        $estado  = trim($_POST["estado_final"]);
+        $total   = floatval($_POST["total"]); // ← USAMOS LO QUE YA CALCULASTE
+
+        if (!$id || $estado === "") {
+            echo json_encode(["status" => "error", "message" => "Datos incompletos"]);
+            exit;
+        }
+
+        $ok = $reporte->cerrar_reporte($id, $estado, $total);
+
+        echo json_encode([
+            "status" => $ok ? "success" : "error",
+            "message" => $ok ? "" : "No se pudo cerrar el reporte"
+        ]);
 
         break;
 }

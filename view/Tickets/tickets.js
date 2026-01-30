@@ -404,5 +404,12 @@ function verReporte(codigo_reporte) {
     window.location.href = BASE_URL + '/view/Tickets/detalle_reporte.php?id=' + codigo_reporte; //http://181.204.219.154:3396/preoperacional
 }
 
+function verPdf(reporteID) {
+    console.log(reporteID);
+    var url = BASE_URL + '/view/PDF/ReporteMtto.php?id=' + reporteID; //http://181.204.219.154:3396/preoperacional
+    window.open(url, '_blank');
+}
+
+
 
 init();
