@@ -62,6 +62,38 @@ if (is_array($datos) and count($datos) > 0) {
                                 <div class="card card-primary card-outline">
                                     <div class="card-header">
                                         <h3 class="card-title">Tickets - En revisión</h3>
+                                        </br>
+                                        <hr>
+                                        <div class="row mb-3">
+
+                                            <!-- Filtro por placa -->
+                                            <div class="col-md-4">
+                                                <label><b>Filtrar por Placa:</b></label>
+                                                <select id="filtroPlaca" class="form-control select2bs4"
+                                                    style="width:100%;">
+                                                    <option value="">-- Todas --</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Filtro por fecha -->
+                                            <div class="col-md-4">
+                                                <label><b>Rango de Fechas:</b></label>
+                                                <input type="text" id="filtroFecha" class="form-control" autocomplete="off">
+                                            </div>
+
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button class="btn btn-primary btn-block" id="btnBuscarSoli">
+                                                    <i class="fas fa-search"></i> Buscar
+                                                </button>
+                                            </div>
+
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button class="btn btn-secondary btn-block" id="btnLimpiarSoli">
+                                                    <i class="fas fa-eraser"></i> Limpiar
+                                                </button>
+                                            </div>
+
+                                        </div>
                                     </div>
 
                                     <div class="card-body p-2">
@@ -75,6 +107,7 @@ if (is_array($datos) and count($datos) > 0) {
                                                         <th>Placa</th>
                                                         <th>Fecha</th>
                                                         <th>Tipo Mantenimiento</th>
+                                                        <th>Estado</th>
                                                         <th>Acciones</th>
                                                     </tr>
                                                 </thead>

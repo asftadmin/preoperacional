@@ -91,7 +91,25 @@ switch ($_REQUEST["op"]) {
     case 'listarTicketsRevision':
 
         $coordinador = $_SESSION["user_rol_usuario"];
-        $datos = $ticket->get_tickets_revision($coordinador);
+        $placa  = isset($_POST["placa"]) ? trim($_POST["placa"]) : "";
+        $fechas = isset($_POST["fechas"]) ? trim($_POST["fechas"]) : "";
+
+        $fechaIni = "";
+
+        $fechaFin = "";
+
+        if ($fechas !== "") {
+            // formato esperado: YYYY-MM-DD / YYYY-MM-DD
+            $rango = explode(" / ", $fechas);
+            $fechaIni = $rango[0];
+            $fechaFin = $rango[1];
+            // Si seleccionó UN SOLO DÍA → ajustar
+            if ($fechaIni === $fechaFin) {
+                $fechaIni = $fechaIni . " 00:00:00";
+                $fechaFin = $fechaFin . " 23:59:59";
+            }
+        }
+        $datos = $ticket->get_tickets_revision($coordinador, $placa, $fechaIni, $fechaFin);
         $data = array();
         //$tickets = [];
         foreach ($datos as $solicitud) {
@@ -101,16 +119,24 @@ switch ($_REQUEST["op"]) {
             $sub_array[] = $solicitud["vehi_placa"];
             $sub_array[] = date('d-m-Y / H:i', strtotime($solicitud["fech_creac_soli"]));
             $sub_array[] = $solicitud["tipo_mantenimiento"];
+            $estado = intval($solicitud["esta_soli"]);
+
+            if ($estado === 2) {
+                $badge = '<span class="badge bg-success">EN REVISION</span>';
+            } elseif ($estado === 3) {
+                $badge = '<span class="badge bg-danger">CERRADO</span>';
+            } else {
+                $badge = '<span class="badge bg-secondary">DESCONOCIDO</span>';
+            }
+
+            $sub_array[] = $badge;
 
             $sub_array[] = '<div class="button-container text-center" >
-                    <button type="button" onClick="" id="" class="btn btn-dark btn-icon " >
-                        <div><i class="fas fa-search-plus"></i></div>
+                    <button type="button" onClick="cerrarOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-warning btn-icon " >
+                        <div><i class="fas fa-lock"></i></i></div>
                     </button>
                     <button type="button" onClick="verOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-danger btn-icon " >
                         <div><i class="fas fa-file-pdf"></i></i></div>
-                    </button>
-                    <button type="button" onClick="cerrarOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-success btn-icon " >
-                        <div><i class="fas fa-lock"></i></i></div>
                     </button>
                 </div>';
 
@@ -130,7 +156,33 @@ switch ($_REQUEST["op"]) {
     case 'listarTicketsCerrados':
 
         $coordinador = $_SESSION["user_rol_usuario"];
-        $datos = $ticket->get_tickets_cerrados($coordinador);
+        $placa  = isset($_POST["placa"]) ? trim($_POST["placa"]) : "";
+        $fechas = isset($_POST["fechas"]) ? trim($_POST["fechas"]) : "";
+
+        $fechaIni = "";
+
+        $fechaFin = "";
+
+        if ($fechas !== "") {
+            // formato esperado: YYYY-MM-DD / YYYY-MM-DD
+            $rango = explode(" / ", $fechas);
+            $fechaIni = $rango[0];
+            $fechaFin = $rango[1];
+            // Si seleccionó UN SOLO DÍA → ajustar
+            if ($fechaIni === $fechaFin) {
+                $fechaIni = $fechaIni . " 00:00:00";
+                $fechaFin = $fechaFin . " 23:59:59";
+            }
+        }
+
+
+        $datos = $ticket->get_tickets_cerrados($coordinador, $placa, $fechaIni, $fechaFin);
+
+        /*         echo "<pre>";
+        var_dump($datos);
+        echo "</pre>";
+        exit; */
+
         $data = array();
         //$tickets = [];
         foreach ($datos as $solicitud) {

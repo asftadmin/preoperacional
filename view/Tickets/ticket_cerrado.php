@@ -53,12 +53,12 @@ if (is_array($datos) and count($datos) > 0) {
                 <div class="content">
                     <div class="container-fluid">
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
 
                                 <?php require_once "carpetas.php"; ?>
 
                             </div>
-                            <div class="col-md-9">
+                            <div class="col-md-10">
                                 <div class="card card-primary card-outline">
 
 
@@ -77,7 +77,8 @@ if (is_array($datos) and count($datos) > 0) {
                                             <!-- Filtro por placa -->
                                             <div class="col-md-4">
                                                 <label><b>Filtrar por Placa:</b></label>
-                                                <select id="filtroPlaca" class="form-control select2bs4" style="width:100%;">
+                                                <select id="filtroPlaca" class="form-control select2bs4"
+                                                    style="width:100%;">
                                                     <option value="">-- Todas --</option>
                                                 </select>
                                             </div>
@@ -85,7 +86,7 @@ if (is_array($datos) and count($datos) > 0) {
                                             <!-- Filtro por fecha -->
                                             <div class="col-md-4">
                                                 <label><b>Rango de Fechas:</b></label>
-                                                <input type="text" id="filtroFecha" class="form-control">
+                                                <input type="text" id="filtroFecha" class="form-control" autocomplete="off">
                                             </div>
 
                                             <div class="col-md-2 d-flex align-items-end">

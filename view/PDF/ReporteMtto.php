@@ -5,11 +5,9 @@ require_once("../../models/ReporteMtto.php");
 
 
 
-class PDF extends FPDF
-{
+class PDF extends FPDF {
     // Cabecera de página
-    function Header()
-    {
+    function Header() {
 
         $this->SetY(15);
         $this->Image('../../public/img/logo.png', 10, 8, 35);
@@ -44,15 +42,13 @@ class PDF extends FPDF
     }
 
     // Pie de página
-    function Footer()
-    {
+    function Footer() {
         $this->SetY(-15);
         $this->SetFont('Arial', 'I', 8);
         $this->Cell(0, 10, 'El espiritu de las Grandes Obras ', 'T', 0, 'C');
     }
 
-    function NbLines($w, $txt)
-    {
+    function NbLines($w, $txt) {
         $cw = $this->CurrentFont['cw'];
         if ($w == 0)
             $w = $this->w - $this->rMargin - $this->x;
@@ -96,8 +92,7 @@ class PDF extends FPDF
     }
 }
 
-function getMultiCellHeight($pdf, $w, $text)
-{
+function getMultiCellHeight($pdf, $w, $text) {
     $lineHeight = 6;
     $nb = $pdf->NbLines($w, utf8_decode($text));
     return $nb * $lineHeight;
@@ -116,7 +111,7 @@ $proveedores = $reporteClass->get_proveedores_reporte($repo_numb);
 $items = $reporteClass->get_repuestos_por_reporte($repo_numb);
 
 /* echo "<pre>";
-var_dump($items);
+var_dump($datosGenerales);
 echo "</pre>";
 exit; */
 
@@ -125,26 +120,25 @@ $equipo   = $datosGenerales["equipo"];
 $ot       = $datosGenerales["ot"];
 $solicitud    = $datosGenerales["solicitud"];
 $conductor    = $datosGenerales["conductor"];
+$obra    = $datosGenerales["obra"];
 
 
 $placa = isset($equipo['vehi_placa']) ? $equipo['vehi_placa'] : 'N/A';
 $Fecha = isset($informe['repo_mtto_fecha_creacion']) ? $informe['repo_mtto_fecha_creacion'] : 'N/A';
 $fecha_inicio = isset($solicitud['fech_creac_soli']) ? $solicitud['fech_creac_soli'] : 'N/A';
 $fecha_fin = isset($informe['repo_mtto_fecha_cierre']) ? $informe['repo_mtto_fecha_cierre'] : 'N/A';
-//$obra = isset($datosGenerales['obras_nom']) ? $datosGenerales['obras_nom'] : 'N/A';
-//$tipo_mtto = isset($datosGenerales['tipo_mantenimiento']) ? $datosGenerales['tipo_mantenimiento'] : 'N/A';
+$obraReporte = isset($obra['obras_nom']) ? $obra['obras_nom'] : 'N/A';
 $operador_nombre = isset($conductor['user_nombre']) ? $conductor['user_nombre'] : 'N/A';
 $operador_apellido = isset($conductor['user_apellidos']) ? $conductor['user_apellidos'] : 'N/A';
 $operador = $operador_nombre . ' ' . $operador_apellido;
-//$cargo = isset($datosGenerales['rol_cargo']) ? $datosGenerales['rol_cargo'] : 'N/A';
 $numero_reporte = isset($informe['repo_mtto_num_reporte']) ? $informe['repo_mtto_num_reporte'] : 'N/A';
 // VARIABLES TABLA REPORTE MTTO
 $codigo_interno = isset($equipo['vehi_codigo']) ? $equipo['vehi_codigo'] : 'N/A';
 $hora = isset($informe['repo_mtto_horas_programadas']) ? $informe['repo_mtto_horas_programadas'] : 'N/A';
 $hora_ejec = isset($informe['repo_mtto_horas_ejec']) ? $informe['repo_mtto_horas_ejec'] : 'N/A';
-//$estado_reporte = isset($informe['repo_estado']) ? $informe['repo_estado'] : 'N/A';
 // VARIABLES TABLA DETALLE REPORTE
 $diag_inicial = isset($solicitud['desc_soli']) ? $solicitud['desc_soli'] : 'N/A';
+$horometro = isset($solicitud['lect_soli']) ? $solicitud['lect_soli'] : 'N/A';
 $desc_mtto = isset($ot['desc_atcv_otm']) ? $ot['desc_atcv_otm'] : 'N/A';
 $estado_final = isset($informe['repo_mtto_estado_final']) ? $informe['repo_mtto_estado_final'] : 'N/A';
 $total_mtto = isset($informe['repo_mtto_vlr_total']) ? $informe['repo_mtto_vlr_total'] : 'N/A';
@@ -155,9 +149,7 @@ $tipo_mtto = isset($ot['mtto_otm']) ? $ot['mtto_otm'] : 'N/A';
 $proveedor = isset($proveedores[0]['rpts_prov']) ? $proveedores[0]['rpts_prov'] : 'N/A';
 $orden_compra = isset($proveedores[0]['rpts_docu']) ? $proveedores[0]['rpts_docu'] : 'N/A';
 $orden_trabajo = isset($proveedores[0]['num_otm']) ? $proveedores[0]['num_otm'] : 'N/A';
-//$factura_proveedor = isset($items[0]['factura']) ? $proveedores[0]['factura'] : 'N/A';
-//$proveedor_cargo = isset($proveedores[0]['prov_carg']) ? $proveedores[0]['prov_carg'] : 'N/A';
-//$proveedor_tipo = isset($proveedores[0]['prov_tipo']) ? $proveedores[0]['prov_tipo'] : 'N/A';
+
 
 
 // Crear PDF
@@ -184,16 +176,46 @@ $pdf->SetFont('Helvetica', '', 9);
 $pdf->Cell(34, 8, $numero_reporte, 1, 0, 'L', 0);
 
 $pdf->Ln(8);
-$pdf->SetFont('Helvetica', 'B', 10);
-$pdf->Cell(45, 8, utf8_decode('UBICACIÓN DEL EQUIPO'), 1, 0, 'L', 1);
-$pdf->SetFont('Helvetica', '', 9);
-$pdf->Cell(51, 8, '', 1, 0, 'L', 0);
-$pdf->SetFont('Helvetica', 'B', 10);
-$pdf->Cell(30, 8, 'RESPONSABLE', 1, 0, 'L', 1);
-$pdf->SetFont('Helvetica', '', 9);
-$pdf->Cell(64, 8, $operador, 1, 0, 'L', 0);
 
-$pdf->Ln(8);
+// Altura de fila calculada según el texto de obraReporte
+$wUbic = 51;  // ancho destinado para obraReporte
+$h = 12;       // altura mínima
+
+$pdf->SetFont('Helvetica', 'B', 10);
+
+// ===============================
+// 1) CELDA TITULO "UBICACIÓN DEL EQUIPO"
+// ===============================
+$pdf->Cell(45, $h, utf8_decode('UBICACIÓN DEL EQUIPO'), 1, 0, 'L', true);
+
+// ===============================
+// 2) MULTICELL "OBRA" (UBICACION)
+// ===============================
+
+$y = $pdf->GetY();        // posición actual antes del multicell
+$x = $pdf->GetX();        // posición X después del título
+
+$pdf->SetFont('Helvetica', '', 9);
+
+// MultiCell para la ubicación
+$pdf->MultiCell($wUbic, 6, utf8_decode($obraReporte), 1, 'L', 0);
+
+// Altura usada por multicell
+$alturaUsada = $pdf->GetY() - $y;
+
+// Regresar al lado derecho de la multicell
+$pdf->SetXY($x + $wUbic, $y);
+
+// ===============================
+// 3) RESPONSABLE
+// ===============================
+$pdf->SetFont('Helvetica', 'B', 10);
+$pdf->Cell(30, $alturaUsada, 'RESPONSABLE', 1, 0, 'L', true);
+
+$pdf->SetFont('Helvetica', '', 9);
+$pdf->Cell(64, $alturaUsada, utf8_decode($operador), 1, 0, 'L', 0);
+
+$pdf->Ln(12);
 $pdf->SetFont('Helvetica', 'B', 10);
 $pdf->Cell(48, 8, 'TIPO DE MANTENIMIENTO', 1, 0, 'C', 1);
 $pdf->SetFont('Helvetica', '', 9);
@@ -232,7 +254,7 @@ $pdf->Cell(0, 8, 'ESTADO Y/O DIAGNOSTICO INICIAL', 1, 0, 'C', 1);
 
 $pdf->Ln(8);
 $pdf->SetFont('Helvetica', '', 9);
-$pdf->MultiCell(0, 6, utf8_decode($diag_inicial), 1);
+$pdf->MultiCell(0, 6, utf8_decode($diag_inicial . "; Horometro:" . $horometro), 1);
 $pdf->SetFont('Helvetica', 'B', 10);
 $pdf->Cell(0, 6, utf8_decode('DESCRIPCIÓN DEL MANTENIMIENTO (fotos del proceso del mantenimiento)'), 1, 0, 'C', 1);
 $pdf->Ln(6);

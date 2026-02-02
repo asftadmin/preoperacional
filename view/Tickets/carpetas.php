@@ -22,7 +22,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="ticket_cerrado.php" class="nav-link">
+                <a href="ticket_cerrado.php" class="nav-link" id="cerrados-btn">
                     <i class="fas fa-lock"></i> Cerrados
                 </a>
             </li>

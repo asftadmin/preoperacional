@@ -24,6 +24,11 @@ $('#revision-btn').on('click', function () {
     if (tablaOpen) tablaOpen.clear().destroy();
 });
 
+$('#cerrados-btn').on('click', function () {
+    cargarSolicitudesC('Cerrados');
+    if (tablaCerrados) tablaCerrados.clear().destroy();
+});
+
 $('.select2bs4').select2({
     theme: 'bootstrap4',
     width: '100%'
@@ -138,6 +143,10 @@ function inicializarTablaR() {
         ajax: {
             url: '../../controller/tickets.php?op=listarTicketsRevision',
             type: "POST",
+            data: function (d) {
+                d.placa = $("#filtroPlaca").val();
+                d.fechas = $("#filtroFecha").val();
+            },
             dataType: "json",
             dataSrc: function (json) {
                 console.log("Respuesta del servidor:", json);
@@ -150,7 +159,8 @@ function inicializarTablaR() {
                             placa: r[2],
                             fecha: r[3],
                             tipo: r[4],
-                            acciones: r[5]
+                            estado: r[5],
+                            acciones: r[6]
                         };
                     });
                 }
@@ -166,13 +176,14 @@ function inicializarTablaR() {
             { data: "placa", title: "Placa" },
             { data: "fecha", title: "Fecha Solc." },
             { data: "tipo", title: "Tipo Mant." },
+            { data: "estado", title: "Estado" },
             { data: "acciones", title: "Acciones" }
         ]
     });
 }
 
 function inicializarTablaC() {
-    tablaRevision = $('#tableTktCerrado').DataTable({
+    tablaCerrados = $('#tableTktCerrado').DataTable({
         destroy: true, // permite reiniciar sin conflictos
         processing: true,
         serverSide: false, // tu backend ya devuelve todo
@@ -197,6 +208,10 @@ function inicializarTablaC() {
         ajax: {
             url: '../../controller/tickets.php?op=listarTicketsCerrados',
             type: "POST",
+            data: function (d) {
+                d.placa = $("#filtroPlaca").val();
+                d.fechas = $("#filtroFecha").val();
+            },
             dataType: "json",
             dataSrc: function (json) {
                 console.log("Respuesta del servidor:", json);
@@ -226,13 +241,33 @@ function inicializarTablaC() {
             { data: "placa", title: "Placa" },
             { data: "fecha_solicitud", title: "Fecha Solc." },
             { data: "estado", title: "Estado" },
-            { data: "estado_num" }, 
+            { data: "estado_num", visible: false },
             { data: "acciones", title: "Acciones" }
         ],
         columnDefs: [
             { targets: 5, visible: false }, // ← oculta la columna estado_num
         ]
     });
+    $('#tableTktCerrado').on('draw.dt', function () {
+
+        $('#tableTktCerrado tbody tr').each(function () {
+
+            let rowData = tablaCerrados.row(this).data();
+
+            // Validar que rowData exista
+            if (!rowData) return;
+
+            let estado = rowData.estado_num;
+
+            let botonPDF = $(this).find(".btn-pdf");
+
+            if (estado != 2) {
+                botonPDF.prop("disabled", true).css("opacity", "0.4");
+            }
+        });
+
+    });
+
 }
 
 
@@ -418,25 +453,7 @@ function verPdf(reporteID) {
 }
 
 
-$('#tableTktCerrado').on('draw.dt', function () {
 
-    $('#tableTktCerrado tbody tr').each(function () {
-
-        let rowData = tablaRevision.row(this).data();
-
-        // Validar que rowData exista
-        if (!rowData) return;
-
-        let estado = rowData.estado_num;
-
-        let botonPDF = $(this).find(".btn-pdf");
-
-        if (estado != 2) {
-            botonPDF.prop("disabled", true).css("opacity", "0.4");
-        }
-    });
-
-});
 
 $('#filtroFecha').daterangepicker({
     locale: {
@@ -450,31 +467,75 @@ $('#filtroFecha').daterangepicker({
         weekLabel: "S",
         daysOfWeek: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
         monthNames: [
-            "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-            "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
         ],
         firstDay: 1
+    },
+    ranges: {
+        'Hoy': [moment(), moment()],
+        'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        'Últimos 7 días': [moment().subtract(6, 'days'), moment()],
+        'Últimos 30 días': [moment().subtract(29, 'days'), moment()],
+        'Este mes': [moment().startOf('month'), moment().endOf('month')],
+        'Mes pasado': [
+            moment().subtract(1, 'month').startOf('month'),
+            moment().subtract(1, 'month').endOf('month')
+        ],
+
+        // NUEVOS RANGOS
+        'Año actual': [moment().startOf('year'), moment().endOf('year')],
+        'Año pasado': [
+            moment().subtract(1, 'year').startOf('year'),
+            moment().subtract(1, 'year').endOf('year')
+        ],
+        'Primer semestre': [
+            moment().startOf('year'),
+            moment().startOf('year').add(5, 'months').endOf('month')
+        ],
+        'Segundo semestre': [
+            moment().startOf('year').add(6, 'months'),
+            moment().endOf('year')
+        ],
+        'Trimestre actual': [
+            moment().startOf('quarter'),
+            moment().endOf('quarter')
+        ]
     },
     opens: "right",
     drops: "down",
     autoUpdateInput: false
 });
 
-$('#filtroFecha').on('apply.daterangepicker', function(ev, picker) {
+$('#filtroFecha').on('apply.daterangepicker', function (ev, picker) {
     $(this).val(picker.startDate.format('YYYY-MM-DD') + " / " + picker.endDate.format('YYYY-MM-DD'));
 });
 
 
 $("#btnBuscar").click(function () {
-    tablaRevision.ajax.reload();
+    tablaCerrados.ajax.reload();
 });
 
 $("#btnLimpiar").click(function () {
     $("#filtroPlaca").val("").trigger("change");
     $("#filtroFecha").val("");
+    tablaCerrados.ajax.reload();
+});
+
+
+$.post("../../controller/Vehiculo.php?op=comboVehiculo", function (data, status) {
+    $('#filtroPlaca').html(data);
+});
+
+$("#btnBuscarSoli").click(function () {
     tablaRevision.ajax.reload();
 });
 
+$("#btnLimpiarSoli").click(function () {
+    $("#filtroPlaca").val("").trigger("change");
+    $("#filtroFecha").val("");
+    tablaRevision.ajax.reload();
+});
 
 
 
