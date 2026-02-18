@@ -1,6 +1,10 @@
 var tablaSiesa;
 var tablaRepuestos = null;
 
+function init(){
+    inicializarDropzone();
+}
+
 // Función para obtener el parámetro de la URL
 var getURLParameter = function (sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1));
@@ -33,6 +37,7 @@ $(document).ready(function () {
 
             if (data.status === 'success') {
                 $('#readMessage').html(data.html);
+                inicializarDropzone();
                 cargarSoportes(reporte_id);
                 validarEstadoReporte();
             } else {
@@ -540,7 +545,7 @@ var reporte_id_drop = getURLParameter('id');
 
 Dropzone.autoDiscover = false;
 
-setTimeout(function () {
+/* setTimeout(function () {
 
     if ($("#uploadZona").length) {
 
@@ -585,7 +590,53 @@ setTimeout(function () {
         console.error("Dropzone no encontró #uploadZona");
     }
 
-}, 300);
+}, 300); */
+
+function inicializarDropzone() {
+
+    Dropzone.autoDiscover = false;
+
+    if (!$("#uploadZona").length) {
+        console.error("Dropzone no encontró #uploadZona");
+        return;
+    }
+
+    let myDropzone = new Dropzone("#uploadZona", {
+
+        url: BASE_URL + "/controller/ReporteMtto.php?op=subirFacturas",
+        maxFilesize: 10,
+        acceptedFiles: ".jpg,.jpeg,.png,.pdf,.doc,.docx",
+        addRemoveLinks: true,
+        dictRemoveFile: "Eliminar",
+
+        init: function () {
+            var dz = this;
+
+            this.on("sending", function (file, xhr, formData) {
+                formData.append("reporte_id", reporte_id_drop);
+            });
+
+            this.on("success", function (file, response) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Subido correctamente",
+                    showConfirmButton: false,
+                    timer: 1200
+                });
+
+                cargarSoportes(reporte_id_drop);
+                setTimeout(() => dz.removeFile(file), 1000);
+            });
+
+            this.on("error", function (file, message) {
+                Swal.fire("Error", message, "error");
+                setTimeout(() => this.removeFile(file), 1000);
+            });
+        }
+    });
+
+}
+
 
 
 function cargarSoportes(reporte_id) {
@@ -764,7 +815,7 @@ function regresarPagina() {
 }
 
 
-
+init();
 
 
 
