@@ -158,4 +158,62 @@ class Tickets extends Conectar {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /*     public function obternerUltimoConsecutivo() {
+        $conectar = parent::conexion();
+        parent::set_names();
+        $sql = "SELECT num_soli FROM solicitudes_mtto 
+            WHERE num_soli LIKE 'SM-%'
+            ORDER BY CAST(SUBSTRING(num_soli FROM 11) AS INTEGER) DESC 
+            LIMIT 1";
+        $sql = $conectar->prepare($sql);
+        $sql->execute();
+        $resultado = $sql->fetch(PDO::FETCH_ASSOC);
+        return $resultado;
+    } */
+
+    public function obternerUltimoConsecutivo() {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        // Año actual
+        $anio = date("Y");
+
+        $sql = "SELECT num_soli 
+            FROM solicitudes_mtto
+            WHERE num_soli LIKE :pattern
+            ORDER BY RIGHT(num_soli, 3)::INTEGER DESC
+            LIMIT 1";
+
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(":pattern", "SM-$anio-%", PDO::PARAM_STR);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+
+    public function insert_solicitud($numero, $conductor, $vehiculo, $falla, $km) {
+        $conectar = parent::conexion();
+        parent::set_names();
+        $sql = "INSERT INTO 
+                solicitudes_mtto
+                (fech_creac_soli, num_soli, codi_cond_soli, codi_vehi_soli, esta_soli, asig_soli, desc_soli, lect_soli, prio_soli)
+                VALUES
+                (NOW(), ?, ?, ?, ?, ?, ?, ?, 'Normal')";
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(1, $numero, PDO::PARAM_STR);
+        $stmt->bindValue(2, $conductor,       PDO::PARAM_INT);
+        $stmt->bindValue(3, $vehiculo,            PDO::PARAM_INT);
+        $stmt->bindValue(4, '1',          PDO::PARAM_STR);
+        $stmt->bindValue(5, 2,                  PDO::PARAM_INT); // ID del coordinador
+        $stmt->bindValue(6, $falla, PDO::PARAM_STR);
+        $stmt->bindValue(7, $km, PDO::PARAM_STR);
+
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

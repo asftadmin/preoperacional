@@ -180,5 +180,11 @@ i.nav-icon{
     margin-bottom: 10px;
 }
 
+#cardHeaderTickets .card-title {
+    flex: 0 0 auto !important; /* evita que el título use todo el ancho */
+}
 
+#cardHeaderTickets .d-flex {
+    width: 100%;
+}
 

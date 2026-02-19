@@ -7,9 +7,17 @@ function init() {
     inicializarTablaR();
     inicializarTablaC();
 
+    initSelect2Dynamic();
+
     $("#orden_form_close").on("submit", function (e) {
         cerrarOrdenTrabajo(e);
     });
+
+    $("#solicitud_form").on("submit", function (e) {
+        guardarSolicitud(e);
+    });
+
+    
 
 }
 
@@ -29,10 +37,33 @@ $('#cerrados-btn').on('click', function () {
     if (tablaCerrados) tablaCerrados.clear().destroy();
 });
 
-$('.select2bs4').select2({
-    theme: 'bootstrap4',
-    width: '100%'
-})
+function initSelect2Dynamic() {
+
+    $(".select2bs4").each(function () {
+
+        let $select = $(this);
+
+        // Evitar inicialización doble
+        if ($select.hasClass("select2-hidden-accessible")) {
+            return;
+        }
+
+        // Detectar si estamos dentro de algún modal
+        let modalPadre = $select.closest(".modal");
+
+        $select.select2({
+            theme: "bootstrap4",
+            width: "100%",
+            dropdownParent: modalPadre.length ? modalPadre : $(document.body)
+        });
+
+    });
+}
+
+$('.modal').on('shown.bs.modal', function () {
+    initSelect2Dynamic();
+});
+
 
 function inicializarTabla() {
     tablaOpen = $('#tableTickets').DataTable({
@@ -539,6 +570,133 @@ $("#btnLimpiarSoli").click(function () {
 
 
 
+function cargarNumeroSolicitud() {
+    $.post("../../controller/Tickets.php?op=numeroSolicitud", function (resp) {
+        $("#num_solicitud").val(resp);
+        $("#mdltitulo").html("No. Solicitud: " + resp);
+    });
+}
+
+
+$(document).ready(function () {
+    $('#btnAgregarTicket').on('click', function () {
+        cargarNumeroSolicitud();
+        $('#modalSolicitudMtto').modal('show');  // Abrir el modal
+    });
+
+});
+
+$.post("../../controller/Usuario.php?op=comboUsuarioCond", function (data) {
+    $('#conductor_solicitud').html(data);
+});
+
+$.post("../../controller/Vehiculo.php?op=comboVehiculo", function (data) {
+    $('#vehiculo_solicitud').html(data);
+});
+
+/* $.post(
+    "../../controller/Tickets.php?op=numeroSolicitud",
+    function (data, status) {
+        //console.log("Respuesta del servidor:", data);
+        $("#num_solicitud").val(data);
+    }
+); */
+
+function guardarSolicitud(e) {
+
+    e.preventDefault();
+    let num_solicitud = $('#num_solicitud').val();
+    let conductor = $('#conductor_solicitud').val();
+    let vehiculo = $('#vehiculo_solicitud').val();
+    let falla = $('#desc_solicitud').val();
+    let lectura = $('#lectura_solicitud').val();
+
+    // ================================
+    // VALIDACIONES
+    // ================================
+    if (!conductor) {
+        Swal.fire("Campo requerido", "Debe seleccionar un conductor.", "warning");
+        return;
+    }
+
+    if (!vehiculo) {
+        Swal.fire("Campo requerido", "Debe seleccionar un vehículo.", "warning");
+        return;
+    }
+
+    if (falla === "") {
+        Swal.fire("Campo requerido", "Debe describir la falla reportada.", "warning");
+        return;
+    }
+
+    if (lectura === "") {
+        Swal.fire("Campo requerido", "Debe ingresar kilometraje u horometraje.", "warning");
+        return;
+    }
+
+
+    let data = {
+        num_solicitud: num_solicitud,
+        conductor: conductor,
+        vehiculo: vehiculo,
+        falla: falla,
+        lectura: lectura
+    };
+
+    console.log(data);
+
+    $.ajax({
+
+        url: '../../controller/Tickets.php?op=guardarSolicitudMtto',
+        type: 'POST',
+        data: data,
+        success: function (response) {
+            console.log(response);
+            const result = JSON.parse(response);  // Asumimos que la respuesta es JSON
+
+            // Mostrar mensaje de éxito o error con Swal
+            if (result.status === 'success') {
+                Swal.fire({
+                    title: '¡Guardado Exitosamente!',
+                    text: 'La solicitud fue creado correctamente.',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+
+                $("#solicitud_form")[0].reset();
+                // 👉 LIMPIAR SELECT2
+                $("#conductor_solicitud").val("").trigger("change");
+                $("#vehiculo_solicitud").val("").trigger("change");
+
+                // Cerrar el modal
+                $('#modalSolicitudMtto').modal('hide');
+                cargarNumeroSolicitud();
+                if (tablaOpen) {
+                    tablaOpen.ajax.reload(null, false); // No perder la página actual
+                }
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: result.message,
+                    icon: 'error',
+                    confirmButtonText: 'Intentar de nuevo'
+                });
+            }
+
+        },
+        error: function () {
+            // En caso de error en la solicitud AJAX
+            Swal.fire({
+                title: 'Error',
+                text: 'Hubo un problema al crear la solicitud.',
+                icon: 'error',
+                confirmButtonText: 'Intentar de nuevo'
+            });
+        },
+
+    });
+
+}
 
 
 init();

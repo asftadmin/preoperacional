@@ -60,9 +60,17 @@ if (is_array($datos) and count($datos) > 0) {
                             </div>
                             <div class="col-md-10">
                                 <div class="card card-primary card-outline">
-                                    <div class="card-header">
-                                        <h3 class="card-title">Tickets</h3>
+                                    <div class="card-header" id="cardHeaderTickets">
+                                        <div class="d-flex justify-content-between align-items-center w-100">
+                                            <h3 class="card-title mb-0">Tickets</h3>
+
+                                            <button class="btn btn-dark btn-sm" id="btnAgregarTicket">
+                                                <i class="fas fa-plus"></i> Crear Solicitud
+                                            </button>
+                                        </div>
                                     </div>
+
+
 
                                     <div class="card-body p-2">
 
@@ -100,6 +108,7 @@ if (is_array($datos) and count($datos) > 0) {
             <!-- ./wrapper -->
         </div>
 
+        <?php require_once("insert_ticket.php") ?>
         <?php require_once "../MainJS/JS.php" ?>
         <script src="../../config/config.js"></script>
         <script type="text/javascript" src="tickets.js"></script>

@@ -229,6 +229,85 @@ switch ($_REQUEST["op"]) {
         echo json_encode($results);
 
         break;
+
+
+    /*     case 'numeroSolicitud':
+        $ultimo = $ticket->obternerUltimoConsecutivo();
+
+        // Verifica si obtuvo un resultado correcto
+        if ($ultimo && isset($ultimo['num_soli'])) {
+            // Extraer los últimos 6 dígitos del repo_numb
+            preg_match('/(\d{3})$/', $ultimo['num_soli'], $matches);
+
+            if (isset($matches[1])) {
+                $ultimoNumero = intval($matches[1]); // Convertir a número
+                $nuevoNumero = str_pad($ultimoNumero + 1, 3, "0", STR_PAD_LEFT);
+            } else {
+                $nuevoNumero = "001"; // Si no encuentra el número, inicia en 000001
+            }
+        } else {
+            $nuevoNumero = "001";
+        }
+
+        // Generar el nuevo código con el año actual
+        $nuevoReporte = "SM-" . date("Y") . "-" . $nuevoNumero;
+
+        echo $nuevoReporte;
+
+
+        break; */
+
+    case 'numeroSolicitud':
+
+        $ultimo = $ticket->obternerUltimoConsecutivo();
+
+        if ($ultimo && isset($ultimo['num_soli'])) {
+
+            // Tomar los últimos 3 dígitos
+            $ultimosTres = substr($ultimo['num_soli'], -3);
+
+            if (is_numeric($ultimosTres)) {
+                $nuevoNumero = str_pad(intval($ultimosTres) + 1, 3, "0", STR_PAD_LEFT);
+            } else {
+                $nuevoNumero = "001";
+            }
+        } else {
+            // No hay solicitudes este año
+            $nuevoNumero = "001";
+        }
+
+        $nuevoCodigo = "SM-" . date("Y") . "-" . $nuevoNumero;
+
+        echo $nuevoCodigo;
+        exit;
+
+        break;
+
+
+
+    case 'guardarSolicitudMtto':
+
+        $numero     = $_POST["num_solicitud"] ?? null;
+        $conductor  = $_POST["conductor"] ?? null;
+        $vehiculo   = $_POST["vehiculo"] ?? null;
+        $falla      = $_POST["falla"] ?? null;
+        $km         = $_POST["lectura"] ?? null;
+
+        $resultado = $ticket->insert_solicitud($numero, $conductor, $vehiculo, $falla, $km);
+
+        if ($resultado) {
+            echo json_encode([
+                "status"  => "success",
+                "message" => "Solicitud registrada correctamente"
+            ]);
+        } else {
+            echo json_encode([
+                "status"  => "error",
+                "message" => "No se pudo guardar la solicitud"
+            ]);
+        }
+
+        exit;
 }
 
 

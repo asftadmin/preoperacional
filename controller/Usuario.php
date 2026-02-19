@@ -6,7 +6,7 @@ require_once("curl.php");
 
 $usuario = new Usuario();
 
-switch ($_GET['op']) {
+switch ($_GET['op']) { 
 
     /* SELECT USUARIOS REPORTE OBRAS */
     case 'comboOperadores':
