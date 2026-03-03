@@ -257,7 +257,7 @@ switch ($_GET['op']) {
         break;
 
     case 'filtrorepdia':
-        $datos = $verreportediario->filtrorepdia($_POST['repdia_vehi'], $_POST['repdia_user'], $_POST['fecha_inicio'], $_POST['fecha_final']);
+        $datos = $verreportediario->filtrorepdia($_POST['repdia_vehi'], $_POST['repdia_user'], $_POST['repdia_obra'], $_POST['fecha_inicio'], $_POST['fecha_final']);
         $data = array();
         foreach ($datos as $row) {
             $sub_array = array();

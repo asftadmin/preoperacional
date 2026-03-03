@@ -1,11 +1,9 @@
 <?php
 /* CLASE VER REPORTE DIARIO - ROL VERIFICADOR */
-class  VerReporteDiario extends Conectar
-{
+class  VerReporteDiario extends Conectar {
 
     /* REPORTES DIARIOS*/
-    public function  listarReportesDiarios()
-    {
+    public function  listarReportesDiarios() {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repdia_recib, repdia_fech, conductor_nombre_completo,repdia_estado, vehi_placa,tipo_id
@@ -19,14 +17,14 @@ class  VerReporteDiario extends Conectar
                 GROUP BY repdia_recib, conductor_nombre_completo, repdia_fech, repdia_estado, vehi_placa, tipo_id
             ) AS ranked
             WHERE rn = 1 
-            ORDER BY repdia_fech DESC";
+            ORDER BY repdia_fech DESC
+            LIMIT 50";
         $sql = $conectar->prepare($sql);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
 
-    public function  listarReportesDiariosCond($repdia_cond)
-    {
+    public function  listarReportesDiariosCond($repdia_cond) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repdia_recib, repdia_fech, conductor_nombre_completo,repdia_estado, vehi_placa,tipo_id,repdia_cond, repdia_firma
@@ -48,8 +46,7 @@ class  VerReporteDiario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function  listarReportesDiariosAdmin()
-    {
+    public function  listarReportesDiariosAdmin() {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repdia_id, repdia_fech, conductor_nombre_completo,obras_nom, vehi_placa,tipo_id,repdia_kilo,repdia_kilo_final, act_nombre
@@ -69,8 +66,7 @@ class  VerReporteDiario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function  listarRepdiaAdminxConductor($repdia_cond)
-    {
+    public function  listarRepdiaAdminxConductor($repdia_cond) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repdia_id, repdia_fech, conductor_nombre_completo,obras_nom, vehi_placa,tipo_id,repdia_kilo,repdia_kilo_final, act_nombre,repdia_cond
@@ -93,8 +89,7 @@ class  VerReporteDiario extends Conectar
     }
 
     // FILTRO DE BUSQUEDA DE REPORTES DIARIOS
-    public function  filtrorepdia($repdia_user, $repdia_vehi, $fecha_inicio, $fecha_final)
-    {
+    public function  filtrorepdia($repdia_user, $repdia_vehi, $repdia_obra, $fecha_inicio, $fecha_final) {
         // Convertir cadena vacía en NULL si es necesario
         if ($repdia_vehi === '') {
             $repdia_vehi = null;
@@ -102,6 +97,11 @@ class  VerReporteDiario extends Conectar
         // Convertir cadena vacía en NULL si es necesario
         if ($repdia_user === '') {
             $repdia_user = null;
+        }
+
+        // Convertir cadena vacía en NULL si es necesario
+        if ($repdia_obra === '') {
+            $repdia_obra = null;
         }
         // Convertir cadena vacía en NULL si es necesario
         if ($fecha_inicio === '') {
@@ -114,18 +114,18 @@ class  VerReporteDiario extends Conectar
 
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT * FROM ReporteDiario(?, ?, ?, ?);";
+        $sql = "SELECT * FROM ReporteDiario(?, ?, ?, ?, ?);";
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_user);
         $sql->bindValue(2, $repdia_vehi);
-        $sql->bindValue(3, $fecha_inicio);
-        $sql->bindValue(4, $fecha_final);
+        $sql->bindValue(3, $repdia_obra);
+        $sql->bindValue(4, $fecha_inicio);
+        $sql->bindValue(5, $fecha_final);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
 
-    public function  listarReportesDiariosPlaca($repdia_vehi)
-    {
+    public function  listarReportesDiariosPlaca($repdia_vehi) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repdia_placa, repdia_fech, CONCAT(usuarios.user_nombre, ' ', usuarios.user_apellidos) AS conductor_nombre_completo, vehi_placa, repdia_recib
@@ -141,8 +141,7 @@ class  VerReporteDiario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function  listarActividadesCerar($repdia_recib)
-    {
+    public function  listarActividadesCerar($repdia_recib) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repdia_id, repdia_kilo, vehi_placa, repdia_recib, repdia_obras, act_nombre,obras_nom
@@ -160,8 +159,7 @@ class  VerReporteDiario extends Conectar
     }
 
     /* ACTUALIZAR EL KILOMETRAJE FINAL */
-    public function update_user_pass($repdia_id, $repdia_kilo_final)
-    {
+    public function update_user_pass($repdia_id, $repdia_kilo_final) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE reportes_diarios SET repdia_kilo_final = ?, repdia_hr_term = NOW() WHERE repdia_id=?";
@@ -173,8 +171,7 @@ class  VerReporteDiario extends Conectar
     }
 
     /* INSERTAR LA FIRMA DEL AUTORIZADO */
-    public function update_firma($repdia_firma, $repdia_recib)
-    {
+    public function update_firma($repdia_firma, $repdia_recib) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE reportes_diarios SET repdia_firma = ? WHERE repdia_recib=?";
@@ -186,8 +183,7 @@ class  VerReporteDiario extends Conectar
     }
 
     /* EDITAR EL REPORTE DIARIO */
-    public function update_repdia($repdia_id, $repdia_kilo, $repdia_kilo_final, $repdia_obras)
-    {
+    public function update_repdia($repdia_id, $repdia_kilo, $repdia_kilo_final, $repdia_obras) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE reportes_diarios SET repdia_kilo = ?, repdia_kilo_final = ?, repdia_obras = ? WHERE repdia_id=?";
@@ -201,8 +197,7 @@ class  VerReporteDiario extends Conectar
     }
 
     /* MOSTRAR DATOS AL EDITAR */
-    public function get_repdia_id($repdia_id)
-    {
+    public function get_repdia_id($repdia_id) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT * FROM reportes_diarios INNER JOIN obras ON obras.obras_id = reportes_diarios.repdia_obras WHERE repdia_id=?";
@@ -213,8 +208,7 @@ class  VerReporteDiario extends Conectar
     }
 
     /* MOSTRAR DATOS AL EDITAR POR REPORTE DEL DIA */
-    public function get_repdia_recib_id($repdia_recib)
-    {
+    public function get_repdia_recib_id($repdia_recib) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT * FROM reportes_diarios  WHERE repdia_recib=?";
@@ -225,8 +219,7 @@ class  VerReporteDiario extends Conectar
     }
 
     /* MOSTRAR RESPUESTAS */
-    public function detalle($repdia_recib)
-    {
+    public function detalle($repdia_recib) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT
@@ -277,8 +270,7 @@ class  VerReporteDiario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function RDMensuales($repdia_vehi, $repdia_user, $fecha_inicio, $fecha_final)
-    {
+    public function RDMensuales($repdia_vehi, $repdia_user, $fecha_inicio, $fecha_final) {
 
         // Convertir cadena vacía en NULL si es necesario
         if ($repdia_vehi === '') {
@@ -309,8 +301,7 @@ class  VerReporteDiario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function detalleCombustible($repdia_placa)
-    {
+    public function detalleCombustible($repdia_placa) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT SUM (repdia_kilo_final - repdia_kilo) AS kilometraje,
@@ -339,8 +330,7 @@ class  VerReporteDiario extends Conectar
     }
 
     /* MOSTRAR AL EDITAR */
-    public function  mostrarReportesDiarios($repdia_recib)
-    {
+    public function  mostrarReportesDiarios($repdia_recib) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repdia_recib 
@@ -356,8 +346,7 @@ class  VerReporteDiario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function  listarReportesDiarios_Calendario($user_id)
-    {
+    public function  listarReportesDiarios_Calendario($user_id) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT repdia_recib as id,
@@ -379,8 +368,7 @@ class  VerReporteDiario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function lsitarConsumibles($repdia_obras, $repdia_vehi, $fecha_inicio, $fecha_final)
-    {
+    public function lsitarConsumibles($repdia_obras, $repdia_vehi, $fecha_inicio, $fecha_final) {
 
         // Convertir cadena vacía en NULL si es necesario
         if ($repdia_obras === '') {
@@ -410,8 +398,7 @@ class  VerReporteDiario extends Conectar
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
-    public function detalleConsumibles($vehi_id, $obra, $fecha_inicio, $fecha_final)
-    {
+    public function detalleConsumibles($vehi_id, $obra, $fecha_inicio, $fecha_final) {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -478,8 +465,7 @@ class  VerReporteDiario extends Conectar
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
-    public function listarCumplimientoInspec()
-    {
+    public function listarCumplimientoInspec() {
         // Obtener los parámetros de mes y año desde el formulario
         $mes = $_POST['mes'];
         $anio = $_POST['anio'];
@@ -567,8 +553,7 @@ class  VerReporteDiario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function DetalleCumplimiento($ro_id_inspector)
-    {
+    public function DetalleCumplimiento($ro_id_inspector) {
         // Obtener los parámetros de mes y año desde el formulario
         $mes = $_POST['mes'];
         $anio = $_POST['anio'];
@@ -601,8 +586,7 @@ class  VerReporteDiario extends Conectar
         return $sql->fetchAll();
     }
 
-    public function CumplimientoCond()
-    {
+    public function CumplimientoCond() {
 
         $fecha_inicio = $_POST['fecha_inicio']; // Obtener la fecha de inicio desde un formulario HTML
         $fecha_final = $_POST['fecha_final'];

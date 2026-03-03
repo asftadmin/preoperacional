@@ -394,13 +394,13 @@ $('#btnGuardarDetalle').on('click', function() {
         tarifa: parseFloat(
           row[6].toString()
             .replace(/[^\d.,]/g, '')       // Limpia caracteres no numéricos
-            .replace('.', '')              // Quita puntos
+            .replace(/\./g, '')              // Quita puntos
             .replace(',', '.')            // Cambia coma por punto
         ) || 0, // 7 - Tarifa
         subtotal: parseFloat(
           $(this.node()).find('.subtotal').text()
             .replace(/[^\d.,]/g, '')       // Limpia caracteres no numéricos
-            .replace('.', '')              // Quita puntos
+            .replace(/\./g, '')              // Quita puntos
             .replace(',', '.')            // Cambia coma por punto
         ) || 0
       });
