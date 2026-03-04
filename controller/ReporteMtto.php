@@ -169,7 +169,7 @@ switch ($_GET["op"]) {
         $html .= '</div>';
         $html .= '<h6 class="mb-1 mt-2">Equipo: ' . htmlspecialchars($equipo["vehi_marca"] . " " . $equipo["vehi_placa"]) .
             '<span class="mailbox-read-time float-right">' .
-            date('d/m/Y H:i', strtotime($informe["repo_mtto_fecha_creacion"])) .
+            date('d/m/Y H:i', strtotime($informe["created_at"])) .
             '</span></h6>';
 
         $html .= '<p class="mb-0 mt-2">Código del equipo: ' . htmlspecialchars($equipo["vehi_codigo"]) . '</p>';
@@ -187,7 +187,7 @@ switch ($_GET["op"]) {
         $html .= '<h5><b>Descripcion del mantenimiento:</b></h5>';
         $html .= '<p>' . nl2br(htmlspecialchars($ot["desc_atcv_otm"])) . '</p>';
         $html .= '<h5><b>Estado Final:</b></h5>';
-        $html .= '<p>' . nl2br(htmlspecialchars($informe["repo_mtto_estado_final"])) . '</p>';
+        $html .= '<p>' . nl2br(htmlspecialchars($informe["created_at"])) . '</p>';
         $html .= '</div>';
 
 

@@ -61,7 +61,7 @@ class OrdenTrabajo extends Conectar {
             $stmt_detalle->execute();*/
 
             // Actualizar el estado en la tabla 'solicitudes_mtto'
-            $sql_solicitud = "UPDATE solicitudes_mtto SET esta_soli = :estado WHERE codi_soli = :codigo";
+            $sql_solicitud = "UPDATE solicitudes_mtto SET esta_soli = :estado WHERE id_soli = :codigo";
             $smt_solicitud = $conectar->prepare($sql_solicitud);
             $smt_solicitud->bindValue(':estado', '2', PDO::PARAM_STR);
             $smt_solicitud->bindValue(':codigo', $ticket, PDO::PARAM_INT);
@@ -154,7 +154,7 @@ class OrdenTrabajo extends Conectar {
             // =========================================================
             $sql = "UPDATE solicitudes_mtto 
                     SET esta_soli = 3
-                    WHERE codi_soli = :id_solicitud";
+                    WHERE id_soli = :id_solicitud";
 
             $stmt = $conectar->prepare($sql);
             $stmt->bindValue(":id_solicitud", $solicitud, PDO::PARAM_INT);

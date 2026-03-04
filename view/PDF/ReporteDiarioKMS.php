@@ -2,10 +2,8 @@
 require_once('../../docs/fpdf.php');
 require_once("../../config/conexion.php");
 
-class Operaciones extends Conectar
-{
-    public function listar_preguntas($repdia_recib)
-    {
+class Operaciones extends Conectar {
+    public function listar_preguntas($repdia_recib) {
         $conectar = new Conectar(); // Asumiendo que la clase Conexion maneja la conexión
         $conexion = $conectar->conexion();
         $sql = "SELECT
@@ -64,21 +62,20 @@ ORDER BY rd.repdia_hr_inic;";
     }
 }
 
-class PDF extends FPDF
-{
+
+
+class PDF extends FPDF {
     private $fecha;
     private $Recibo;
 
-    function __construct($fecha,$Recibo)
-    {
+    function __construct($fecha, $Recibo) {
         parent::__construct();
         $this->fecha = $fecha;
         $this->Recibo = $Recibo;
     }
 
     // Cabecera de página
-    function Header()
-    {
+    function Header() {
         $this->SetY(15);
         $this->Image('../../public/img/logo.png', 15, 8, 35);
         $this->SetX(200);
@@ -93,7 +90,7 @@ class PDF extends FPDF
         $this->SetFont('Arial', '', 8);
         $this->SetX(230);
         $this->Cell(24, 5, 'FECHA:', 1, 0, 'L');
-        $this->Cell(25, 5, date_format(new DateTime($this->fecha),'d - m - Y'), 1, 0, 'R');  // Aquí se usa la variable $fecha
+        $this->Cell(25, 5, date_format(new DateTime($this->fecha), 'd - m - Y'), 1, 0, 'R');  // Aquí se usa la variable $fecha
 
         $this->SetFont('Arial', 'B', 15);
         $this->SetY(15);
@@ -103,11 +100,75 @@ class PDF extends FPDF
     }
 
     // Pie de página
-    function Footer()
-    {
+    function Footer() {
         $this->SetY(-15);
         $this->SetFont('Arial', 'I', 8);
         $this->Cell(0, 10, 'El espiritu de las Grandes Obras ', 'T', 0, 'C');
+    }
+
+    function NbLines($w, $txt) {
+        $cw = &$this->CurrentFont['cw'];
+        if ($w == 0)
+            $w = $this->w - $this->rMargin - $this->x;
+        $wmax = ($w - 2 * $this->cMargin) * 1000 / $this->FontSize;
+        $s = str_replace("\r", '', $txt);
+        $nb = strlen($s);
+        if ($nb > 0 && $s[$nb - 1] == "\n")
+            $nb--;
+        $sep = -1;
+        $i = 0;
+        $j = 0;
+        $l = 0;
+        $nl = 1;
+        while ($i < $nb) {
+            $c = $s[$i];
+            if ($c == "\n") {
+                $i++;
+                $sep = -1;
+                $j = $i;
+                $l = 0;
+                $nl++;
+                continue;
+            }
+            if ($c == ' ')
+                $sep = $i;
+            $l += $cw[$c];
+            if ($l > $wmax) {
+                if ($sep == -1) {
+                    if ($i == $j)
+                        $i++;
+                } else
+                    $i = $sep + 1;
+                $sep = -1;
+                $j = $i;
+                $l = 0;
+                $nl++;
+            } else
+                $i++;
+        }
+        return $nl;
+    }
+    function HeaderTablaKms() {
+        $this->SetFont('Arial', 'B', 9);
+        $this->SetFillColor(233, 229, 235);
+
+        $this->Cell(20, 10, 'Hora Inicio', 1, 0, 'C', 1);
+        $this->Cell(25, 10, 'Kilometraje Inic', 1, 0, 'C', 1);
+        $this->Cell(20, 10, 'Hora Final', 1, 0, 'C', 1);
+        $this->Cell(25, 10, 'Kilometraje Fnal', 1, 0, 'C', 1);
+        $this->Cell(70, 10, 'Obra', 1, 0, 'C', 1);
+        $this->Cell(20, 10, 'Volumen', 1, 0, 'C', 1);
+        $this->Cell(55, 10, 'Actividad', 1, 0, 'C', 1);
+        $this->Cell(32, 10, 'Total Kms', 1, 1, 'C', 1);
+
+        $this->SetFont('Arial', '', 7);
+    }
+
+    function CheckPageBreak($h) {
+        if ($this->GetY() + $h > $this->PageBreakTrigger) {
+            $this->AddPage($this->CurOrientation);
+            $this->HeaderTablaKms();
+        }
     }
 }
 // Obtener el ID desde la URL
@@ -136,7 +197,7 @@ $observaciones = isset($operaciones[0]['repdia_observa']) ? $operaciones[0]['rep
 $firma = isset($operaciones[0]['repdia_firma']) ? $operaciones[0]['repdia_firma'] : 'N/A';
 
 // Crear PDF y pasar la fecha
-$pdf = new PDF($Fecha,$Recibo);
+$pdf = new PDF($Fecha, $Recibo);
 $pdf->AliasNbPages();
 $pdf->AddPage('L');
 $pdf->SetMargins(15, 15, 15);
@@ -197,30 +258,61 @@ $pdf->Cell(0, 10, 'KILOMETRAJE (HRS/KMS)', 0, 0, 'C', 0);
 $pdf->Ln(10);
 
 $pdf->SetFont('Arial', 'B', 9);
+$pdf->HeaderTablaKms();
 
-$pdf->Cell(20, 10, 'Hora Inicio', 1, 0, 'C', 1);
+/* $pdf->Cell(20, 10, 'Hora Inicio', 1, 0, 'C', 1);
 $pdf->Cell(25, 10, 'Kilometraje Inic', 1, 0, 'C', 1);
 $pdf->Cell(20, 10, 'Hora Final', 1, 0, 'C', 1);
 $pdf->Cell(25, 10, 'Kilometraje Fnal', 1, 0, 'C', 1);
 $pdf->Cell(70, 10, 'Obra', 1, 0, 'C', 1);
 $pdf->Cell(20, 10, 'Volumen', 1, 0, 'C', 1);
 $pdf->Cell(55, 10, 'Actividad', 1, 0, 'C', 1);
-$pdf->Cell(32, 10, 'Total Kms', 1, 1, 'C', 1);
+$pdf->Cell(32, 10, 'Total Kms', 1, 1, 'C', 1); */
 
 $pdf->SetFont('Arial', '', 7);
+
 foreach ($operaciones as $operacion) {
 
-    $pdf->Cell(20, 5, date_format(new DateTime($operacion['repdia_hr_inic']),'H:i:s'), 1, 0, 'C', 0);
+    $actividad = utf8_decode($operacion['act_nombre']);
+
+    // Calcular número de líneas necesarias para actividad
+    $nb = $pdf->NbLines(55, $actividad);
+    $h = 5 * $nb; // altura dinámica
+
+    $pdf->CheckPageBreak($h);
+
+    $pdf->Cell(20, $h, date_format(new DateTime($operacion['repdia_hr_inic']), 'H:i:s'), 1, 0, 'C');
+    $pdf->Cell(25, $h, number_format($operacion['repdia_kilo'], 0, ',', '.'), 1, 0, 'C');
+    $pdf->Cell(20, $h, date_format(new DateTime($operacion['repdia_hr_term']), 'H:i:s'), 1, 0, 'C');
+    $pdf->Cell(25, $h, number_format($operacion['repdia_kilo_final'], 0, ',', '.'), 1, 0, 'C');
+    $pdf->Cell(70, $h, utf8_decode($operacion['obras_nom']), 1, 0, 'C');
+    $pdf->Cell(20, $h, $operacion['repdia_volu'], 1, 0, 'C');
+
+    // Guardar posición antes del MultiCell
+    $x = $pdf->GetX();
+    $y = $pdf->GetY();
+
+    $pdf->MultiCell(55, 5, $actividad, 1, 'L');
+
+    // Volver a la derecha para continuar la fila
+    $pdf->SetXY($x + 55, $y);
+
+    $pdf->Cell(32, $h, number_format($operacion['total_kilometraje_gastado'], 0, ',', '.') . '  Km', 1, 0, 'C');
+
+    $pdf->Ln();
+}
+/* foreach ($operaciones as $operacion) {
+
+    $pdf->Cell(20, 5, date_format(new DateTime($operacion['repdia_hr_inic']), 'H:i:s'), 1, 0, 'C', 0);
     $pdf->Cell(25, 5, number_format($operacion['repdia_kilo'], 0, ',', '.'), 1, 0, 'C', 0);
-    $pdf->Cell(20, 5, date_format(new DateTime($operacion['repdia_hr_term']),'H:i:s'), 1, 0, 'C', 0);
+    $pdf->Cell(20, 5, date_format(new DateTime($operacion['repdia_hr_term']), 'H:i:s'), 1, 0, 'C', 0);
     $pdf->Cell(25, 5, number_format($operacion['repdia_kilo_final'], 0, ',', '.'), 1, 0, 'C', 0);
     $pdf->Cell(70, 5, utf8_decode($operacion['obras_nom']), 1, 0, 'C', 0);
     $pdf->Cell(20, 5, $operacion['repdia_volu'], 1, 0, 'C', 0);
     $pdf->Cell(55, 5, utf8_decode($operacion['act_nombre']), 1, 0, 'L', 0);
-    $pdf->Cell(32, 5, number_format($operacion['total_kilometraje_gastado'], 0, ',', '.').'  Km', 1, 0, 'C', 0);
+    $pdf->Cell(32, 5, number_format($operacion['total_kilometraje_gastado'], 0, ',', '.') . '  Km', 1, 0, 'C', 0);
     $pdf->Ln();
-
-}
+} */
 $pdf->Ln(10);
 $pdf->Cell(0, 10, 'Observaciones', 1, 1, 'C', 1);
 $pdf->MultiCell(0, 8, utf8_decode($observaciones), 1, 'J');
@@ -237,8 +329,8 @@ if ($firma !== 'N/A' && !empty($firma)) {
 
     // Agregar la imagen al PDF
     $pdf->Image($imagePath, 230, 163, 50, 30); // Ajusta x, y, width, height según sea necesario
-    
-    
+
+
     // Limpiar la imagen temporal
     unlink($imagePath);
 }

@@ -16,7 +16,7 @@ class Tickets extends Conectar {
 
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT * FROM solicitudes_mtto INNER JOIN vehiculos ON codi_vehi_soli = vehi_id INNER JOIN usuarios ON user_id = codi_cond_soli WHERE codi_soli = ?";
+        $sql = "SELECT * FROM solicitudes_mtto INNER JOIN vehiculos ON codi_vehi_soli = vehi_id INNER JOIN usuarios ON user_id = codi_cond_soli WHERE id_soli = ?";
         $stmt = $conectar->prepare($sql);
         $stmt->bindValue(1, $ticketID, PDO::PARAM_INT);
         $stmt->execute();
@@ -40,7 +40,7 @@ class Tickets extends Conectar {
                 INNER JOIN usuarios usu 
                     ON usu.user_id = soli.codi_cond_soli
                 INNER JOIN ordenes_trabajo ot 
-                    ON ot.codi_solc_otm = soli.codi_soli
+                    ON ot.codi_solc_otm = soli.id_soli
                 INNER JOIN tipos_mantenimiento tm
                     ON tm.codigo_tipo_mantenimiento = ot.mtto_otm
                 WHERE soli.esta_soli IN ('2','3')
@@ -76,7 +76,7 @@ class Tickets extends Conectar {
         $sql = "        SELECT 
                             repo.repo_mtto_num_reporte,
                             repo.repo_mtto_estado,
-                            repo.repo_mtto_fecha_creacion,
+                            repo.created_at,
                             repo.repo_mtto_id,
                             ot.num_otm,
                             veh.vehi_placa
@@ -86,7 +86,7 @@ class Tickets extends Conectar {
                         INNER JOIN usuarios usu 
                             ON usu.user_id = soli.codi_cond_soli
                         INNER JOIN ordenes_trabajo ot 
-                            ON ot.codi_solc_otm = soli.codi_soli
+                            ON ot.codi_solc_otm = soli.id_soli
                         INNER JOIN reporte_mtto repo
                             ON repo.repo_mtto_orden = ot.codi_otm
                         INNER JOIN tipos_mantenimiento tm
@@ -100,10 +100,10 @@ class Tickets extends Conectar {
         }
 
         if ($fechaIni !== "" && $fechaFin !== "") {
-            $sql .= " AND repo.repo_mtto_fecha_creacion BETWEEN :fini AND :ffin ";
+            $sql .= " AND repo.created_at BETWEEN :fini AND :ffin ";
         }
 
-        $sql .= " ORDER BY repo.repo_mtto_fecha_creacion DESC";
+        $sql .= " ORDER BY repo.created_at DESC";
         $stmt = $conectar->prepare($sql);
         $stmt->bindValue(":coord", $coordinador_id, PDO::PARAM_INT);
         if ($placa !== "") {
@@ -136,8 +136,8 @@ class Tickets extends Conectar {
                     SELECT sm2.lect_soli
                     FROM solicitudes_mtto sm2
                     WHERE sm2.codi_vehi_soli = solicitudes_mtto.codi_vehi_soli
-                    AND sm2.codi_soli < solicitudes_mtto.codi_soli
-                    ORDER BY sm2.codi_soli DESC
+                    AND sm2.id_soli < solicitudes_mtto.id_soli
+                    ORDER BY sm2.id_soli DESC
                     LIMIT 1
                 ) AS lectura_anterior
 
@@ -147,7 +147,7 @@ class Tickets extends Conectar {
             INNER JOIN usuarios 
                 ON user_id = codi_cond_soli
             INNER JOIN ordenes_trabajo 
-                ON ordenes_trabajo.codi_solc_otm = solicitudes_mtto.codi_soli
+                ON ordenes_trabajo.codi_solc_otm = solicitudes_mtto.id_soli
             INNER JOIN tipos_mantenimiento 
                 ON tipos_mantenimiento.codigo_tipo_mantenimiento = ordenes_trabajo.mtto_otm
             WHERE codi_otm = ?;

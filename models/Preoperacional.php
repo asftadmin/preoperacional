@@ -31,7 +31,7 @@ class  Preoperacional extends Conectar {
         $conectar = parent::conexion();
         parent::set_names();
         $anio = date('Y');
-        $sql = "SELECT num_soli FROM solicitudes_mtto WHERE num_soli LIKE ? ORDER BY codi_soli DESC LIMIT 1";
+        $sql = "SELECT num_soli FROM solicitudes_mtto WHERE num_soli LIKE ? ORDER BY id_soli DESC LIMIT 1";
         $stmt = $conectar->prepare($sql);
         $stmt->bindValue(1, "SM-{$anio}%", PDO::PARAM_STR);
         $stmt->execute();

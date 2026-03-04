@@ -19,7 +19,7 @@ switch ($_REQUEST["op"]) {
             $sub_array[] = date('d-m-Y / H:i', strtotime($solicitud["fech_creac_soli"]));
 
             $sub_array[] = '<div class="button-container text-center" >
-                    <button type="button" onClick="ver(' . $solicitud["codi_soli"] . ');" id="' . $solicitud["codi_soli"] . '" class="btn btn-secondary btn-icon " >
+                    <button type="button" onClick="ver(' . $solicitud["id_soli"] . ');" id="' . $solicitud["id_soli"] . '" class="btn btn-secondary btn-icon " >
                         <div><i class="fas fa-envelope"></i></div>
                     </button>
                 </div>';
@@ -68,7 +68,7 @@ switch ($_REQUEST["op"]) {
         $html = '';
         foreach ($detalle as $row) {
             $html .= '<div class="mailbox-read-info">';
-            $html .= '<input type="hidden" id="ticket_id" name="ticket_id" value="' . $row['codi_soli'] . '">';
+            $html .= '<input type="hidden" id="ticket_id" name="ticket_id" value="' . $row['id_soli'] . '">';
             $html .= '<h3><b>Detalle de Solicitud: ' . htmlspecialchars($row['num_soli']) . '</b></h3></br>';
             $html .= '<input type="hidden" id="codi_vehi" name="codi_vehi" value="' . $row['codi_vehi_soli'] . '">';
             $html .= '<h6>Vehículo: ' . htmlspecialchars($row['vehi_marca'] . " " . $row['vehi_placa']) .
@@ -204,7 +204,7 @@ switch ($_REQUEST["op"]) {
             $sub_array[] = $solicitud["num_otm"];
             $sub_array[] = $solicitud["vehi_placa"];
 
-            $sub_array[] = date('d-m-Y / H:i', strtotime($solicitud["repo_mtto_fecha_creacion"]));
+            $sub_array[] = date('d-m-Y / H:i', strtotime($solicitud["created_at"]));
             $sub_array[] = $badge;
             $sub_array[] = $estado;
 

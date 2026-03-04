@@ -19,7 +19,7 @@ class ReporteMtto extends Conectar {
     public function obternerUltimoConsecutivo() {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT repo_numb FROM reporte_mantenimiento 
+        $sql = "SELECT repo_numb FROM reportes_mantenimiento 
             WHERE repo_numb LIKE 'MTTO-%'
             ORDER BY CAST(SUBSTRING(repo_numb FROM 11) AS INTEGER) DESC 
             LIMIT 1";
@@ -38,7 +38,7 @@ class ReporteMtto extends Conectar {
                 WHEN repo_estado = 2 THEN 'ANULADO'
                 ELSE NULL 
             END AS estado
-        FROM reporte_mantenimiento 
+        FROM reportes_mantenimiento 
             INNER JOIN detalle_reporte ON deta_repo_codi = repo_codi
             INNER JOIN vehiculos ON repo_vehi = vehi_id 
         ORDER BY repo_codi DESC";
@@ -110,7 +110,7 @@ class ReporteMtto extends Conectar {
         // -----------------------------------------------------
         $sql = "SELECT *
             FROM solicitudes_mtto
-            WHERE codi_soli = :id_solic";
+            WHERE id_soli = :id_solic";
 
         $stmt = $conectar->prepare($sql);
         $stmt->bindValue(":id_solic", $id_solic, PDO::PARAM_INT);
@@ -167,7 +167,7 @@ class ReporteMtto extends Conectar {
 
         foreach ($items as $it) {
 
-            $sql = "INSERT INTO reporte_repuestos
+            $sql = "INSERT INTO reportes_repuestos
                 (repo_mtto_id, rpts_docu, rpts_refr, rpts_cant, rpts_vlr_neto, rpts_notas, rpts_prov, repo_item)
                 VALUES (:id, :docto, :ref, :cant, :costo, :notas, :prove, :item)";
 
@@ -202,7 +202,7 @@ class ReporteMtto extends Conectar {
                 rpts_prov AS proveedor,
                 repo_item AS referencia,
                 rpts_fact AS factura
-            FROM reporte_repuestos
+            FROM reportes_repuestos
             WHERE repo_mtto_id = :id
             ORDER BY rpts_docu ASC";
 
@@ -217,7 +217,7 @@ class ReporteMtto extends Conectar {
         $conectar = parent::conexion();
         parent::set_names();
 
-        $sql = "DELETE FROM reporte_repuestos WHERE repo_rpts_id = :id";
+        $sql = "DELETE FROM reportes_repuestos WHERE repo_rpts_id = :id";
         $stmt = $conectar->prepare($sql);
         $stmt->bindValue(":id", $idItem, PDO::PARAM_INT);
 
@@ -245,7 +245,7 @@ class ReporteMtto extends Conectar {
         parent::set_names();
 
         $sql = "SELECT  rpts_prov, rpts_docu, num_otm
-                FROM reporte_repuestos rr
+                FROM reportes_repuestos rr
                 INNER JOIN reporte_mtto rm ON rr.repo_mtto_id = rm.repo_mtto_id
                 INNER JOIN ordenes_trabajo ot ON ot.codi_otm = rm.repo_mtto_orden
                 WHERE rr.repo_mtto_id = :id
@@ -271,7 +271,7 @@ class ReporteMtto extends Conectar {
 
             $conectar->beginTransaction();
 
-            $sql = "INSERT INTO reporte_repuestos 
+            $sql = "INSERT INTO reportes_repuestos 
                 (repo_mtto_id, 
                  rpts_refr, 
                  rpts_cant, 
@@ -323,10 +323,10 @@ class ReporteMtto extends Conectar {
     public function get_reporte_by_id($reporte_id) {
         $conectar = parent::Conexion();
         $sql = "SELECT  *
-                FROM reporte_repuestos rr
+                FROM reportes_repuestos rr
                 INNER JOIN reporte_mtto rm ON rr.repo_mtto_id = rm.repo_mtto_id
                 INNER JOIN ordenes_trabajo ot ON ot.codi_otm = rm.repo_mtto_orden
-                INNER JOIN solicitudes_mtto ON solicitudes_mtto.codi_soli = ot.codi_solc_otm
+                INNER JOIN solicitudes_mtto ON solicitudes_mtto.id_soli = ot.codi_solc_otm
                 INNER JOIN vehiculos ON vehiculos.vehi_id = solicitudes_mtto.codi_vehi_soli
                 WHERE rr.repo_mtto_id = ?";
         $stmt = $conectar->prepare($sql);
@@ -339,7 +339,7 @@ class ReporteMtto extends Conectar {
         $conectar = parent::Conexion();
         parent::set_names();
 
-        $sql = "INSERT INTO facturas_soportes 
+        $sql = "INSERT INTO facturas_soporte 
             (fact_sopo_reporte, fact_sopo_nombre, fact_sopo_ruta, fact_sopo_fecha)
             VALUES (?, ?, ?, NOW())";
 
@@ -355,7 +355,7 @@ class ReporteMtto extends Conectar {
         $conectar = parent::Conexion();
         parent::set_names();
 
-        $sql = "SELECT * FROM facturas_soportes 
+        $sql = "SELECT * FROM facturas_soporte 
             WHERE fact_sopo_reporte = ?
             ORDER BY fact_sopo_fecha ASC";
 

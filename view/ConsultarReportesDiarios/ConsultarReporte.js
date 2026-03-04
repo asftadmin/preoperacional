@@ -8,6 +8,69 @@ $('.select2bs4').select2({
     theme: 'bootstrap4'
 });
 
+$(document).ready(function () {
+
+    $('#rango_fechas').daterangepicker({
+
+        autoUpdateInput: false,
+        showDropdowns: true,
+        autoApply: false,
+        opens: 'right',
+        drops: 'down',
+        alwaysShowCalendars: true,
+
+        locale: {
+            format: 'DD/MM/YYYY',
+            separator: ' - ',
+            applyLabel: "Aplicar",
+            cancelLabel: "Limpiar",
+            fromLabel: "Desde",
+            toLabel: "Hasta",
+            customRangeLabel: "Personalizado",
+            weekLabel: "S",
+            daysOfWeek: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+            monthNames: [
+                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            ],
+            firstDay: 1
+        },
+
+        ranges: {
+            'Hoy': [moment(), moment()],
+            'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+            'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+            'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+            'Mes Pasado': [
+                moment().subtract(1, 'month').startOf('month'),
+                moment().subtract(1, 'month').endOf('month')
+            ],
+            'Este Año': [moment().startOf('year'), moment().endOf('year')],
+            'Año Pasado': [
+                moment().subtract(1, 'year').startOf('year'),
+                moment().subtract(1, 'year').endOf('year')
+            ]
+        }
+
+    });
+
+    // Cuando aplican fechas
+    $('#rango_fechas').on('apply.daterangepicker', function (ev, picker) {
+        $(this).val(
+            picker.startDate.format('DD/MM/YYYY') +
+            ' - ' +
+            picker.endDate.format('DD/MM/YYYY')
+        );
+    });
+
+    // Cuando limpian
+    $('#rango_fechas').on('cancel.daterangepicker', function () {
+        $(this).val('');
+    });
+
+});
+
 $("#btnCorreo").click(function () {
     $("#mdltitulo").html("Correo Acumulado");
     $("#ModalCorreo").modal("show");
@@ -104,10 +167,19 @@ $('#btnBuscar').click(function () {
     var repdia_user = $('#repdia_user').val();
     console.log(repdia_user);
     var repdia_obra = $("#repdia_obra").val();
-    var fecha_inicio = $("#fecha_inicio").val();
-    console.log(fecha_inicio);
-    var fecha_final = $("#fecha_final").val();
-    console.log(fecha_final);
+
+    var rango = $("#rango_fechas").val();
+
+    var fecha_inicio = "";
+    var fecha_final = "";
+
+    if (rango !== "") {
+        var fechas = rango.split(" - ");
+
+        fecha_inicio = moment(fechas[0], "DD/MM/YYYY").format("YYYY-MM-DD");
+        fecha_final = moment(fechas[1], "DD/MM/YYYY").format("YYYY-MM-DD");
+    }
+
 
 
     tabla = $('#reporte_data').dataTable({
@@ -196,8 +268,20 @@ function pdfHRS(repdia_recib) {
     window.open(url, '_blank');
 }
 document.getElementById("btnGenerarPDF").addEventListener("click", function () {
-    var fecha_inicio = document.getElementById("fecha_inicio").value;
-    var fecha_final = document.getElementById("fecha_final").value;
+/*     var fecha_inicio = document.getElementById("fecha_inicio").value;
+    var fecha_final = document.getElementById("fecha_final").value; */
+    var rango = $("#rango_fechas").val();
+
+    var fecha_inicio = "";
+    var fecha_final = "";
+
+    if (rango !== "") {
+        var fechas = rango.split(" - ");
+
+        fecha_inicio = moment(fechas[0], "DD/MM/YYYY").format("YYYY-MM-DD");
+        fecha_final = moment(fechas[1], "DD/MM/YYYY").format("YYYY-MM-DD");
+    }
+
     var vehi_id = document.getElementById("repdia_vehi").value;
 
     if (fecha_inicio && fecha_final) {

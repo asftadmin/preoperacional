@@ -13,7 +13,7 @@ if (is_array($datos) and count($datos) > 0) {
   <title>Consultar Reportes Diarios</title>
   </head>
 
-  <body class="hold-transition sidebar-mini">
+  <body class="hold-transition sidebar-mini layout-fixed layout-footer-fixed">
     <div class="wrapper">
       <?php require_once("../MainNav/nav.php"); ?>
       <?php require_once("../MainMenu/menu.php"); ?>
@@ -42,80 +42,81 @@ if (is_array($datos) and count($datos) > 0) {
             <div class="card" id="container">
               <br>
               <div class="box-typical box-typical-padding">
-                <div class="row mt-2 ">
-                  <div class="col-md-3">
-                    <div class="form-group">
-                      <div class="form-group d-flex align-items-center">
-                        &nbsp;&nbsp;<select class="form-control select2bs4" id="repdia_vehi"
-                          name="repdia_vehi" style="width: 100%;" required>
-                        </select>&nbsp;&nbsp;&nbsp;
+                <div class="card-header">
+                  <label><b>Filtros</b></label>
+                  <div class="row mt-2 ">
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <div class="form-group d-flex align-items-center">
+                          &nbsp;&nbsp;<select class="form-control select2bs4" id="repdia_vehi"
+                            name="repdia_vehi" style="width: 100%;" required>
+                          </select>&nbsp;&nbsp;&nbsp;
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <div class="form-group d-flex align-items-center">
+                          <select class="form-control select2bs4" id="repdia_user"
+                            name="repdia_user" required>
+                          </select>&nbsp;&nbsp;&nbsp;
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <div class="form-group d-flex align-items-center">
+                          <select class="form-control select2bs4" id="repdia_obra"
+                            name="repdia_obra" required>
+                          </select>&nbsp;&nbsp;&nbsp;
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div class="col-md-3">
-                    <div class="form-group">
-                      <div class="form-group d-flex align-items-center">
-                        <select class="form-control select2bs4" id="repdia_user" name="repdia_user"
-                          required>
-                        </select>&nbsp;&nbsp;&nbsp;
+
+                  <div class="row">
+
+                    <div class="col-md-7">
+                      <div class="form-group">
+                        <label><b>Rango de Fechas</b></label>
+                        <input type="text" id="rango_fechas" class="form-control"
+                          placeholder="DD/MM/AAAA - DD/MM/AAAA">
                       </div>
                     </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="form-group">
-                      <div class="form-group d-flex align-items-center">
-                        <select class="form-control select2bs4" id="repdia_obra" name="repdia_obra"
-                          required>
-                        </select>&nbsp;&nbsp;&nbsp;
+                    <div class="col-md-5">
+                      <div class="form-group">
+                        <label><b>&nbsp;</b></label><br>
+                        <button type="button" id="btnBuscar" class="btn btn-info">Buscar</button>
+                        <button type="button" id="btnLimpiar" class="btn btn-info">Ver Todo</button>
+                        <button type="button" id="btnCorreo" class="btn btn-info">Enviar &nbsp;
+                          <span class="fa fa-envelope"></span>
+                        </button>
+                        <button type="button" id="btnGenerarPDF" class="btn btn-danger">
+                          <span class="fa fa-file-pdf"></span>
+                        </button>
+                        </a>
                       </div>
                     </div>
                   </div>
                 </div>
+                <div class="card-body">
+                  <table id="reporte_data" name="reporte_data"
+                    class="table table-bordered table-striped table-vcenter js-dataTable-full">
+                    <thead class="bg-info">
+                      <tr>
+                        <th th class="text-center" style="width: 12%;"># RECIBO</th>
+                        <th th class="text-center" style="width: 10%;">FECHA DE REALIZACION </th>
+                        <th th class="text-center" style="width: 10%;">USUARIO </th>
+                        <th th class="text-center" style="width: 10%;">PLACA </th>
+                        <th th class="text-center" style="width: 6%;">ACCIONES</th>
+                      </tr>
+                    </thead>
+                    <tbody>
 
-                <div class="row">
-
-                  <div class="col-md-3">
-                    <div class="form-group">
-                      &nbsp;&nbsp;<label><b>Del Dia</b></label>
-                      <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control">
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="form-group">
-                      <label><b> Hasta el Dia</b></label>
-                      <input type="date" name="fecha_final" id="fecha_final" class="form-control">
-                    </div>
-                  </div>
-                  <div class="col-md-5">
-                    <div class="form-group">
-                      <label><b>&nbsp;</b></label><br>
-                      <button type="button" id="btnBuscar" class="btn btn-info">Buscar</button>
-                      <button type="button" id="btnLimpiar" class="btn btn-info">Ver Todo</button>
-                      <button type="button" id="btnCorreo" class="btn btn-info">Enviar &nbsp;
-                        <span class="fa fa-envelope"></span>
-                      </button>
-                      <button type="button" id="btnGenerarPDF" class="btn btn-danger">
-                        <span class="fa fa-file-pdf"></span>
-                      </button>
-                      </a>
-                    </div>
-                  </div>
+                    </tbody>
+                  </table>
                 </div>
-                <table id="reporte_data" name="reporte_data"
-                  class="table table-bordered table-striped table-vcenter js-dataTable-full">
-                  <thead class="bg-info">
-                    <tr>
-                      <th th class="text-center" style="width: 12%;"># RECIBO</th>
-                      <th th class="text-center" style="width: 10%;">FECHA DE REALIZACION </th>
-                      <th th class="text-center" style="width: 10%;">USUARIO </th>
-                      <th th class="text-center" style="width: 10%;">PLACA </th>
-                      <th th class="text-center" style="width: 6%;">ACCIONES</th>
-                    </tr>
-                  </thead>
-                  <tbody>
 
-                  </tbody>
-                </table>
               </div>
             </div>
           </div>

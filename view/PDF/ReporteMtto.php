@@ -124,7 +124,7 @@ $obra    = $datosGenerales["obra"];
 
 
 $placa = isset($equipo['vehi_placa']) ? $equipo['vehi_placa'] : 'N/A';
-$Fecha = isset($informe['repo_mtto_fecha_creacion']) ? $informe['repo_mtto_fecha_creacion'] : 'N/A';
+$Fecha = isset($informe['created_at']) ? $informe['created_at'] : 'N/A';
 $fecha_inicio = isset($solicitud['fech_creac_soli']) ? $solicitud['fech_creac_soli'] : 'N/A';
 $fecha_fin = isset($informe['repo_mtto_fecha_cierre']) ? $informe['repo_mtto_fecha_cierre'] : 'N/A';
 $obraReporte = isset($obra['obras_nom']) ? $obra['obras_nom'] : 'N/A';
