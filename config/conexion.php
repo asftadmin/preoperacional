@@ -31,8 +31,8 @@ class Conectar {
         return $this->Conexion();
     }
     public static function ruta() {
-        //return "http://181.204.219.154:3396/preoperacional/";
-        return "http://localhost/preoperacional/";
+        return "http://181.204.219.154:3396/preoperacional/";
+        //return "http://localhost/preoperacional/";
     }
 }
 
