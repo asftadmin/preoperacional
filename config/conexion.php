@@ -13,7 +13,7 @@ class Conectar {
         try {
             // Cambiar los valores según tu configuración de PostgreSQL   192.168.0.200  masterd_asft
             $host = "172.16.5.2"; //172.16.5.2
-            $dbname = "preoperacional_vehiculos";
+            $dbname = "preoperacional_prueba";
             $usuario = "postgres";
             $contrasena = "masterd_asft";
 
@@ -31,8 +31,8 @@ class Conectar {
         return $this->Conexion();
     }
     public static function ruta() {
-        return "http://181.204.219.154:3396/preoperacional/";
-        //return "http://localhost/preoperacional/";
+        //return "http://181.204.219.154:3396/preoperacional/";
+        return "http://localhost/preoperacional/";
     }
 }
 

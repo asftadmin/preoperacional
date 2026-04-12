@@ -135,6 +135,9 @@ switch ($_REQUEST["op"]) {
                     <button type="button" onClick="cerrarOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-warning btn-icon " >
                         <div><i class="fas fa-lock"></i></i></div>
                     </button>
+                    <button type="button" onClick="agregarActividades(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-dark btn-icon " >
+                        <div><i class="fas fa-tasks"></i></div>
+                    </button>
                     <button type="button" onClick="verOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-danger btn-icon " >
                         <div><i class="fas fa-file-pdf"></i></i></div>
                     </button>
@@ -231,31 +234,6 @@ switch ($_REQUEST["op"]) {
         break;
 
 
-    /*     case 'numeroSolicitud':
-        $ultimo = $ticket->obternerUltimoConsecutivo();
-
-        // Verifica si obtuvo un resultado correcto
-        if ($ultimo && isset($ultimo['num_soli'])) {
-            // Extraer los últimos 6 dígitos del repo_numb
-            preg_match('/(\d{3})$/', $ultimo['num_soli'], $matches);
-
-            if (isset($matches[1])) {
-                $ultimoNumero = intval($matches[1]); // Convertir a número
-                $nuevoNumero = str_pad($ultimoNumero + 1, 3, "0", STR_PAD_LEFT);
-            } else {
-                $nuevoNumero = "001"; // Si no encuentra el número, inicia en 000001
-            }
-        } else {
-            $nuevoNumero = "001";
-        }
-
-        // Generar el nuevo código con el año actual
-        $nuevoReporte = "SM-" . date("Y") . "-" . $nuevoNumero;
-
-        echo $nuevoReporte;
-
-
-        break; */
 
     case 'numeroSolicitud':
 

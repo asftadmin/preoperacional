@@ -698,5 +698,12 @@ function guardarSolicitud(e) {
 
 }
 
+function agregarActividades(ticketID) {
+    console.log(ticketID);
+    window.location.href = BASE_URL + '/view/tickets/actividades_otm.php?id=' + ticketID; //http://181.204.219.154:3396/preoperacional
+}
+
+
+
 
 init();

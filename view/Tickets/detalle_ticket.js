@@ -160,4 +160,6 @@ $.post("../../controller/ReporteMtto.php?op=comboTipoMtto", function (data) {
 
 
 
+
+
 init();

@@ -2,7 +2,7 @@
     <strong>Copyright &copy; 2025 <a href="https://www.asfaltart.co/">Asfaltart S.A.S</a>.</strong>
     Todos los derechos reservados
     <div class="float-right d-none d-sm-inline-block">
-        <b>Version</b> 4.5
+        <b>Version</b> 4.6.5
     </div>
 </footer>
 
