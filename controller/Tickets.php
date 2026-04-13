@@ -131,17 +131,28 @@ switch ($_REQUEST["op"]) {
 
             $sub_array[] = $badge;
 
-            $sub_array[] = '<div class="button-container text-center" >
-                    <button type="button" onClick="cerrarOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-warning btn-icon " >
-                        <div><i class="fas fa-lock"></i></i></div>
-                    </button>
-                    <button type="button" onClick="agregarActividades(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-dark btn-icon " >
-                        <div><i class="fas fa-tasks"></i></div>
-                    </button>
-                    <button type="button" onClick="verOTM(' . $solicitud["codi_otm"] . ');" id="' . $solicitud["codi_otm"] . '" class="btn btn-danger btn-icon " >
-                        <div><i class="fas fa-file-pdf"></i></i></div>
-                    </button>
-                </div>';
+            $codi      = $solicitud["codi_otm"];
+            $cerrado   = ($estado === 3);
+            $disabled  = $cerrado ? 'disabled' : '';
+            $styleOff  = $cerrado ? 'opacity:0.5; cursor:not-allowed;' : '';
+
+            $sub_array[] = '<div class="button-container text-center">
+                                <button type="button" ' . $disabled . ' style="' . $styleOff . '"
+                                    onClick="' . (!$cerrado ? 'cerrarOTM(' . $codi . ')' : '') . '"
+                                    class="btn btn-warning btn-icon">
+                                    <div><i class="fas fa-lock"></i></div>
+                                </button>
+                                <button type="button" ' . $disabled . ' style="' . $styleOff . '"
+                                    onClick="' . (!$cerrado ? 'agregarActividades(' . $codi . ')' : '') . '"
+                                    class="btn btn-dark btn-icon">
+                                    <div><i class="fas fa-tasks"></i></div>
+                                </button>
+                                <button type="button"
+                                    onClick="verOTM(' . $codi . ')"
+                                    class="btn btn-danger btn-icon">
+                                    <div><i class="fas fa-file-pdf"></i></div>
+                                </button>
+                            </div>';
 
             $data[] = $sub_array;
         }
@@ -286,6 +297,71 @@ switch ($_REQUEST["op"]) {
         }
 
         exit;
+
+    case 'guardarLote':
+
+        /*         error_log(print_r($_POST, true));
+        error_log(file_get_contents('php://input')); */
+        $filas            = json_decode($_POST["filas"], true);
+        $id_orden_trabajo = $_POST["id_orden_trabajo"];
+
+        if (empty($filas)) {
+            echo json_encode(['success' => false, 'mensaje' => 'Sin datos.']);
+            exit;
+        }
+
+        if (empty($id_orden_trabajo)) {
+            echo json_encode(['success' => false, 'mensaje' => 'Orden de trabajo requerida.']);
+            exit;
+        }
+
+        $ids = [];
+        foreach ($filas as $fila) {
+            $fila['id_orden_trabajo'] = $id_orden_trabajo;
+
+            if (!empty($fila['id'])) {
+                $ticket->actualizar_lote($fila);
+                $ids[] = $fila['id'];
+            } else {
+                $ids[] = $ticket->insertar_lote($fila);
+            }
+        }
+
+        echo json_encode(['success' => true, 'ids' => $ids]);
+        break;
+
+    case 'eliminarLote':
+         error_log(print_r($_POST, true));
+        error_log(file_get_contents('php://input'));
+
+        $id = $_POST["id"] ?? null;
+
+        if (!$id) {
+            echo json_encode(['success' => false, 'mensaje' => 'ID requerido.']);
+            exit;
+        }
+
+        $ok = $ticket->eliminar_actividad($id);
+        echo json_encode(['success' => $ok]);
+        break;
+
+    case 'listar_lote':
+        $id_orden_trabajo = $_POST["id_orden_trabajo"] ?? null;
+
+        if (empty($id_orden_trabajo)) {
+            echo json_encode(['success' => false, 'mensaje' => 'Orden de trabajo requerida.']);
+            exit;
+        }
+
+        $data = $ticket->listar_lote($id_orden_trabajo);
+        echo json_encode(['success' => true, 'data' => $data]);
+        break;
+
+    case 'listarUno':
+        $id   = $_POST["id"] ?? null;
+        $data = $ticket->listarUno($id);
+        echo json_encode(['success' => true, 'data' => $data]);
+        break;
 }
 
 

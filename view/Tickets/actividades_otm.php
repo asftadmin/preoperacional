@@ -69,7 +69,11 @@ if (is_array($datos) and count($datos) > 0) {
 
 
                                         <div class="table-responsive mailbox-messages">
-                                            <table class="table table-hover table-striped" id="tableTktCerrado">
+                                            <button class="btn btn-sm btn-dark m-2" id="btnAgregarFila">
+                                                <i class="fa fa-plus"></i> Agregar fila
+                                            </button>
+
+                                            <table class="table table-hover table-striped" id="tablaTktCerrado">
                                                 <thead>
                                                     <tr>
                                                         <th>N°</th>
@@ -81,12 +85,16 @@ if (is_array($datos) and count($datos) > 0) {
                                                         <th>Acciones</th>
                                                     </tr>
                                                 </thead>
-
-                                                <tbody>
-                                                    <!-- Las filas se llenarán dinámicamente con JS -->
+                                                <tbody id="tbodyActividades">
+                                                    <!-- Filas dinámicas -->
                                                 </tbody>
                                             </table>
 
+                                            <div class="text-center m-2">
+                                                <button class="btn btn-info" id="btnGuardarTodo">
+                                                    <i class="fa fa-save"></i> Guardar todo
+                                                </button>
+                                            </div>
                                         </div>
 
 
@@ -121,6 +129,7 @@ if (is_array($datos) and count($datos) > 0) {
 
         <?php require_once "../MainJS/JS.php" ?>
         <script src="../../config/config.js"></script>
+        <script type="text/javascript" src="actividades.js"></script>
         <!-- date-range-picker -->
         <!-- SweetAlert -->
         <script src="../../public/plugins/sweetalert2/sweetalert2.js"></script>

@@ -20,6 +20,7 @@ $hayConsultasAlista = false; // Variable adicional
 $hayConsultasLab = false;
 $hayRteObra = false;
 $mostrarGestionMtto = false;
+$mostrarTikets = false;
 
 foreach ($datos as $row) {
     if ($row["permiso"] == "Si" && $row["menu_grupo"] == "items") {
@@ -65,7 +66,10 @@ foreach ($datos as $row) {
         $hayRteObra = true; // Hay reportes habilitados
     }
     if ($row["permiso"] == "Si" && $row["menu_grupo"] == "mtto") {
-        $mostrarGestionMtto = true; 
+        $mostrarGestionMtto = true;
+    }
+    if ($row["permiso"] == "Si" && $row["menu_grupo"] == "ticket") {
+        $mostrarTikets = true;
     }
 }
 ?>
@@ -226,8 +230,8 @@ foreach ($datos as $row) {
                         </ul>
                     </li>
                 <?php endif; ?>
-                 <!-- GESTION MANTENIMIENTO -->
-                 <?php if ($mostrarGestionMtto): ?>
+                <!-- GESTION MANTENIMIENTO -->
+                <?php if ($mostrarGestionMtto): ?>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-tools"></i>
@@ -456,6 +460,32 @@ foreach ($datos as $row) {
                                     </ul>
                                 </li>
                             <?php endif; ?>
+                        </ul>
+                    </li>
+                <?php endif; ?>
+
+                <!-- TIKECTS -->
+                <?php if ($mostrarTikets): ?>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-receipt"></i>
+                            <p>Tickets <i class="fas fa-angle-left right"></i></p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <?php
+                            foreach ($datos as $row) {
+                                if ($row["permiso"] == "Si" && $row["menu_grupo"] == "ticket") {
+                            ?>
+                                    <li class="nav-item">
+                                        <a href="<?php echo $row["menu_ruta"]; ?>" class="nav-link">
+                                            <i class="<?php echo $row["menu_icono"]; ?>"></i>
+                                            <p><?php echo $row["menu_nom"]; ?></p>
+                                        </a>
+                                    </li>
+                            <?php
+                                }
+                            }
+                            ?>
                         </ul>
                     </li>
                 <?php endif; ?>

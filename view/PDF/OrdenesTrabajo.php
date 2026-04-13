@@ -51,6 +51,7 @@ if (isset($_GET['ID'])) {
 
 $ticketsClass = new Tickets();
 $tikets = $ticketsClass->get_tickets_ordenes($codigo_orden);
+$actividades = $ticketsClass->get_tickets_actividades($codigo_orden);
 
 $numeroSolicitud = isset($tikets[0]['num_soli']) ? $tikets[0]['num_soli'] : 'N/A';
 $fecha_solicitud = isset($tikets[0]['fech_creac_soli']) ? $tikets[0]['fech_creac_soli'] : 'N/A';
@@ -80,6 +81,7 @@ $tipoMantenimiento = isset($tikets[0]['tipo_mantenimiento']) ? $tikets[0]['tipo_
 $lectura_anterior = isset($tikets[0]['lectura_anterior']) ? $tikets[0]['lectura_anterior'] : 'N/A';
 $lectura_actual = isset($tikets[0]['lect_soli']) ? $tikets[0]['lect_soli'] : 'N/A';
 $tecnico = isset($tikets[0]['tecn_otm']) ? $tikets[0]['tecn_otm'] : 'N/A';
+
 
 
 
@@ -240,8 +242,18 @@ $pdf->Cell($w4, 7, 'UM', 1, 0, 'C');
 $pdf->Cell($w5, 7, 'CANT', 1, 1, 'C');
 
 // Filas de la tabla (3 filas vacías)
-$pdf->SetFont('Arial', '', 10);
-for ($i = 0; $i < 3; $i++) {
+$pdf->SetFont('Arial', '', 9);
+if (!empty($actividades)) {
+    foreach ($actividades as $i => $act) {
+        $pdf->SetX($startX + 0);
+        $pdf->Cell($w1, 7, $act['actividad_programada'],       1, 0);
+        $pdf->Cell($w2, 7, $act['detalle_trabajo'],            1, 0);
+        $pdf->Cell($w3, 7, $act['repuesto']                 , 1, 0);
+        $pdf->Cell($w4, 7, $act['um'],                       1, 0);
+        $pdf->Cell($w5, 7, $act['cantidad'],                   1, 1);
+    }
+} else {
+    // si no hay actividades muestra una fila vacía
     $pdf->SetX($startX + 0);
     $pdf->Cell($w1, 7, '', 1, 0);
     $pdf->Cell($w2, 7, '', 1, 0);
@@ -249,6 +261,8 @@ for ($i = 0; $i < 3; $i++) {
     $pdf->Cell($w4, 7, '', 1, 0);
     $pdf->Cell($w5, 7, '', 1, 1);
 }
+
+$pdf->Ln(10);
 
 // ================================================
 // ============ BLOQUE FIRMA SEPARADO =============
