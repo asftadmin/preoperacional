@@ -75,6 +75,7 @@ function inicializarTabla() {
         responsive: true,
         pageLength: 7,
         autoWidth: false,
+        order: [[2, 'desc']],
         language: {
             sProcessing: "Procesando...",
             sZeroRecords: "No se encontraron resultados",

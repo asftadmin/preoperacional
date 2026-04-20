@@ -85,7 +85,10 @@ function guardar(e){
                         title: '¡Guardado Exitosamente!',
                         text: 'El reporte fue creado correctamente.',
                         icon: 'success',
-                        confirmButtonText: 'OK'
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(function() {
+                        window.location.href = '../../view/tickets/tickets.php';
                     });
 
                     // Cerrar el modal

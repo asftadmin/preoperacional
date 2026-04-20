@@ -1,11 +1,9 @@
 <?php
 /* CLASE USUARIO */
-class Usuario extends Conectar
-{
+class Usuario extends Conectar {
 
     // INICIO DE SESION
-    public function login()
-    {
+    public function login() {
 
         $conectar = parent::conexion();
 
@@ -61,8 +59,7 @@ class Usuario extends Conectar
     /* CLASE USUARIOS */
 
     /* INSERTAR */
-    public function insert_user($user_cedula, $user_nombre, $user_apellidos, $user_email, $user_usuario, $user_contrasena, $user_rol_usuario)
-    {
+    public function insert_user($user_cedula, $user_nombre, $user_apellidos, $user_email, $user_usuario, $user_contrasena, $user_rol_usuario) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "INSERT INTO usuarios (user_cedula, user_nombre, user_apellidos, user_email, user_usuario, user_contrasena, user_rol_usuario) VALUES ( ?, ?, ?, ?, ?,MD5(?), ?);";
@@ -79,8 +76,7 @@ class Usuario extends Conectar
     }
 
     /* VERIFICAR SI EL USUARIO EXISTE EN LA BD */
-    public function userExiste($user_cedula)
-    {
+    public function userExiste($user_cedula) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT COUNT(*) AS count FROM usuarios WHERE user_cedula = ?  ";
@@ -92,8 +88,7 @@ class Usuario extends Conectar
     }
 
     /* ACTUALIZAR */
-    public function update_user($user_id, $user_cedula, $user_nombre, $user_apellidos, $user_email, $user_usuario, $user_rol_usuario)
-    {
+    public function update_user($user_id, $user_cedula, $user_nombre, $user_apellidos, $user_email, $user_usuario, $user_rol_usuario) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE usuarios SET user_cedula = ?,
@@ -117,8 +112,7 @@ class Usuario extends Conectar
 
 
     /* ELIMINAR */
-    public function delete_user($user_id)
-    {
+    public function delete_user($user_id) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "DELETE FROM usuarios WHERE user_id=?";
@@ -129,8 +123,7 @@ class Usuario extends Conectar
     }
 
     /* LISTAR TODOS LOS ROLES */
-    public function get_user()
-    {
+    public function get_user() {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT * FROM usuarios
@@ -141,8 +134,7 @@ class Usuario extends Conectar
     }
 
     /* SELECT - MUESTRA SOLO EL ROL CONDUCTOR */
-    public function get_user_cond()
-    {
+    public function get_user_cond() {
 
         $conectar = parent::conexion();
         parent::set_names();
@@ -154,8 +146,7 @@ class Usuario extends Conectar
     }
 
     /* SELECT - MUESTRA SOLO EL ROL CONDUCTOR QUE MANEJAN VEHICULOS */
-    public function get_cond_vehi()
-    {
+    public function get_cond_vehi() {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT * FROM usuarios 
@@ -168,18 +159,16 @@ class Usuario extends Conectar
     }
 
     /* SELECT - MUESTRA SOLO EL ROL INSPECTOR Y RESIDENTE */
-    public function get_user_inspector()
-    {
+    public function get_user_inspector() {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT * FROM usuarios LEFT JOIN roles r ON usuarios.user_rol_usuario= r.rol_id WHERE r.rol_id in (7,8,10) ";
+        $sql = "SELECT * FROM usuarios LEFT JOIN roles r ON usuarios.user_rol_usuario= r.rol_id WHERE r.rol_id in (7,8,10,14) ";
         $sql = $conectar->prepare($sql);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
     /* SELECT - MUESTRA SOLO EL ROL CONDUCTOR */
-    public function get_user_reporte()
-    {
+    public function get_user_reporte() {
 
         $conectar = parent::conexion();
         parent::set_names();
@@ -190,8 +179,7 @@ class Usuario extends Conectar
         return $resultado = $sql->fetchAll();
     }
     /* MOSTRAR DATOS AL EDITAR */
-    public function get_user_id($user_id)
-    {
+    public function get_user_id($user_id) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT * FROM usuarios WHERE user_id=?";
@@ -202,8 +190,7 @@ class Usuario extends Conectar
     }
 
     /* ACTUALIZAR LA CONTRASEÑA */
-    public function update_user_pass($user_id, $user_contrasena)
-    {
+    public function update_user_pass($user_id, $user_contrasena) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE usuarios SET user_contrasena = MD5(?) WHERE user_id=?";
@@ -215,8 +202,7 @@ class Usuario extends Conectar
     }
 
     /*   SELECCIONAMOES EL CORREO ELECTRONICO DEL USUARIO */
-    public function get_user_email($user_email)
-    {
+    public function get_user_email($user_email) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT * FROM usuarios WHERE user_email=?";
@@ -226,8 +212,7 @@ class Usuario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function get_preoperacionales_xid($user_id)
-    {
+    public function get_preoperacionales_xid($user_id) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT  COUNT(distinct pre_formulario)  as total
@@ -238,8 +223,7 @@ class Usuario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function get_porcentaje_repdia($user_id)
-    {
+    public function get_porcentaje_repdia($user_id) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT
@@ -257,8 +241,7 @@ class Usuario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function get_porcentaje_preo($user_id)
-    {
+    public function get_porcentaje_preo($user_id) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT
@@ -277,8 +260,7 @@ class Usuario extends Conectar
     }
 
     /*  RECUPERAR LA CONTRASEÑA POR MEDIO DEL CORREO ELECTRONICO */
-    public function get_user_cambiar_pass($user_email)
-    {
+    public function get_user_cambiar_pass($user_email) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE usuarios SET user_contrasena = CONCAT(SUBSTRING(MD5(RANDOM()::text) FROM 1 FOR 3), LPAD(FLOOR(RANDOM() * 1000)::text, 3, '0')) 
@@ -290,8 +272,7 @@ class Usuario extends Conectar
     }
 
     /* FUNCION PARA ENCRIPTAR LA NUEVA CONTRASEÑA */
-    public function get_user_encriptar_nuevo_pass($user_id, $user_contrasena)
-    {
+    public function get_user_encriptar_nuevo_pass($user_id, $user_contrasena) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "UPDATE usuarios SET user_contrasena = MD5(?)
@@ -303,8 +284,7 @@ class Usuario extends Conectar
         return $resultado = $sql->fetchAll();
     }
 
-    public function insertarEmplNuevo($data)
-    {
+    public function insertarEmplNuevo($data) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "INSERT INTO usuarios (user_cedula, user_nombre, user_apellidos, user_email, user_usuario, user_contrasena) VALUES (:cedu, :nomb, :apelli, :email, :user, MD5('Asft123*'))";

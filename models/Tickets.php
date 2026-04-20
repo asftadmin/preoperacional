@@ -1,21 +1,20 @@
 <?php
 
-class Tickets extends Conectar
-{
+class Tickets extends Conectar {
 
-    public function get_tickets($coordinador_id)
-    {
+    public function get_tickets($coordinador_id) {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT * FROM solicitudes_mtto INNER JOIN vehiculos ON codi_vehi_soli = vehi_id WHERE asig_soli = ? AND esta_soli = '1' ORDER BY fech_creac_soli DESC";
+        $sql = "SELECT * FROM solicitudes_mtto INNER JOIN vehiculos ON codi_vehi_soli = vehi_id WHERE :coordinador_id = ANY(string_to_array(asig_soli, ',')::int[]) AND esta_soli = '1' ORDER BY fech_creac_soli DESC";
         $stmt = $conectar->prepare($sql);
-        $stmt->bindValue(1, $coordinador_id, PDO::PARAM_INT);
+        $stmt->bindValue(':coordinador_id', $coordinador_id, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        //WHERE :coordinador_id = ANY(string_to_array(asig_soli, ',')::int[])
     }
 
-    public function get_detalle_solicitud($ticketID)
-    {
+    public function get_detalle_solicitud($ticketID) {
 
         $conectar = parent::conexion();
         parent::set_names();
@@ -26,8 +25,7 @@ class Tickets extends Conectar
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function get_tickets_revision($coordinador_id, $placa = "", $fechaIni = "", $fechaFin = "")
-    {
+    public function get_tickets_revision($coordinador_id, $placa = "", $fechaIni = "", $fechaFin = "") {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT 
@@ -48,7 +46,7 @@ class Tickets extends Conectar
                 INNER JOIN tipos_mantenimiento tm
                     ON tm.codigo_tipo_mantenimiento = ot.mtto_otm
                 WHERE soli.esta_soli IN ('2','3')
-                AND soli.asig_soli = :coord
+                AND :coord = ANY(string_to_array(soli.asig_soli, ',')::int[])
                 ";
 
         if ($placa !== "") {
@@ -74,8 +72,7 @@ class Tickets extends Conectar
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function get_tickets_cerrados($coordinador_id, $placa = "", $fechaIni = "", $fechaFin = "")
-    {
+    public function get_tickets_cerrados($coordinador_id, $placa = "", $fechaIni = "", $fechaFin = "") {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "        SELECT 
@@ -97,7 +94,7 @@ class Tickets extends Conectar
                         INNER JOIN tipos_mantenimiento tm
                             ON tm.codigo_tipo_mantenimiento = ot.mtto_otm
                         WHERE soli.esta_soli = '3'
-                        AND soli.asig_soli = :coord
+                        AND :coord = ANY(string_to_array(soli.asig_soli, ',')::int[])
                 ";
 
         if ($placa !== "") {
@@ -123,8 +120,7 @@ class Tickets extends Conectar
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function get_tickets_ordenes($codi_otm)
-    {
+    public function get_tickets_ordenes($codi_otm) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT 
@@ -165,8 +161,7 @@ class Tickets extends Conectar
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function get_tickets_actividades($codi_otm)
-    {
+    public function get_tickets_actividades($codi_otm) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = " SELECT 
@@ -185,8 +180,7 @@ class Tickets extends Conectar
     }
 
 
-    public function obternerUltimoConsecutivo()
-    {
+    public function obternerUltimoConsecutivo() {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -207,8 +201,7 @@ class Tickets extends Conectar
     }
 
 
-    public function insert_solicitud($numero, $conductor, $vehiculo, $falla, $km)
-    {
+    public function insert_solicitud($numero, $conductor, $vehiculo, $falla, $km) {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "INSERT INTO 
@@ -221,7 +214,7 @@ class Tickets extends Conectar
         $stmt->bindValue(2, $conductor,       PDO::PARAM_INT);
         $stmt->bindValue(3, $vehiculo,            PDO::PARAM_INT);
         $stmt->bindValue(4, '1',          PDO::PARAM_STR);
-        $stmt->bindValue(5, 2,                  PDO::PARAM_INT); // ID del coordinador
+        $stmt->bindValue(5, '2,14',                  PDO::PARAM_STR); // ID del coordinador
         $stmt->bindValue(6, $falla, PDO::PARAM_STR);
         $stmt->bindValue(7, $km, PDO::PARAM_STR);
 
@@ -233,8 +226,7 @@ class Tickets extends Conectar
     }
 
 
-    public function insertar_lote($fila)
-    {
+    public function insertar_lote($fila) {
         $conectar = parent::conexion();
         $sql  = "INSERT INTO detalle_actv_otm 
                     (id_orden_trabajo, actividad_programada, detalle_trabajo, repuesto, um, cantidad)
@@ -254,8 +246,7 @@ class Tickets extends Conectar
         return $stmt->fetchColumn();
     }
 
-    public function actualizar_lote($fila)
-    {
+    public function actualizar_lote($fila) {
         $conectar = parent::conexion();
 
         $sql  = "UPDATE detalle_actv_otm
@@ -280,8 +271,7 @@ class Tickets extends Conectar
         return $stmt->rowCount();
     }
 
-    public function listar_lote($id_orden_trabajo)
-    {
+    public function listar_lote($id_orden_trabajo) {
         $conectar = parent::conexion();
         $sql = "SELECT id_detalle_actv_otm,
                    id_orden_trabajo,
@@ -301,8 +291,7 @@ class Tickets extends Conectar
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function listarUno($id)
-    {
+    public function listarUno($id) {
         $conectar = parent::conexion();
         $sql  = "SELECT id_detalle_actv_otm,
                     actividad_programada,
@@ -320,8 +309,7 @@ class Tickets extends Conectar
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function eliminar_actividad($id)
-    {
+    public function eliminar_actividad($id) {
         $conectar = parent::conexion();
 
         $sql  = "DELETE FROM detalle_actv_otm WHERE id_detalle_actv_otm = :id";

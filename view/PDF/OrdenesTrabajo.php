@@ -81,9 +81,10 @@ $tipoMantenimiento = isset($tikets[0]['tipo_mantenimiento']) ? $tikets[0]['tipo_
 $lectura_anterior = isset($tikets[0]['lectura_anterior']) ? $tikets[0]['lectura_anterior'] : 'N/A';
 $lectura_actual = isset($tikets[0]['lect_soli']) ? $tikets[0]['lect_soli'] : 'N/A';
 $tecnico = isset($tikets[0]['tecn_otm']) ? $tikets[0]['tecn_otm'] : 'N/A';
+$actividad_otm = isset($tikets[0]['desc_atcv_otm']) ? $tikets[0]['desc_atcv_otm'] : 'N/A';
 
 
-
+//desc_atcv_otm
 
 $pdf = new PDF();
 $pdf->AliasNbPages();
@@ -164,7 +165,7 @@ $pdf->Cell(75, 8, utf8_decode($tecnico), 0, 1, 'L');
 
 // Notas
 $pdf->Cell(45, 8, utf8_decode('ACTIVIDAD A REALIZAR:'), 'LB', 0, 'L');
-$pdf->MultiCell(145, 8, utf8_decode($notas_solicitud), 0, 'L');
+$pdf->MultiCell(145, 8, utf8_decode($actividad_otm), 0, 'L');
 
 $yFin = $pdf->GetY();
 
@@ -242,13 +243,13 @@ $pdf->Cell($w4, 7, 'UM', 1, 0, 'C');
 $pdf->Cell($w5, 7, 'CANT', 1, 1, 'C');
 
 // Filas de la tabla (3 filas vacías)
-$pdf->SetFont('Arial', '', 9);
+$pdf->SetFont('Arial', '', 8);
 if (!empty($actividades)) {
     foreach ($actividades as $i => $act) {
         $pdf->SetX($startX + 0);
         $pdf->Cell($w1, 7, $act['actividad_programada'],       1, 0);
         $pdf->Cell($w2, 7, $act['detalle_trabajo'],            1, 0);
-        $pdf->Cell($w3, 7, $act['repuesto']                 , 1, 0);
+        $pdf->Cell($w3, 7, $act['repuesto'], 1, 0);
         $pdf->Cell($w4, 7, $act['um'],                       1, 0);
         $pdf->Cell($w5, 7, $act['cantidad'],                   1, 1);
     }
@@ -268,7 +269,7 @@ $pdf->Ln(10);
 // ============ BLOQUE FIRMA SEPARADO =============
 // ================================================
 $startX = 10;
-$startY = $pdf->GetY()+5;
+$startY = $pdf->GetY() + 5;
 $blockWidth = 185;
 $blockHeight = 80; // Altura solo para RECEPCION
 

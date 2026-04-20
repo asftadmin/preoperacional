@@ -14,7 +14,7 @@
             <li class="nav-item active">
                 <a href="tickets.php" class="nav-link" id="abiertos-btn">
                     <i class="fas fa-lock-open"></i> Abiertos
-                    <span class="badge bg-primary float-right">12</span>
+                    <!--                     <span class="badge bg-primary float-right">12</span> -->
                 </a>
             </li>
             <li class="nav-item">
