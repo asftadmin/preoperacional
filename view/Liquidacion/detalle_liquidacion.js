@@ -148,7 +148,7 @@ var getURLParameter = function(sParam) {
 
   //Variables constantes para manejo de actividades
 
-  const ES_TARIFA_FIJA = new Set([71,72,9,10,43,15,45,44,67,54,52,60,50]);
+  const ES_TARIFA_FIJA = new Set([71,72,9,10,43,15,45,44,67,54,52,60,50,90]);
   const POR_KM         = new Set([25,73,74,75,11,12,13,14,37,40,23,62,28,30,34,31,33,22,41,42,26,27]);
   const POR_VOLUMEN    = new Set([8,4,2,80]); // 8 (volumen), 4/2/80 también volumen según tu lógica
   const POR_VIAJE_VOL  = new Set([6,82]);   // viajes * volumen * tarifa
