@@ -157,7 +157,7 @@ $englishToSpanish = [
     'Sunday' => 'Domingo'
 ];
 
-$diaSemanaEnIngles = $diaSemana; 
+$diaSemanaEnIngles = $diaSemana;
 $diaSemanaEnEspanol = $englishToSpanish[$diaSemanaEnIngles];
 
 // Crear PDF
@@ -173,17 +173,17 @@ $pdf->Cell(40, 5, 'Placa: ' . $placa, 1, 0, 'L', 0);
 $pdf->Cell(40, 5, 'Modelo' . '   ' . $modelo, 1, 0, 'L', 0);
 $pdf->Cell(40, 5, 'Marca:' . '   ' . $marca, 1, 0, 'L', 0);
 $pdf->Ln(5);
-$pdf->Cell(60, 5, 'Tarjeta de Propiedad:' . '   '.$tarjeta_propiedad , 1, 0, 'L', 0);
-$pdf->Cell(50, 5, 'Tecnicomecanica:' . '   '.date_format(new DateTime($tecnicomecanica ), 'd/m/Y'), 1, 0, 'L', 0);
-$pdf->Cell(40, 5, 'SOAT:' . '   '.date_format(new DateTime($soat), 'd/m/Y'), 1, 0, 'L', 0);
-$pdf->Cell(40, 5, 'Poliza:' . '  '.$poliza.'  '.date_format(new DateTime($fecha_poliza), 'd/m/Y'), 1, 0, 'L', 0);
+$pdf->Cell(60, 5, 'Tarjeta de Propiedad:' . '   ' . $tarjeta_propiedad, 1, 0, 'L', 0);
+$pdf->Cell(50, 5, 'Tecnicomecanica:' . '   ' . date_format(new DateTime($tecnicomecanica), 'd/m/Y'), 1, 0, 'L', 0);
+$pdf->Cell(40, 5, 'SOAT:' . '   ' . date_format(new DateTime($soat), 'd/m/Y'), 1, 0, 'L', 0);
+$pdf->Cell(40, 5, 'Poliza:' . '  ' . $poliza . '  ' . date_format(new DateTime($fecha_poliza), 'd/m/Y'), 1, 0, 'L', 0);
 $pdf->Ln(5);
-$pdf->Cell(105, 5, 'Inspeccionado por:' . '   ' . $operario.' - '.$cedula, 1, 0, 'L', 0);
+$pdf->Cell(105, 5, 'Inspeccionado por:' . '   ' . $operario . ' - ' . $cedula, 1, 0, 'L', 0);
 $pdf->Cell(85, 5, 'Reportado a/cargo:' . '   ' . 'Mantenimiento', 1, 0, 'L', 0);
 $pdf->Ln(5);
 
-$pdf->Cell(100, 5, 'Licencia (Categoria):' . '   '.$categoria , 1, 0, 'L', 0);
-$pdf->Cell(90, 5, 'Licencia (Vencimiento):' . '   ' .date_format(new DateTime($vencimiento_licencia), 'd/m/Y'), 1, 0, 'L', 0);
+$pdf->Cell(100, 5, 'Licencia (Categoria):' . '   ' . $categoria, 1, 0, 'L', 0);
+$pdf->Cell(90, 5, 'Licencia (Vencimiento):' . '   ' . date_format(new DateTime($vencimiento_licencia), 'd/m/Y'), 1, 0, 'L', 0);
 $pdf->Ln(5);
 
 
@@ -197,7 +197,7 @@ $pdf->Cell(40, 20, 'Item', 1, 0, 'C', 1);
 $pdf->Cell(100, 20, 'Concepto', 1, 0, 'C', 1);
 
 $pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(50, 10,utf8_decode($diaSemanaEnEspanol).'  '. date_format(new DateTime($Fecha), 'd/m/Y'), 1, 1, 'C', 1);
+$pdf->Cell(50, 10, utf8_decode($diaSemanaEnEspanol) . '  ' . date_format(new DateTime($Fecha), 'd/m/Y'), 1, 1, 'C', 1);
 
 
 $pdf->SetX(150);
@@ -248,15 +248,16 @@ foreach ($operaciones as $operacion) {
 $pdf->Ln(5);
 $pdf->Cell(60, 5, 'Kilometraje Inicial:', 0, 0, 'R');
 for ($i = 0; $i < 1; $i++) {
-    $pdf->Cell(0, 10, $Kilometraje_inicial.' km', 1, 0, 'C');
+    $pdf->Cell(0, 10, $Kilometraje_inicial . ' km', 1, 0, 'C');
 }
 $pdf->SetFont('Arial', '', 7);
 $pdf->Ln();
 $pdf->Cell(60, 5, 'Kilometraje Final:', 0, 0, 'R');
 for ($i = 0; $i < 1; $i++) {
-    $pdf->Cell(0, 10, $Kilometraje_final.' km', 1, 0, 'C');
+    $pdf->Cell(0, 10, $Kilometraje_final . ' km', 1, 0, 'C');
 }
-$pdf->Ln(15);
+$pdf->AddPage();
+$pdf->Ln(5);
 $pdf->Cell(60, 5, 'Estado Preoperacional:', 0, 0, 'R');
 for ($i = 0; $i < 1; $i++) {
     $pdf->Cell(0, 10, $estado, 1, 0, 'C');
@@ -266,7 +267,18 @@ $pdf->Cell(60, 5, 'Fecha Revision:', 0, 0, 'R');
 for ($i = 0; $i < 1; $i++) {
     $pdf->Cell(0, 10, $Fecha_revision, 1, 0, 'C');
 }
-$pdf->Ln(10);
+$pdf->Ln();
+$pdf->Cell(60, 5, utf8_decode('V°B° Inspeccionado por:'), 0, 0, 'R');
+for ($i = 0; $i < 1; $i++) {
+    $pdf->Cell(0, 10, '', 1, 0, 'C');
+}
+$pdf->Ln();
+$pdf->Cell(60, 5, utf8_decode('V°B° Reportado a:'), 0, 0, 'R');
+for ($i = 0; $i < 1; $i++) {
+    $pdf->Cell(0, 10, '', 1, 0, 'C');
+}
+$pdf->Ln(3);
+$pdf->AddPage();
 $pdf->Cell(0, 10, 'Observaciones', 0, 0, 'C');
 $pdf->Ln(10);
 $days = [date_format(new DateTime($Fecha), 'd/m/Y')];
@@ -307,4 +319,3 @@ foreach ($days as $day) {
 }
 
 $pdf->Output();
-?>

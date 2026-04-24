@@ -113,16 +113,16 @@ $pdf->SetMargins(10, 15, 10);
 $pdf->SetAutoPageBreak(true, 20);
 $pdf->SetX(10);
 $pdf->SetFont('Helvetica', 'B', 10);
-$pdf->Cell(105, 10, 'Inspeccionado por:'.'   '.$operario, 1, 0, 'L', 0);
-$pdf->Cell(85, 10, 'Reportado a/cargo:'.'   '.'Mantenimiento', 1, 0, 'L', 0);
+$pdf->Cell(105, 10, 'Inspeccionado por:' . '   ' . $operario, 1, 0, 'L', 0);
+$pdf->Cell(85, 10, 'Reportado a/cargo:' . '   ' . 'Mantenimiento', 1, 0, 'L', 0);
 $pdf->Ln(10);
-$pdf->Cell(140, 10, 'Fecha Inspeccion:'.'   '.date_format(new DateTime($Fecha), 'd/m/Y'), 1, 0, 'L', 0);
+$pdf->Cell(140, 10, 'Fecha Inspeccion:' . '   ' . date_format(new DateTime($Fecha), 'd/m/Y'), 1, 0, 'L', 0);
 $pdf->Cell(50, 10, 'Placa: ' . $placa, 1, 0, 'L', 0);
 
 $pdf->Ln(10);
-$pdf->Cell(63, 10, 'Modelo'.'   '. $modelo, 1, 0, 'L', 0);
-$pdf->Cell(63, 10, 'Horometro:'.'   '. $horometraje, 1, 0, 'L', 0);
-$pdf->Cell(64, 10, 'Marca:'.'   '. $marca, 1, 0, 'L', 0);
+$pdf->Cell(63, 10, 'Modelo' . '   ' . $modelo, 1, 0, 'L', 0);
+$pdf->Cell(63, 10, 'Horometro:' . '   ' . $horometraje, 1, 0, 'L', 0);
+$pdf->Cell(64, 10, 'Marca:' . '   ' . $marca, 1, 0, 'L', 0);
 $pdf->Ln(10);
 $pdf->Cell(0, 10, 'B= Bueno (SI) M= Malo (NO) N/A= No Aplica', 0, 0, 'C', 0);
 $pdf->Ln(10);
@@ -149,7 +149,7 @@ $pdf->SetFont('Arial', '', 7);
 foreach ($operaciones as $operacion) {
     $pdf->Cell(120, 5, utf8_decode($operacion['suboper_nombre']), 1, 0, 'L', 0);
     $pdf->SetX(130);
-    
+
     if ($operacion['pre_repuesta'] == 'B') {
         $pdf->Cell(24, 5, 'X', 1, 0, 'C');
         $pdf->Cell(23, 5, '', 1, 0, 'C');
@@ -181,6 +181,16 @@ $pdf->Ln();
 $pdf->Cell(60, 10, 'Fecha Revision:', 0, 0, 'R');
 for ($i = 0; $i < 1; $i++) {
     $pdf->Cell(0, 10, $Fecha_revision, 1, 0, 'C');
+}
+$pdf->Ln();
+$pdf->Cell(60, 10, utf8_decode('V°B° Inspeccionado por:'), 0, 0, 'R');
+for ($i = 0; $i < 1; $i++) {
+    $pdf->Cell(0, 10, '', 1, 0, 'C');
+}
+$pdf->Ln();
+$pdf->Cell(60, 10, utf8_decode('V°B° Reportado a:'), 0, 0, 'R');
+for ($i = 0; $i < 1; $i++) {
+    $pdf->Cell(0, 10, '', 1, 0, 'C');
 }
 $pdf->Ln(10);
 $pdf->Cell(0, 10, 'Observaciones', 0, 0, 'C');
@@ -222,4 +232,3 @@ foreach ($days as $day) {
 }
 
 $pdf->Output();
-?>

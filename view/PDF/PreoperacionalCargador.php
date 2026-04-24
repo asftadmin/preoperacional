@@ -103,7 +103,7 @@ if (isset($_GET['ID'])) {
 }
 // Crear instancia de la clase Operaciones y obtener datos
 $operacionesClass = new Operaciones();
-$operaciones = $operacionesClass->listar_preguntas( $pre_formulario);
+$operaciones = $operacionesClass->listar_preguntas($pre_formulario);
 
 $placa = isset($operaciones[0]['vehi_placa']) ? $operaciones[0]['vehi_placa'] : 'N/A';
 $Fecha = isset($operaciones[0]['pre_fecha_crea_form']) ? $operaciones[0]['pre_fecha_crea_form'] : 'N/A';
@@ -125,7 +125,7 @@ $englishToSpanish = [
     'Sunday' => 'Domingo'
 ];
 
-$diaSemanaEnIngles = $diaSemana; 
+$diaSemanaEnIngles = $diaSemana;
 $diaSemanaEnEspanol = $englishToSpanish[$diaSemanaEnIngles];
 
 // Crear PDF
@@ -136,16 +136,16 @@ $pdf->SetMargins(10, 15, 10);
 $pdf->SetAutoPageBreak(true, 20);
 $pdf->SetX(10);
 $pdf->SetFont('Helvetica', 'B', 10);
-$pdf->Cell(105, 10, 'Inspeccionado por:'.'   '.utf8_decode($operario), 1, 0, 'L', 0);
-$pdf->Cell(85, 10, 'Reportado a/cargo:'.'   '.'Mantenimiento', 1, 0, 'L', 0);
+$pdf->Cell(105, 10, 'Inspeccionado por:' . '   ' . utf8_decode($operario), 1, 0, 'L', 0);
+$pdf->Cell(85, 10, 'Reportado a/cargo:' . '   ' . 'Mantenimiento', 1, 0, 'L', 0);
 $pdf->Ln(10);
-$pdf->Cell(140, 10, 'Fecha Inspeccion:'.'   '.date_format(new DateTime($Fecha), 'd/m/Y'), 1, 0, 'L', 0);
+$pdf->Cell(140, 10, 'Fecha Inspeccion:' . '   ' . date_format(new DateTime($Fecha), 'd/m/Y'), 1, 0, 'L', 0);
 $pdf->Cell(50, 10, 'Placa: ' . $placa, 1, 0, 'L', 0);
 
 $pdf->Ln(10);
-$pdf->Cell(63, 10, 'Modelo'.'   '. $modelo, 1, 0, 'L', 0);
-$pdf->Cell(63, 10, 'Horometro:'.'   '. $horometraje, 1, 0, 'L', 0);
-$pdf->Cell(64, 10, 'Marca:'.'   '. $marca, 1, 0, 'L', 0);
+$pdf->Cell(63, 10, 'Modelo' . '   ' . $modelo, 1, 0, 'L', 0);
+$pdf->Cell(63, 10, 'Horometro:' . '   ' . $horometraje, 1, 0, 'L', 0);
+$pdf->Cell(64, 10, 'Marca:' . '   ' . $marca, 1, 0, 'L', 0);
 $pdf->Ln(10);
 $pdf->Cell(0, 10, 'B= Bueno (SI) M= Malo (NO) N/A= No Aplica', 0, 0, 'C', 0);
 $pdf->Ln(10);
@@ -157,7 +157,7 @@ $pdf->Cell(40, 20, 'Item', 1, 0, 'C', 1);
 $pdf->Cell(100, 20, 'Concepto', 1, 0, 'C', 1);
 
 $pdf->SetFont('Arial', 'B', 9);
-$pdf->Cell(50, 10,utf8_decode($diaSemanaEnEspanol).'  '. date_format(new DateTime($Fecha), 'd/m/Y'), 1, 1, 'C', 1);
+$pdf->Cell(50, 10, utf8_decode($diaSemanaEnEspanol) . '  ' . date_format(new DateTime($Fecha), 'd/m/Y'), 1, 1, 'C', 1);
 
 
 $pdf->SetX(150);
@@ -185,7 +185,7 @@ foreach ($operaciones as $operacion) {
     $pdf->SetX(50);
     $pdf->Cell(100, 3, utf8_decode($operacion['suboper_nombre']), 1, 0, 'L', 0);
     $pdf->SetX(150);
-    
+
     if ($operacion['pre_repuesta'] == 'B') {
         $pdf->Cell(17, 3, 'X', 1, 0, 'C');
         $pdf->Cell(17, 3, '', 1, 0, 'C');
@@ -215,7 +215,19 @@ $pdf->Cell(60, 10, 'Fecha Revision:', 0, 0, 'R');
 for ($i = 0; $i < 1; $i++) {
     $pdf->Cell(0, 10, $Fecha_revision, 1, 0, 'C');
 }
-$pdf->Ln(10);
+$pdf->Ln();
+$pdf->Cell(60, 10, utf8_decode('V°B° Inspeccionado por:'), 0, 0, 'R');
+for ($i = 0; $i < 1; $i++) {
+    $pdf->Cell(0, 10, '', 1, 0, 'C');
+}
+$pdf->Ln();
+$pdf->Cell(60, 10, utf8_decode('V°B° Reportado por:'), 0, 0, 'R');
+for ($i = 0; $i < 1; $i++) {
+    $pdf->Cell(0, 10, '', 1, 0, 'C');
+}
+
+$pdf->AddPage();
+$pdf->Ln(5);
 $pdf->Cell(0, 10, 'Observaciones', 0, 0, 'C');
 $pdf->Ln(10);
 $days = [date_format(new DateTime($Fecha), 'd/m/Y')];
@@ -255,4 +267,3 @@ foreach ($days as $day) {
 }
 
 $pdf->Output();
-?>
