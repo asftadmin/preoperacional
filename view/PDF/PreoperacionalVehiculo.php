@@ -277,8 +277,7 @@ $pdf->Cell(60, 5, utf8_decode('V°B° Reportado a:'), 0, 0, 'R');
 for ($i = 0; $i < 1; $i++) {
     $pdf->Cell(0, 10, '', 1, 0, 'C');
 }
-$pdf->Ln(3);
-$pdf->AddPage();
+$pdf->Ln(10);
 $pdf->Cell(0, 10, 'Observaciones', 0, 0, 'C');
 $pdf->Ln(10);
 $days = [date_format(new DateTime($Fecha), 'd/m/Y')];
