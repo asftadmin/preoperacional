@@ -73,7 +73,7 @@ if (is_array($datos) and count($datos) > 0) {
                             </div>
                         </div>
                     </div>
-                    <?php if ($_SESSION["user_rol_usuario"] == 1 ||$_SESSION["user_rol_usuario"] == 10) { ?>
+                    <?php if ($_SESSION["user_rol_usuario"] == 1 || $_SESSION["user_rol_usuario"] == 10) { ?>
                         <div class="row mt-2 ">
                             <div class="col-md-3">
                                 <div class="content">
@@ -82,16 +82,20 @@ if (is_array($datos) and count($datos) > 0) {
                                             <div class="col-12">
                                                 <div class="card" style="max-width: 400px; max-height: 400px;">
                                                     <div class="d-flex justify-content-center mt-3">
-                                                        <select class="form-control  select2bs4" id="vehi_placax" name="vehi_placax" style="width: 70%;" required>
+                                                        <select class="form-control  select2bs4" id="vehi_placax" name="vehi_placax"
+                                                            style="width: 70%;" required>
                                                         </select>
                                                     </div>
                                                     <div class="card-body">
                                                         <div class="row">
-                                                            <div class="col-xs-12 col-md-6 text-center" style="margin: 0 auto; display:inline; max-width: 400px;">
+                                                            <div class="col-xs-12 col-md-6 text-center"
+                                                                style="margin: 0 auto; display:inline; max-width: 400px;">
                                                                 <label>KILOMETRAJE POR DIA</label>
 
                                                                 <div class="knob-container">
-                                                                    <input type="text" disabled class="knob" data-thickness="0.2" data-anglearc="250" data-angleoffset="-125" data-width="140" data-height="140" data-fgcolor="#00c0ef">
+                                                                    <input type="text" disabled class="knob" data-thickness="0.2"
+                                                                        data-anglearc="250" data-angleoffset="-125" data-width="140"
+                                                                        data-height="140" data-fgcolor="#00c0ef">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -108,7 +112,8 @@ if (is_array($datos) and count($datos) > 0) {
                                     <div class="container-fluid">
                                         <div class="row">
                                             <div class="col-12">
-                                                <input type="hidden" id="user_id" name="user_id" value="<?php echo $_SESSION["user_id"] ?>">
+                                                <input type="hidden" id="user_id" name="user_id"
+                                                    value="<?php echo $_SESSION["user_id"] ?>">
                                                 <div class="small-box">
                                                     <div class="nav-icon fas fa-truck-monster"></div>
                                                     <div class="inner">
@@ -128,8 +133,11 @@ if (is_array($datos) and count($datos) > 0) {
                                 <div class="card">
                                     <br>
                                     <div class="box-typical box-typical-padding">
-                                        <table id="pre_data" name="pre_data" class="table table-bordered table-striped table-vcenter js-dataTable-full">
-                                            <caption style="caption-side: top; font-size: 1.5em; font-weight: bold; text-align:center;">PREOPERACIONALES</caption>
+                                        <table id="pre_data" name="pre_data"
+                                            class="table table-bordered table-striped table-vcenter js-dataTable-full">
+                                            <caption
+                                                style="caption-side: top; font-size: 1.5em; font-weight: bold; text-align:center;">
+                                                PREOPERACIONALES</caption>
                                             <thead class="bg-info">
                                                 <tr>
                                                     <th th class="text-center" style="width: 5%;">PLACA</th>
@@ -152,8 +160,11 @@ if (is_array($datos) and count($datos) > 0) {
                                 <div class="card">
                                     <br>
                                     <div class="box-typical box-typical-padding">
-                                        <table id="repdia_data" name="repdia_data" class="table table-bordered table-striped table-vcenter js-dataTable-full">
-                                            <caption style="caption-side: top; font-size: 1.5em; font-weight: bold; text-align:center;">REPORTES DIARIOS</caption>
+                                        <table id="repdia_data" name="repdia_data"
+                                            class="table table-bordered table-striped table-vcenter js-dataTable-full">
+                                            <caption
+                                                style="caption-side: top; font-size: 1.5em; font-weight: bold; text-align:center;">
+                                                REPORTES DIARIOS</caption>
                                             <thead class="bg-info">
                                                 <tr>
                                                     <th th class="text-center" style="width: 8%;">CODIGO</th>
@@ -175,15 +186,20 @@ if (is_array($datos) and count($datos) > 0) {
                     <?php  } ?>
 
                     <!------------------------------------- RESIDENTE ------------------------------------->
-                    
+
                     <!---------------VERIFICADOR, COORDINADOR Y GERENCIA  ------------------>
-                    <?php if ($_SESSION["user_rol_usuario"] == 2 || $_SESSION["user_rol_usuario"] == 3 || $_SESSION["user_rol_usuario"] == 4 || $_SESSION["user_rol_usuario"] == 6 ) { ?>
+                    <?php if ($_SESSION["user_rol_usuario"] == 2 || $_SESSION["user_rol_usuario"] == 3 || $_SESSION["user_rol_usuario"] == 4 || $_SESSION["user_rol_usuario"] == 6) { ?>
 
                         <div class="row justify-content-center">
                             <div class="card-header d-flex p-0">
                                 <ul class="nav nav-pills ml-auto p-2">
-                                    <li class="nav-item"><a class="nav-link active" href="#tablas_rendimiento" data-toggle="tab">TABLAS RENDIMIENTOS</a></li>
-                                    <li class="nav-item"><a class="nav-link" href="#informe_maq" data-toggle="tab">RENDIMIENTO FRESADORA</a></li>
+                                    <li class="nav-item"><a class="nav-link active" href="#tablas_rendimiento"
+                                            data-toggle="tab">TABLAS RENDIMIENTOS</a></li>
+                                    <li class="nav-item"><a class="nav-link" href="#informe_maq" data-toggle="tab">RENDIMIENTO
+                                            FRESADORA</a></li>
+                                    <li class="nav-item"><a class="nav-link" href="#rendimiento_combustible"
+                                            data-toggle="tab">RENDIMIENTO COMBUSTIBLE</a></li> <!-- NUEVA -->
+
                                     <li class="nav-item dropdown">
                                     </li>
                                 </ul>
@@ -208,11 +224,14 @@ if (is_array($datos) and count($datos) > 0) {
                                                 <div class="card-body">
                                                     <div class="row align-items-center">
                                                         <div class="col-auto">
-                                                            <select class="form-control  select2bs4" id="repdia_vehi" name="repdia_vehi"></select>
+                                                            <select class="form-control  select2bs4" id="repdia_vehi"
+                                                                name="repdia_vehi"></select>
                                                         </div>
                                                         <div class="col-auto">
-                                                            <button type="button" id="btnver" class="btn btn-info"><span class="fas fa-search"></span></button>
-                                                            <button type="button" id="btnvermas" class="btn btn-info">Ver Mas</button>
+                                                            <button type="button" id="btnver" class="btn btn-info"><span
+                                                                    class="fas fa-search"></span></button>
+                                                            <button type="button" id="btnvermas" class="btn btn-info">Ver
+                                                                Mas</button>
                                                             <input type="hidden" id="vehi_id_asfalto" name="vehi_id_asfalto">
                                                         </div>
                                                     </div>
@@ -234,12 +253,16 @@ if (is_array($datos) and count($datos) > 0) {
                                                 <div class="card-body">
                                                     <div class="row align-items-center">
                                                         <div class="col-auto">
-                                                            <select class="form-control  select2bs4" id="repdia_vehix" name="repdia_vehix"></select>
+                                                            <select class="form-control  select2bs4" id="repdia_vehix"
+                                                                name="repdia_vehix"></select>
                                                         </div>
                                                         <div class="col-auto">
-                                                            <button type="button" id="btnverx" class="btn btn-info"><span class="fas fa-search"></span></button>
-                                                            <button type="button" id="btnvermasx" class="btn btn-info">Ver Mas</button>
-                                                            <input type="hidden" id="vehi_id_concreto" name="vehi_id_concreto" value="">
+                                                            <button type="button" id="btnverx" class="btn btn-info"><span
+                                                                    class="fas fa-search"></span></button>
+                                                            <button type="button" id="btnvermasx" class="btn btn-info">Ver
+                                                                Mas</button>
+                                                            <input type="hidden" id="vehi_id_concreto" name="vehi_id_concreto"
+                                                                value="">
                                                         </div>
                                                     </div>
                                                     <div class="card-block">
@@ -262,12 +285,16 @@ if (is_array($datos) and count($datos) > 0) {
                                                 <div class="card-body">
                                                     <div class="row align-items-center">
                                                         <div class="col-auto">
-                                                            <select class="form-control  select2bs4" id="repdia_maquinaria" name="repdia_maquinaria"></select>
+                                                            <select class="form-control  select2bs4" id="repdia_maquinaria"
+                                                                name="repdia_maquinaria"></select>
                                                         </div>
                                                         <div class="col-auto">
-                                                            <button type="button" id="btnverMaq" class="btn btn-info"><span class="fas fa-search"></span></button>
-                                                            <button type="button" id="btnvermasMaq" class="btn btn-info">Ver Mas</button>
-                                                            <input type="hidden" id="vehi_id_maquinaria" name="vehi_id_maquinaria" value="">
+                                                            <button type="button" id="btnverMaq" class="btn btn-info"><span
+                                                                    class="fas fa-search"></span></button>
+                                                            <button type="button" id="btnvermasMaq" class="btn btn-info">Ver
+                                                                Mas</button>
+                                                            <input type="hidden" id="vehi_id_maquinaria" name="vehi_id_maquinaria"
+                                                                value="">
                                                         </div>
                                                     </div>
                                                     <div class="card-block">
@@ -299,34 +326,40 @@ if (is_array($datos) and count($datos) > 0) {
                                                         <!-- Select de Equipo -->
                                                         <div class="col-md-3">
                                                             <label><b></b></label>
-                                                            <select class="form-control select2bs4" id="repdia_fresadora" name="repdia_fresadora"></select>
+                                                            <select class="form-control select2bs4" id="repdia_fresadora"
+                                                                name="repdia_fresadora"></select>
                                                         </div>
                                                         <!-- Fecha Inicio -->
                                                         <div class="col-md-3">
                                                             <div class="form-group">
                                                                 <label><b>Del Día</b></label>
-                                                                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control">
+                                                                <input type="date" name="fecha_inicio" id="fecha_inicio"
+                                                                    class="form-control">
                                                             </div>
                                                         </div>
                                                         <!-- Fecha Final -->
                                                         <div class="col-md-3">
                                                             <div class="form-group">
                                                                 <label><b>Hasta el Día</b></label>
-                                                                <input type="date" name="fecha_final" id="fecha_final" class="form-control">
+                                                                <input type="date" name="fecha_final" id="fecha_final"
+                                                                    class="form-control">
                                                             </div>
                                                         </div>
                                                         <!-- Botón de búsqueda -->
                                                         <div class="col-md-3 d-flex align-items-end">
-                                                            <button type="button" id="btnFresadora" class="btn btn-info btn-block" style="width: 50px;">
+                                                            <button type="button" id="btnFresadora" class="btn btn-info btn-block"
+                                                                style="width: 50px;">
                                                                 <span class="fas fa-search"></span>
                                                             </button>&nbsp;&nbsp;
-                                                            <button type="button" id="btnvermasfrsd" class="btn btn-info">Ver Más</button>
+                                                            <button type="button" id="btnvermasfrsd" class="btn btn-info">Ver
+                                                                Más</button>
                                                         </div>
                                                     </div>
                                                     <!-- Botón guardar el vehi_id -->
                                                     <div class="row mt-1">
                                                         <div class="col-md-12 text-right">
-                                                            <input type="hidden" id="vehi_id_fresadora" name="vehi_id_fresadora" value="">
+                                                            <input type="hidden" id="vehi_id_fresadora" name="vehi_id_fresadora"
+                                                                value="">
                                                         </div>
                                                     </div>
                                                     <!-- Espacio para el gráfico -->
@@ -348,16 +381,18 @@ if (is_array($datos) and count($datos) > 0) {
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="row align-items-center">
-                                                        
+
                                                         <!-- Botón de búsqueda -->
                                                         <div class="col-md-3 d-flex align-items-end">
-                                                            <button type="button" id="btnvermasfrsd_pnts" class="btn btn-info">Ver Más</button>
+                                                            <button type="button" id="btnvermasfrsd_pnts" class="btn btn-info">Ver
+                                                                Más</button>
                                                         </div>
                                                     </div>
                                                     <!-- Botón guardar el vehi_id -->
                                                     <div class="row mt-1">
                                                         <div class="col-md-12 text-right">
-                                                            <input type="hidden" id="vehi_id_fresadora_puntas" name="vehi_id_fresadora_puntas" value="">
+                                                            <input type="hidden" id="vehi_id_fresadora_puntas"
+                                                                name="vehi_id_fresadora_puntas" value="">
                                                         </div>
                                                     </div>
                                                     <!-- Espacio para el gráfico -->
@@ -384,10 +419,12 @@ if (is_array($datos) and count($datos) > 0) {
                                                         </div>
                                                         <div class="col">
                                                             <label for="vehi_placa">Nº Placa:</label>
-                                                            <input type="text" class="form-control mt-2" name="vehi_placa" id="vehi_placa" disabled>
+                                                            <input type="text" class="form-control mt-2" name="vehi_placa"
+                                                                id="vehi_placa" disabled>
                                                             <div class="form-group">
                                                                 <label for="tipo_nombre">Tipo Vehiculo:</label>
-                                                                <input type="text" class="form-control mt-2" name="tipo_nombre" id="tipo_nombre" disabled>
+                                                                <input type="text" class="form-control mt-2" name="tipo_nombre"
+                                                                    id="tipo_nombre" disabled>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -407,7 +444,8 @@ if (is_array($datos) and count($datos) > 0) {
                                                     <!-- Botón guardar el vehi_id -->
                                                     <div class="row mt-1">
                                                         <div class="col-md-12 text-right">
-                                                            <input type="hidden" id="vehi_id_fresadora_puntas" name="vehi_id_fresadora_puntas" value="">
+                                                            <input type="hidden" id="vehi_id_fresadora_puntas"
+                                                                name="vehi_id_fresadora_puntas" value="">
                                                         </div>
                                                     </div>
                                                     <!-- Espacio para el gráfico -->
@@ -417,8 +455,112 @@ if (is_array($datos) and count($datos) > 0) {
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>  
+                                    </div>
                                 </div>
+                            </div>
+                            <!-- RENDIMIENTO COMBUSTIBLE -->
+                            <div id="rendimiento_combustible" class="tab-pane">
+                                <div class="container-fluid">
+
+                                    <!-- FILTROS -->
+                                    <div class="card card-info">
+                                        <div class="card-header">
+                                            <h3 class="card-title">FILTROS</h3>
+                                            <div class="card-tools">
+                                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row align-items-end">
+                                                <div class="col-md-3">
+                                                    <label><b>Placa</b></label>
+                                                    <select class="form-control select2bs4" id="comb_placa" name="comb_placa">
+                                                        <option value="">-- Todas --</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label><b>Obra</b></label>
+                                                    <select class="form-control select2bs4" id="comb_obra" name="comb_obra">
+                                                        <option value="">-- Todas --</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label><b>Rango de fechas</b></label>
+                                                    <input type="text" class="form-control" id="comb_fechas"
+                                                        placeholder="Desde / Hasta">
+                                                </div>
+                                                <div class="col-md-2 d-flex gap-2">
+                                                    <button type="button" id="btnBuscarComb" class="btn btn-info">
+                                                        <span class="fas fa-search"></span>
+                                                    </button>
+                                                    <button type="button" id="btnLimpiarComb" class="btn btn-secondary ml-2">
+                                                        <span class="fas fa-broom"></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+
+                                        <!-- INDIVIDUAL -->
+                                        <div class="col-md-6">
+                                            <div class="card card-info">
+                                                <div class="card-header">
+                                                    <h3 class="card-title" id="tituloGrafico">EVOLUCIÓN KM/GL — INDIVIDUAL</h3>
+                                                    <div class="card-tools">
+                                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                            <i class="fas fa-minus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="card-block">
+                                                        <div id="divGraficoIndividual" style="height:280px;"></div>
+                                                        <p class="text-center mt-2" style="font-size:12px;color:#6c757d"
+                                                            id="promedio_individual"></p>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- COMPARATIVO -->
+                                        <div class="col-md-6">
+                                            <div class="card card-info">
+                                                <div class="card-header">
+                                                    <h3 class="card-title" id="tituloTabla">DETALLE KM/GL</h3>
+                                                    <div class="card-tools">
+                                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                            <i class="fas fa-minus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <table class="table table-bordered table-striped table-sm" id="tablaKmGal">
+                                                        <thead class="bg-info">
+                                                            <tr>
+                                                                <th>Fecha</th>
+                                                                <th>Galones</th>
+                                                                <th>Km Anterior</th>
+                                                                <th>Km Actual</th>
+                                                                <th>Diferencia</th>
+                                                                <th>Km/GL</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tbodyKmGal">
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
@@ -434,6 +576,7 @@ if (is_array($datos) and count($datos) > 0) {
             <script type="text/javascript" src="../Conductores/Firma.js"></script>
             <script type="text/javascript" src="../Conductores/RepdiaCond.js"></script>
             <script type="text/javascript" src="../Alistamineto/VerAlistamiento.js"></script>
+            <script type="text/javascript" src="combustible.js"></script>
             <script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
             <script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
             <script src="../../public/plugins/jquery-knob/jquery.knob.min.js"></script>

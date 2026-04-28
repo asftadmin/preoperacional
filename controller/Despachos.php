@@ -37,34 +37,34 @@ switch ($_GET["op"]) {
             "aaData" => $data
         );
         echo json_encode($resultado);
-    break;
+        break;
 
-        /* GUARDAR Y EDITAR */
-        case 'guardaryeditarDespacho':
-            $fecha = date('Ymd');
-            $desp_id = $_POST["desp_id"];
-            $recibo = $fecha . $desp_id;
-        
-            if (empty($desp_id) && $despachos->despExiste($_POST["desp_vehi"])) {
-                echo json_encode(array("status" => "error", "message" => "El Despacho ya se encuentra registrado \n Por Favor,  Verifica los campos"));
+    /* GUARDAR Y EDITAR */
+    case 'guardaryeditarDespacho':
+        $fecha = date('Ymd');
+        $desp_id = $_POST["desp_id"];
+        $recibo = $fecha . $desp_id;
+
+        if (empty($desp_id) && $despachos->despExiste($_POST["desp_vehi"])) {
+            echo json_encode(array("status" => "error", "message" => "El Despacho ya se encuentra registrado \n Por Favor,  Verifica los campos"));
+        } else {
+            if (empty($desp_id)) {
+                // Guardar un nuevo despacho
+                $desp_id = $despachos->guardar_despacho($_POST["desp_vehi"], $_POST["desp_galones_autorizados"], $_POST["desp_user"], $_POST["desp_obra"]);
             } else {
-                if (empty($desp_id)) {
-                    // Guardar un nuevo despacho
-                    $desp_id = $despachos->guardar_despacho($_POST["desp_vehi"], $_POST["desp_galones_autorizados"], $_POST["desp_user"],$_POST["desp_obra"]);
-                } else {
-                    // Actualizar un despacho existente
-                    $despachos->update_despacho($_POST["desp_id"], $_POST["desp_galones"], $recibo, $_POST["desp_km_hr"], $_POST["desp_cond"], $_POST["desp_observaciones"], $_POST["desp_despachador"]);
-                }
-        
-                // Incluir el desp_id en la respuesta JSON
-                echo json_encode(array(
-                    "status" => "success",
-                    "message" => "Datos guardados correctamente",
-                    "desp_id" => $desp_id // Retornar el ID del despacho
-                ));
+                // Actualizar un despacho existente
+                $despachos->update_despacho($_POST["desp_id"], $_POST["desp_galones"], $recibo, $_POST["desp_km_hr"], $_POST["desp_cond"], $_POST["desp_observaciones"], $_POST["desp_despachador"]);
             }
-            break;
-        
+
+            // Incluir el desp_id en la respuesta JSON
+            echo json_encode(array(
+                "status" => "success",
+                "message" => "Datos guardados correctamente",
+                "desp_id" => $desp_id // Retornar el ID del despacho
+            ));
+        }
+        break;
+
 
     case "consultar":
         $datos = $despachos->RpteDespachos($_POST['desp_vehi'], $_POST['desp_cond'], $_POST['fecha_inicio'], $_POST['fecha_final']);
@@ -97,33 +97,32 @@ switch ($_GET["op"]) {
         echo json_encode($resultado);
         break;
 
-        /* UPDATE - ESTADO TRASLADO */
+    /* UPDATE - ESTADO TRASLADO */
     case "cambioestado":
         $datos = $despachos->CambioEstado($_POST["desp_id"]);
         break;
 
     /* MOSTRAR DESPACHOS AL EDITAR */
     case 'mostrarDespachos':
-        $datos=$despachos->get_despacho_id($_POST["desp_id"]);
-            if(is_array($datos)==true && count($datos)>0){
-                foreach($datos as $row){
-                    $output["desp_id"] = $row['desp_id'];
-                    $output["vehi_placa"] = $row['vehi_placa'];
-                    $output["desp_cond"] = $row['desp_cond'];
-                    $output["desp_obra"] = $row['desp_obra'];
-                    $output["desp_galones"] = $row['desp_galones'];
-                    $output["desp_recibo"] = $row['desp_recibo'];
-                    $output["desp_fech"] = $row['desp_fech'];
-                    $output["desp_hora"] = $row['desp_hora'];
-                    $output["desp_km_hr"] = $row['desp_km_hr'];
-                    $output["desp_observaciones"] = $row['desp_observaciones'];
-
-                }
-                echo json_encode($output);
+        $datos = $despachos->get_despacho_id($_POST["desp_id"]);
+        if (is_array($datos) == true && count($datos) > 0) {
+            foreach ($datos as $row) {
+                $output["desp_id"] = $row['desp_id'];
+                $output["vehi_placa"] = $row['vehi_placa'];
+                $output["desp_cond"] = $row['desp_cond'];
+                $output["desp_obra"] = $row['desp_obra'];
+                $output["desp_galones"] = $row['desp_galones'];
+                $output["desp_recibo"] = $row['desp_recibo'];
+                $output["desp_fech"] = $row['desp_fech'];
+                $output["desp_hora"] = $row['desp_hora'];
+                $output["desp_km_hr"] = $row['desp_km_hr'];
+                $output["desp_observaciones"] = $row['desp_observaciones'];
             }
+            echo json_encode($output);
+        }
         break;
 
-        /* LISTAR DESPACHOS X AUTORIZADO*/
+    /* LISTAR DESPACHOS X AUTORIZADO*/
     case 'listarDespacho':
         $datos = $despachos->get_despachos($_POST["user_id"]);
         $data = array();
@@ -164,7 +163,7 @@ switch ($_GET["op"]) {
             $sub_array[] = date_format(new DateTime($row["desp_fech_crea"]), 'd/m/Y');
             $sub_array[] = $row["vehi_placa"];
             $sub_array[] = $row["desp_galones_autorizados"];
-            
+
             $sub_array[] = '<div class="button-container text-center" >
                                 <button type="button" onClick="Despacho(' . $row["desp_id"] . ');" id="' . $row["desp_id"] . '" class="btn btn-info btn-icon " >
                                     <div><i class="fas fa-gas-pump"></i></div>
@@ -180,6 +179,61 @@ switch ($_GET["op"]) {
             "aaData" => $data
         );
         echo json_encode($results);
+        break;
+
+    case 'kmGalIndividual':
+        $vehi_id  = $_POST["vehi_id"]  ?? null;
+        $obra     = $_POST["obra"]     ?? '';
+        $fechaIni = $_POST["fechaIni"] ?? '';
+        $fechaFin = $_POST["fechaFin"] ?? '';
+
+        if (empty($vehi_id)) {
+            echo json_encode(['success' => false, 'mensaje' => 'Vehículo requerido.']);
+            exit;
+        }
+
+        $data = $despachos->get_km_gal_individual($vehi_id, $obra, $fechaIni, $fechaFin);
+        echo json_encode(['success' => true, 'data' => $data]);
+        break;
+
+    case 'listarObrasPorVehiculo':
+        $vehi_id = $_POST["vehi_id"] ?? null;
+
+        if (empty($vehi_id)) {
+            echo json_encode(['success' => false, 'mensaje' => 'Vehículo requerido.']);
+            exit;
+        }
+
+        $data = $despachos->get_obras_por_vehiculo($vehi_id);
+        echo json_encode(['success' => true, 'data' => $data]);
+        break;
+
+    case 'glHoraIndividual':
+        $vehi_id  = $_POST["vehi_id"]  ?? null;
+        $obra     = $_POST["obra"]     ?? '';
+        $fechaIni = $_POST["fechaIni"] ?? '';
+        $fechaFin = $_POST["fechaFin"] ?? '';
+
+        if (empty($vehi_id)) {
+            echo json_encode(['success' => false, 'mensaje' => 'Vehículo requerido.']);
+            exit;
+        }
+
+        $data = $despachos->get_gl_hora_individual($vehi_id, $obra, $fechaIni, $fechaFin);
+        echo json_encode(['success' => true, 'data' => $data]);
+        break;
+
+    case 'comboVehiculo':
+        $datos = $despachos->get_placas_combustible();
+        if (is_array($datos) && count($datos) > 0) {
+            $html = "<option value='' disabled selected>-- Selecciona un Vehículo --</option>";
+            foreach ($datos as $row) {
+                $html .= "<option value='" . $row['vehi_id'] . "' data-tipo='" . $row['tipo_id'] . "'>"
+                    . $row['vehi_placa'] . " - " . $row['tipo_nombre']
+                    . "</option>";
+            }
+            echo $html;
+        }
         break;
 }
 
