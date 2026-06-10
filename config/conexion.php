@@ -30,9 +30,20 @@ class Conectar {
     public function getConexion() {
         return $this->Conexion();
     }
+    /*     public static function ruta() {
+        //return "http://181.204.219.154:3396/preoperacional/";
+        return "http://localhost/preoperacional/";
+    } */
+
     public static function ruta() {
-        return "http://181.204.219.154:3396/preoperacional/";
-        //return "http://localhost/preoperacional/";
+        $protocol = (
+            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || ($_SERVER['SERVER_PORT'] ?? '') == 443
+        ) ? 'https' : 'http';
+
+        $host = $_SERVER['HTTP_HOST'];
+
+        return $protocol . '://' . $host . '/preoperacional/';
     }
 }
 

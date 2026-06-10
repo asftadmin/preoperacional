@@ -17,7 +17,7 @@ switch ($_GET["op"]) {
             echo $html;
         }
         break;
-		
+
     case 'combotipovehiMultiple':
         // Devolverá HTML (lista de <option>)
         header('Content-Type: text/html; charset=utf-8');
@@ -36,8 +36,8 @@ switch ($_GET["op"]) {
         echo $html;
         exit;
 
-    /* SELECT OBRAS  */
-    // controller/Liquidacion.php
+        /* SELECT OBRAS  */
+        // controller/Liquidacion.php
 
     case 'comboObras':
         // 1) Recoger y normalizar los parámetros
@@ -189,7 +189,7 @@ switch ($_GET["op"]) {
 
 
         break;
-		
+
     /**LISTAR LIQUIDACIONES CERRADAS */
 
 
@@ -213,11 +213,11 @@ switch ($_GET["op"]) {
             $sub_array[] = $row["fecha_inicio"];
             $sub_array[] = $row["fecha_fin"];
             $sub_array[] = $row["actividad"];
-			$sub_array[] = $row["tipo"];
-			$sub_array[] = $row["ccosto"];
+            $sub_array[] = $row["tipo"];
+            $sub_array[] = $row["ccosto"];
             $sub_array[] = $row["marca"];
             $sub_array[] = $row["placa"];
-			$sub_array[] = $row["conductor"];
+            $sub_array[] = $row["conductor"];
             $sub_array[] = $row["obra"];
             $sub_array[] = $row["km_hm_inicial"];
             $sub_array[] = $row["km_hm_final"];
@@ -227,6 +227,7 @@ switch ($_GET["op"]) {
             $sub_array[] = $row["sub_total"];
             $sub_array[] = $row["total"];
             $sub_array[] = $row["observaciones"];
+            $sub_array[] = $row["puntas"];
             $data[] = $sub_array;
         }
 
@@ -450,7 +451,7 @@ switch ($_GET["op"]) {
             echo json_encode(['status' => 'error', 'message' => "No se pudo liquidar: $msg"]);
         }
         break;
-		
+
     case 'comisiones':
         header('Content-Type: application/json; charset=utf-8');
 

@@ -35,7 +35,7 @@ class Liquidaciones extends Conectar {
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
-	
+
     public function get_liquidacion_cerrada($liquidacion_id) {
 
         $id = (int)$liquidacion_id;
@@ -46,7 +46,7 @@ class Liquidaciones extends Conectar {
                 liq_fecha_fin AS FECHA_FIN, liq_total AS TOTAL, act_nombre AS ACTIVIDAD,tipo_nombre AS tipo , vehi_costo AS CCOSTO, vehi_marca AS MARCA, vehi_placa AS PLACA,
 				CONCAT(user_nombre, ' ', user_apellidos) AS CONDUCTOR, obras_nom AS OBRA, detliq_km_inicial AS KM_HM_INICIAL,
 				detliq_km_final AS KM_HM_FINAL, detliq_km_total AS KM_HM_TOTAL, detliq_tarifa AS TARIFA, repdia_volu AS VOLUMEN,
-				detliq_subtotal AS SUB_TOTAL, repdia_observa AS OBSERVACIONES
+				detliq_subtotal AS SUB_TOTAL, repdia_observa AS OBSERVACIONES, repdia_puntas AS PUNTAS
                 FROM liquidaciones 
                 INNER JOIN detalle_liquidacion ON detalle_liquidacion.detliq_liquidacion_id = liquidaciones.liq_codigo
 				INNER JOIN tipo_vehiculo ON tipo_vehiculo.tipo_id = detalle_liquidacion.detliq_tipo_vehiculo_id
