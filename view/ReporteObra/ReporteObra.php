@@ -19,7 +19,7 @@ if (is_array($datos) and count($datos) > 0) {
         <div class="wrapper">
             <?php require_once("../MainNav/nav.php"); ?>
             <?php require_once("../MainMenu/menu.php"); ?>
-            <div class="content-wrapper">
+            <div class="content-wrapper reporte-obra-page">
                 <!-- HEADER -->
                 <section class="content-header">
                     <div class="container-fluid">
@@ -55,24 +55,30 @@ if (is_array($datos) and count($datos) > 0) {
                         <div class="tab-content" id="reporteTabsContent">
 
                             <div class="tab-pane fade show active" id="reporte" role="tabpanel">
-                                <div class="card">
+                                <div class="card reporte-card">
                                     <form id="form-reporte">
                                         <div class="box-typical box-typical-padding">
                                             <br>
                                             <input type="hidden" id="user_id" name="user_id" value="<?php echo $_SESSION["user_id"] ?>">
-                                            <button type="button" id="agregarFila" class="btn btn-info"><i class="fas fa-chevron-circle-down"></i> Abrir Reporte Obra</button>
-                                            <br><br>
+                                            <div class="reporte-toolbar">
+                                                <button type="button" id="agregarFila" class="btn btn-info">
+                                                    <i class="fas fa-plus-circle"></i> Nueva fila
+                                                </button>
+                                                <button type="submit" name="action" value="add" class="btn btn-primary">
+                                                    <i class="fas fa-save"></i> Guardar
+                                                </button>
+                                            </div>
+                                            <br>
                                             <div class="table-responsive">
-                                                <table id="ro_data" name="ro_data" class="table table-bordered table-striped table-vcenter js-dataTable-full">
+                                                <table id="ro_data" name="ro_data" class="table table-bordered table-striped table-hover table-sm table-vcenter reporte-table">
                                                     <thead class="bg-info">
                                                         <tr>
-                                                            <th th class="text-center" style="width: 10%;">FECHA</th>
-                                                            <th th class="text-center" style="width: 12%;">INSPECTOR</th>
-                                                            <th th class="text-center" style="width: 14%;">OBRA</th>
-                                                            <th th class="text-center" style="width: 14%;">OPERADOR</th>
-                                                            <th th class="text-center" style="width: 10%;">HORA INICIO</th>
-                                                            <th th class="text-center" style="width: 12%;">ACTIVIDAD</th>
-                                                            <th th class="text-center" style="width: 6%;">ACCIONES</th>
+                                                            <th class="text-center reporte-date-col">FECHA Y HORA INICIO</th>
+                                                            <th class="text-center reporte-select-col">INSPECTOR</th>
+                                                            <th class="text-center reporte-select-col">OBRA</th>
+                                                            <th class="text-center reporte-select-col">OPERADOR</th>
+                                                            <th class="text-center reporte-activity-col">ACTIVIDAD</th>
+                                                            <th class="text-center reporte-action-col">ACCION</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="tabla-body">
@@ -81,8 +87,6 @@ if (is_array($datos) and count($datos) > 0) {
                                                 </table>
                                             </div>
                                             <br />
-                                            <center><button type="submit" name="action" value="add" class="btn btn-primary"><i class="fas fa-save"></i>&nbsp; Guardar</button></center>
-                                            <br />
                                         </div>
                                     </form>
                                 </div>
@@ -90,19 +94,42 @@ if (is_array($datos) and count($datos) > 0) {
 
                             <!-- CERRAR REPORTE DE OBRA -->
                             <div class="tab-pane fade" id="otra" role="tabpanel">
-                                <div class="card">
+                                <div class="card reporte-card">
                                     <br>
 
                                     <div class="box-typical box-typical-padding">
-                                        <br><br>
-                                        <table id="ro_clouse_data" name="ro_clouse_data" class="table table-bordered table-striped table-vcenter js-dataTable-full">
+                                        <br>
+                                        <div class="reporte-close-toolbar">
+                                            <div class="reporte-close-field">
+                                                <label for="horaFinalMasiva">Fecha y hora final</label>
+                                                <div class="input-group">
+                                                    <input type="text" id="horaFinalMasiva" class="form-control" readonly>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">
+                                                            <i class="fa fa-calendar-alt"></i>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button type="button" id="btnCerrarSeleccionados" class="btn btn-success">
+                                                <i class="fas fa-check-square"></i> Cerrar seleccionados
+                                            </button>
+                                            <span id="contadorSeleccionados" class="badge badge-info">0 seleccionados</span>
+                                        </div>
+                                        <br>
+                                        <table id="ro_clouse_data" name="ro_clouse_data" class="table table-bordered table-striped table-hover table-sm table-vcenter reporte-table">
                                             <thead class="bg-info">
                                                 <tr>
-                                                <th class="text-center" style="width: 8%;">FECHA</th>
-                                                    <th class="text-center" style="width: 15%;">OPERADOR</th>
-                                                    <th class="text-center" style="width: 8%;">HRA INICIO</th>
-                                                    <th class="text-center" style="width: 8%;">HRA FINAL</th>
-                                                    <th th class="text-center" style="width: 8%;">ACCION</th>
+                                                    <th class="text-center">
+                                                        <input type="checkbox" id="seleccionarTodosCerrar">
+                                                    </th>
+                                                    <th class="text-center">FECHA</th>
+                                                    <th class="text-center">OBRA</th>
+                                                    <th class="text-center">OPERADOR</th>
+                                                    <th class="text-center">HRA INICIO</th>
+                                                    <th class="text-center">ACTIVIDAD</th>
+                                                    <th class="text-center">FECHA Y HORA FINAL</th>
+                                                    <th class="text-center">ACCION</th>
                                                 </tr>
                                             </thead>
                                             <tbody>

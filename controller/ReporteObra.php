@@ -31,14 +31,20 @@ switch ($_GET["op"]) {
         $data = array();
         foreach ($datos as $row) {
             $sub_array = array();
+            $ro_id = (int) $row["ro_id"];
+            $fecha_reporte = date_format(new DateTime($row["ro_fecha"]), 'Y-m-d');
+            $sub_array[] = '<input type="checkbox" class="ro-cerrar-check" value="' . $ro_id . '">';
             $sub_array[] = date_format(new DateTime($row["ro_fecha"]), 'd/m/Y');
-            $sub_array[] = $row["operador"];
-            $sub_array[] = $row["ro_hr_inicio"];
+            $sub_array[] = htmlspecialchars($row["obras_nom"], ENT_QUOTES, 'UTF-8');
+            $sub_array[] = htmlspecialchars($row["operador"], ENT_QUOTES, 'UTF-8');
+            $hora_inicio = new DateTime($row["ro_hr_inicio"]);
+            $sub_array[] = $hora_inicio->format('H:i');
+            $sub_array[] = htmlspecialchars($row["ro_actv"], ENT_QUOTES, 'UTF-8');
             // Campo editable para la hora final
-            $sub_array[] = '<input type="time" id="hora_final_' . $row["ro_id"] . '" class="form-control" value="' . $row["ro_hr_final"] . '">';
+            $sub_array[] = '<input type="text" id="hora_final_' . $ro_id . '" class="form-control ro-fecha-hora-final" data-fecha="' . $fecha_reporte . '" data-hora24="" value="" readonly>';
             // Botón para guardar cambios
             $sub_array[] = '<div class="button-container text-center">
-                                    <button type="button" class="btn btn-success btn-icon btn-update" data-id="' . $row["ro_id"] . '">
+                                    <button type="button" class="btn btn-success btn-icon btn-update" data-id="' . $ro_id . '">
                                         <i class="fa fa-save"></i>
                                     </button>
                                 </div>';
@@ -65,6 +71,22 @@ switch ($_GET["op"]) {
             "message" => "Hora final actualizada correctamente"
         ]);
         exit;
+
+    case 'update_multiple':
+        $ro_ids = $_POST["ro_ids"] ?? array();
+        if (!is_array($ro_ids)) {
+            $ro_ids = array($ro_ids);
+        }
+
+        $actualizados = $reporteobra->update_ro_multiple($_POST["ro_hr_final"], $ro_ids, $_POST["user_id"]);
+
+        echo json_encode([
+            "status" => "success",
+            "message" => "Reportes cerrados correctamente",
+            "updated" => $actualizados
+        ]);
+        exit;
+
         /* LISTADO DE REPORTES DE OBRA OR INSPECTOR */
     case 'consultar':
         $datos = $reporteobra->get_ro();

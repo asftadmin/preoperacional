@@ -28,7 +28,8 @@ class ReporteObra extends Conectar
         INNER JOIN usuarios u1 ON u1.user_id = ro.ro_id_inspector 
         INNER JOIN usuarios u2 ON u2.user_id = ro.ro_id_operador
         INNER JOIN obras o ON o.obras_id = ro.ro_id_obra
-		WHERE ro_hr_inicio is not null and ro_id_inspector =?and ro_hr_final is null";
+		WHERE ro_hr_inicio is not null and ro_id_inspector = ? and ro_hr_final is null
+        ORDER BY ro_fecha DESC, ro_hr_inicio DESC";
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $user_id);
         $sql->execute();
@@ -107,6 +108,40 @@ class ReporteObra extends Conectar
         $sql->bindValue(2, $ro_id);
         $sql->execute();
         return $resultado = $sql->fetchAll();
+    }
+
+    /* UPDATE HORA FINAL MASIVA */
+    public function update_ro_multiple($ro_hr_final, $ro_ids, $user_id)
+    {
+        $ro_ids = array_values(array_filter($ro_ids, function ($id) {
+            return is_numeric($id);
+        }));
+
+        if (count($ro_ids) === 0) {
+            return 0;
+        }
+
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $placeholders = implode(',', array_fill(0, count($ro_ids), '?'));
+        $sql = "UPDATE reporte_obra
+                SET ro_hr_final = ?
+                WHERE ro_id IN ($placeholders)
+                AND ro_id_inspector = ?
+                AND ro_hr_final IS NULL";
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(1, $ro_hr_final);
+
+        $posicion = 2;
+        foreach ($ro_ids as $ro_id) {
+            $stmt->bindValue($posicion, $ro_id);
+            $posicion++;
+        }
+
+        $stmt->bindValue($posicion, $user_id);
+        $stmt->execute();
+        return $stmt->rowCount();
     }
 }
 

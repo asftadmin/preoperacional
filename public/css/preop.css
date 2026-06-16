@@ -224,4 +224,264 @@ input[type="radio"]:checked + label.radio-label {
 .dataTables_empty {
     display: none;
   }
+
+.reporte-obra-page .reporte-card {
+    border: 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.reporte-obra-page .reporte-toolbar {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+}
+
+.reporte-obra-page .reporte-close-toolbar {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.reporte-obra-page .reporte-close-field {
+    min-width: 250px;
+}
+
+.reporte-obra-page .reporte-close-field label {
+    color: #47545c;
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.reporte-obra-page .reporte-toolbar .btn,
+.reporte-obra-page .reporte-close-toolbar .btn,
+.reporte-obra-page .btn-update,
+.reporte-obra-page .eliminar-fila,
+.reporte-obra-page .dt-buttons .btn {
+    margin: 0;
+    max-width: none;
+    width: auto;
+}
+
+.reporte-obra-page .reporte-table {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.reporte-obra-page .dataTables_empty {
+    display: table-cell;
+}
+
+.reporte-obra-page .reporte-table th,
+.reporte-obra-page .reporte-table td {
+    vertical-align: middle;
+}
+
+.reporte-obra-page .reporte-date-col {
+    min-width: 180px;
+}
+
+.reporte-obra-page .reporte-select-col {
+    min-width: 220px;
+}
+
+.reporte-obra-page .reporte-activity-col {
+    min-width: 220px;
+}
+
+.reporte-obra-page .reporte-action-col {
+    min-width: 90px;
+}
+
+.reporte-obra-page .select2-container {
+    width: 100% !important;
+}
+
+.reporte-obra-page .select2-container--default .select2-selection--single {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    height: 38px;
+}
+
+.reporte-obra-page .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px;
+}
+
+.reporte-obra-page .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+.reporte-obra-page .ro-fecha-hora-inicio,
+.reporte-obra-page .ro-fecha-hora-final {
+    min-width: 150px;
+}
+
+.reporte-obra-page .ro-actividad {
+    min-width: 220px;
+}
+
+.ro-time-only-picker .calendar-table,
+.ro-time-only-picker .drp-selected {
+    display: none;
+}
+
+.ro-time-only-picker .drp-calendar.left {
+    padding: 8px;
+}
+
+@media (max-width: 767px) {
+    .reporte-obra-page .reporte-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .reporte-obra-page .reporte-close-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .reporte-obra-page .reporte-toolbar .btn {
+        width: 100%;
+    }
+
+    .reporte-obra-page .reporte-close-toolbar .btn,
+    .reporte-obra-page .reporte-close-field {
+        width: 100%;
+    }
+
+    .reporte-obra-page .box-typical-padding {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .reporte-obra-page #ro_data {
+        border: 0;
+    }
+
+    .reporte-obra-page #ro_clouse_data {
+        border: 0;
+    }
+
+    .reporte-obra-page #ro_data thead {
+        display: none;
+    }
+
+    .reporte-obra-page #ro_clouse_data thead {
+        display: none;
+    }
+
+    .reporte-obra-page #ro_data,
+    .reporte-obra-page #ro_data tbody,
+    .reporte-obra-page #ro_data tr,
+    .reporte-obra-page #ro_data td,
+    .reporte-obra-page #ro_clouse_data,
+    .reporte-obra-page #ro_clouse_data tbody,
+    .reporte-obra-page #ro_clouse_data tr,
+    .reporte-obra-page #ro_clouse_data td {
+        display: block;
+        width: 100% !important;
+    }
+
+    .reporte-obra-page #ro_data tr,
+    .reporte-obra-page #ro_clouse_data tr {
+        background-color: #fff;
+        border: 1px solid #d9e2e6;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+
+    .reporte-obra-page #ro_data td,
+    .reporte-obra-page #ro_clouse_data td {
+        border: 0;
+        border-bottom: 1px solid #edf1f3;
+        padding: 9px;
+        text-align: left !important;
+    }
+
+    .reporte-obra-page #ro_data td:last-child,
+    .reporte-obra-page #ro_clouse_data td:last-child {
+        border-bottom: 0;
+    }
+
+    .reporte-obra-page #ro_data td::before {
+        color: #47545c;
+        content: attr(data-label);
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .reporte-obra-page #ro_clouse_data td::before {
+        color: #47545c;
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .reporte-obra-page #ro_clouse_data td:nth-child(1)::before {
+        content: "Seleccionar";
+    }
+
+    .reporte-obra-page #ro_clouse_data td:nth-child(2)::before {
+        content: "Fecha";
+    }
+
+    .reporte-obra-page #ro_clouse_data td:nth-child(3)::before {
+        content: "Obra";
+    }
+
+    .reporte-obra-page #ro_clouse_data td:nth-child(4)::before {
+        content: "Operador";
+    }
+
+    .reporte-obra-page #ro_clouse_data td:nth-child(5)::before {
+        content: "Hora inicio";
+    }
+
+    .reporte-obra-page #ro_clouse_data td:nth-child(6)::before {
+        content: "Actividad";
+    }
+
+    .reporte-obra-page #ro_clouse_data td:nth-child(7)::before {
+        content: "Fecha y hora final";
+    }
+
+    .reporte-obra-page #ro_clouse_data td:nth-child(8)::before {
+        content: "Accion";
+    }
+
+    .reporte-obra-page #ro_clouse_data td.dataTables_empty::before {
+        content: none;
+    }
+
+    .reporte-obra-page #ro_data .form-control,
+    .reporte-obra-page #ro_data .select2-container,
+    .reporte-obra-page #ro_data .eliminar-fila,
+    .reporte-obra-page #ro_clouse_data .form-control,
+    .reporte-obra-page #ro_clouse_data .btn-update {
+        min-width: 0;
+        width: 100% !important;
+    }
+
+    .reporte-obra-page .table-responsive {
+        overflow-x: visible;
+    }
+
+    .daterangepicker {
+        max-width: calc(100vw - 20px);
+    }
+}
   
