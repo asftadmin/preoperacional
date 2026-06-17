@@ -55,7 +55,8 @@ class  Preoperacional extends Conectar {
         $pre_kilometraje_inicial,
         $pre_usuario,
         $vehiculo_fallas,
-        $preguntasArray
+        $preguntasArray,
+        $pre_firma
     ) {
         $db = parent::conexion();
         parent::set_names();
@@ -97,7 +98,24 @@ class  Preoperacional extends Conectar {
             $stmt1->closeCursor();
         }
 
-        // 2) Si hay fallas, insertar solicitud
+        // 2) Guardar firma del conductor/operador una sola vez por formulario
+        $sqlFirma = '
+            INSERT INTO preoperacional_firmas
+            (pre_formulario, pre_user, pre_firma, firma_fecha)
+            VALUES
+            (?, ?, ?, NOW())
+        ';
+        $stmtFirma = $db->prepare($sqlFirma);
+        $stmtFirma->bindValue(1, $pre_formulario, PDO::PARAM_STR);
+        $stmtFirma->bindValue(2, $pre_usuario, PDO::PARAM_INT);
+        $stmtFirma->bindValue(3, $pre_firma, PDO::PARAM_STR);
+
+        if (! $stmtFirma->execute()) {
+            $db->rollBack();
+            return false;
+        }
+
+        // 3) Si hay fallas, insertar solicitud
         if (strtolower($vehiculo_fallas) === "si") {
             $sql2 = "
                 INSERT INTO 

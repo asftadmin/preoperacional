@@ -1,6 +1,7 @@
 <?php
 require_once('../../docs/fpdf.php');
 require_once("../../config/conexion.php");
+require_once(__DIR__ . "/firma_preoperacional.php");
 
 class Operaciones extends Conectar {
     public function listar_preguntas($pre_formulario) {
@@ -183,11 +184,8 @@ for ($i = 0; $i < 1; $i++) {
     $pdf->Cell(0, 10, $Fecha_revision, 1, 0, 'C');
 }
 $pdf->Ln();
-$pdf->Cell(60, 10, utf8_decode('V°B° Inspeccionado por:'), 0, 0, 'R');
-for ($i = 0; $i < 1; $i++) {
-    $pdf->Cell(0, 10, '', 1, 0, 'C');
-}
-$pdf->Ln();
+imprimirFirmaInspeccionadoPreoperacional($pdf, $pre_formulario, 20, 20);
+//$pdf->Ln();
 $pdf->Cell(60, 10, utf8_decode('V°B° Reportado a:'), 0, 0, 'R');
 for ($i = 0; $i < 1; $i++) {
     $pdf->Cell(0, 10, '', 1, 0, 'C');

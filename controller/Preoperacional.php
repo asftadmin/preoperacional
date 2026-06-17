@@ -114,8 +114,25 @@ switch ($_POST["opcion"]) {
         $pre_placa               = $_POST['vehi_placa'];
         $pre_formulario          = trim($pre_fecha . $pre_placa);
         $pre_usuario             = $_POST['user_id'];
-        $vehiculo_fallas         = $_POST['vehiculo_fallas'];
+        $vehiculo_fallas         = $_POST['vehiculo_fallas'] ?? 'no';
         $tipo_id                 = $_POST['tipo_id'];
+        $pre_firma               = $_POST['pre_firma'] ?? '';
+        if (!is_string($pre_firma)) {
+            $pre_firma = '';
+        }
+
+        $firmaBase64 = preg_replace('/^data:image\/png;base64,/', '', $pre_firma);
+        if (
+            !preg_match('/^data:image\/png;base64,/', $pre_firma)
+            || $firmaBase64 === ''
+            || base64_decode($firmaBase64, true) === false
+        ) {
+            echo json_encode([
+                "status"  => "errores",
+                "message" => "Debe registrar la firma del conductor/operador antes de enviar."
+            ]);
+            break;
+        }
 
         // Consulto las preguntas para ese tipo de vehículo
         $preguntasDelModelo = $preoperacional->listar_preguntas($tipo_id);
@@ -133,6 +150,13 @@ switch ($_POST["opcion"]) {
         $preguntasConRespuestas = [];
         foreach ($preguntasDelModelo as $pregunta) {
             $suboper_id = $pregunta['suboper_id'];
+            if (!isset($_POST['respuesta_' . $suboper_id])) {
+                echo json_encode([
+                    "status"  => "errores",
+                    "message" => "Debe responder todas las preguntas antes de enviar."
+                ]);
+                break 2;
+            }
             $resp       = $_POST['respuesta_' . $suboper_id];
             $preguntasConRespuestas[] = [
                 'suboper_id' => $suboper_id,
@@ -148,7 +172,8 @@ switch ($_POST["opcion"]) {
             $pre_kilometraje_inicial,
             $pre_usuario,
             $vehiculo_fallas,
-            $preguntasConRespuestas
+            $preguntasConRespuestas,
+            $pre_firma
         );
 
         if ($ok) {

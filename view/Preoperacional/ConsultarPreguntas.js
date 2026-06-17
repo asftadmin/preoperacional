@@ -73,8 +73,21 @@ function showPlate() {
  
 function guardar(e) {
     e.preventDefault();
+
+    if (!window.PreoperacionalFirma) {
+        alert("No fue posible cargar el modulo de firma. Recargue la pagina e intente nuevamente.");
+        return;
+    }
+
+    window.PreoperacionalFirma.solicitar(function (firma) {
+        enviarFormularioPreop(firma);
+    });
+}
+
+function enviarFormularioPreop(firma) {
     let formData = new FormData($("#formulario_preop")[0]);
     formData.append('opcion', 'guardar_respuestas');
+    formData.append('pre_firma', firma);
 
     swal({
         title: "Envío de Formulario",

@@ -14,8 +14,21 @@ $('.select2bs4').select2({
 
 function guardar(e) {
     e.preventDefault();
+
+    if (!window.PreoperacionalFirma) {
+        alert("No fue posible cargar el modulo de firma. Recargue la pagina e intente nuevamente.");
+        return;
+    }
+
+    window.PreoperacionalFirma.solicitar(function (firma) {
+        enviarFormularioCheck(firma);
+    });
+}
+
+function enviarFormularioCheck(firma) {
     let formData = new FormData($("#formulario_check")[0]);
     formData.append('opcion', 'guardar_respuestas');
+    formData.append('pre_firma', firma);
 
     swal({
         title: "Envío de Formulario",

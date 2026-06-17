@@ -1,9 +1,12 @@
 <?php
 require_once('../../docs/fpdf.php');
 require_once("../../config/conexion.php");
+require_once(__DIR__ . "/firma_preoperacional.php");
 
-class Operaciones extends Conectar {
-    public function listar_preguntas($pre_formulario) {
+class Operaciones extends Conectar
+{
+    public function listar_preguntas($pre_formulario)
+    {
         $conectar = new Conectar(); // Asumiendo que la clase Conexion maneja la conexión
         $conexion = $conectar->conexion();
         $sql = "WITH PreoperacionalAnterior AS (
@@ -78,9 +81,11 @@ ORDER BY
     }
 }
 
-class PDF extends FPDF {
+class PDF extends FPDF
+{
     // Cabecera de página
-    function Header() {
+    function Header()
+    {
 
         $this->SetY(15);
         $this->Image('../../public/img/logo.png', 10, 8, 35);
@@ -111,7 +116,8 @@ class PDF extends FPDF {
     }
 
     // Pie de página
-    function Footer() {
+    function Footer()
+    {
         $this->SetY(-28);
         $this->SetFont('Arial', 'I', 8);
         $this->Cell(0, 5, 'El espiritu de las Grandes Obras ', 'T', 0, 'C');
@@ -268,10 +274,7 @@ for ($i = 0; $i < 1; $i++) {
     $pdf->Cell(0, 10, $Fecha_revision, 1, 0, 'C');
 }
 $pdf->Ln();
-$pdf->Cell(60, 5, utf8_decode('V°B° Inspeccionado por:'), 0, 0, 'R');
-for ($i = 0; $i < 1; $i++) {
-    $pdf->Cell(0, 10, '', 1, 0, 'C');
-}
+imprimirFirmaInspeccionadoPreoperacional($pdf, $pre_formulario, 20, 20);
 $pdf->Ln();
 $pdf->Cell(60, 5, utf8_decode('V°B° Reportado a:'), 0, 0, 'R');
 for ($i = 0; $i < 1; $i++) {

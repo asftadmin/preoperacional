@@ -90,8 +90,10 @@ if (is_array($datos) and count($datos) > 0) {
 
             <!-- ./wrapper -->
             <?php require_once("../MainJS/JS.php") ?>
+            <?php require_once("../Preoperacional/modalFirmaPreoperacional.php") ?>
 
             <script src="../../public/plugins/select2/js/select2.full.min.js"></script>
+            <script type="text/javascript" src="../Preoperacional/firmaPreoperacional.js"></script>
             <script type="text/javascript" src="Check.js"></script>
 
 
