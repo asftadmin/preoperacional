@@ -1,10 +1,12 @@
 <?php
 
-class CurlController {
+class CurlController
+{
 
     /*PETICIONES A LA API*/
 
-    public static function requestEstandar($url, $method) {
+    public static function requestEstandar($url, $method)
+    {
 
         $curl = curl_init();
 
@@ -32,7 +34,8 @@ class CurlController {
         return $response;
     }
 
-    public static function requestEstandarV2($url, $method) {
+    public static function requestEstandarV2($url, $method)
+    {
 
         $curl = curl_init();
 
@@ -48,6 +51,34 @@ class CurlController {
             CURLOPT_HTTPHEADER => array(
                 'ConniKey: c853d3ed75016b5c3617f5b52a9b1973',
                 'ConniToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjI1NjRlNjJkLWU0MTctNDJmYS05YjU0LWNhMDFmOTE2MWUyZCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcHJpbWFyeXNpZCI6IjlmYWQzNjNkLTE1NmMtNDBmZi1iZGZmLWFiMGY0ZDc3ZjE1ZSJ9.1pBVoKx67nIydtX1ogErfoQqyaocKO5AW5vM8rjZjNE'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        $response = json_decode($response);
+        return $response;
+    }
+
+    public static function requestApiEmpleados($url, $method)
+    {
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'http://181.204.219.154:3396/evds2023/api/empleados.php'.$url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_HTTPHEADER => array(
+                'x-api-key: _95UfYULG1XcqtYVd1CMynlM5uXx1hqz2PM1vZd18MOywHkFEs',
+                'Cookie: PHPSESSID=v10l8geinrvjbi620ceuqt1sln'
             ),
         ));
 
