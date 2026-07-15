@@ -13,7 +13,7 @@ class Conectar {
         try {
             // Cambiar los valores según tu configuración de PostgreSQL   192.168.0.200  masterd_asft
             $host = "172.16.5.2"; //172.16.5.2
-            $dbname = "preoperacional_prueba";
+            $dbname = "preoperacional_vehiculos";
             $usuario = "postgres";
             $contrasena = "masterd_asft";
 
