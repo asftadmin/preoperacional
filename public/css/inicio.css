@@ -188,3 +188,13 @@ i.nav-icon{
     width: 100%;
 }
 
+.breadcrumb-acpm {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+}
+
+.breadcrumb-acpm .breadcrumb-item {
+    white-space: nowrap;
+    flex: 0 0 auto;
+}

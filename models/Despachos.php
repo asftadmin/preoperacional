@@ -284,6 +284,325 @@ class  Despachos extends Conectar {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /* RESUMEN DE DESPACHOS REALIZADOS HOY */
+    public function get_resumen_despachos_hoy() {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "SELECT
+                COUNT(desp_id) AS total_despachos,
+                COALESCE(SUM(desp_galones), 0) AS total_galones
+            FROM despachos_acpm
+            WHERE desp_fech = CURRENT_DATE
+            AND desp_galones IS NOT NULL
+            AND desp_galones > 0
+            AND desp_estado = 0";
+
+        $sql = $conectar->prepare($sql);
+        $sql->execute();
+
+        return $sql->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /* DESPACHOS REALIZADOS HOY AGRUPADOS POR OBRA */
+    public function get_despachos_obra_hoy() {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "SELECT
+                o.obras_id,
+                o.obras_nom,
+                COUNT(d.desp_id) AS total_despachos,
+                COALESCE(
+                    SUM(d.desp_galones),
+                    0
+                ) AS total_galones
+
+            FROM despachos_acpm d
+
+            INNER JOIN obras o
+                ON o.obras_id = d.desp_obra
+
+            WHERE d.desp_fech = CURRENT_DATE
+
+            AND d.desp_galones IS NOT NULL
+
+            AND d.desp_galones > 0
+
+            AND d.desp_estado = 0
+
+            GROUP BY
+                o.obras_id,
+                o.obras_nom
+
+            ORDER BY total_galones DESC";
+
+        $sql = $conectar->prepare($sql);
+        $sql->execute();
+
+        return $sql->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /* RESUMEN CONTROL ACPM DEL DIA */
+    public function get_resumen_control_acpm_hoy() {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "SELECT
+                COUNT(desp_id) AS total_despachos,
+
+                COALESCE(
+                    SUM(desp_galones),
+                    0
+                ) AS total_galones,
+
+                COUNT(desp_id) FILTER (
+                    WHERE desp_documento_siesa IS NULL
+                    OR TRIM(desp_documento_siesa) = ''
+                ) AS total_pendientes_siesa,
+
+                COALESCE(
+                    SUM(desp_galones) FILTER (
+                        WHERE desp_documento_siesa IS NULL
+                        OR TRIM(desp_documento_siesa) = ''
+                    ),
+                    0
+                ) AS galones_pendientes_siesa,
+
+                COUNT(desp_id) FILTER (
+                    WHERE desp_documento_siesa IS NOT NULL
+                    AND TRIM(desp_documento_siesa) <> ''
+                ) AS total_registrados_siesa,
+
+                COALESCE(
+                    SUM(desp_galones) FILTER (
+                        WHERE desp_documento_siesa IS NOT NULL
+                        AND TRIM(desp_documento_siesa) <> ''
+                    ),
+                    0
+                ) AS galones_registrados_siesa
+
+            FROM despachos_acpm
+
+            WHERE desp_fech = CURRENT_DATE
+            AND desp_galones IS NOT NULL
+            AND desp_galones > 0
+            AND desp_estado = 0";
+
+        $sql = $conectar->prepare($sql);
+        $sql->execute();
+
+        return $sql->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /* LISTAR DESPACHOS PENDIENTES DE DOCUMENTO SIESA */
+    public function get_despachos_pendientes_siesa_hoy() {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "SELECT
+                d.desp_id,
+                d.desp_fech,
+                d.desp_hora,
+                d.desp_galones,
+                d.desp_recibo,
+                d.desp_documento_siesa,
+                o.obras_nom,
+                v.vehi_placa
+
+            FROM despachos_acpm d
+
+            INNER JOIN obras o
+                ON o.obras_id = d.desp_obra
+
+            INNER JOIN vehiculos v
+                ON v.vehi_id = d.desp_vehi
+
+            WHERE d.desp_fech = CURRENT_DATE
+
+            AND d.desp_galones IS NOT NULL
+
+            AND d.desp_galones > 0
+
+            AND d.desp_estado = 0
+
+            AND (
+                d.desp_documento_siesa IS NULL
+                OR TRIM(d.desp_documento_siesa) = ''
+            )
+
+            ORDER BY
+                d.desp_fech ASC,
+                d.desp_hora ASC";
+
+        $sql = $conectar->prepare($sql);
+        $sql->execute();
+
+        return $sql->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    /* REGISTRAR DOCUMENTO INTERNO SIESA */
+    public function update_documento_siesa($desp_id, $desp_documento_siesa) {
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "UPDATE despachos_acpm
+            SET desp_documento_siesa = ?
+            WHERE desp_id = ?";
+
+        $sql = $conectar->prepare($sql);
+
+        $sql->bindValue(
+            1,
+            $desp_documento_siesa
+        );
+
+        $sql->bindValue(
+            2,
+            $desp_id,
+            PDO::PARAM_INT
+        );
+
+        $sql->execute();
+
+        return true;
+    }
+
+    /* HISTORIAL CONTROL ACPM */
+    public function get_historial_control_acpm(
+        $fecha_inicio,
+        $fecha_final,
+        $desp_obra = '',
+        $desp_vehi = '',
+        $estado_siesa = ''
+    ) {
+
+        $conectar = parent::conexion();
+        parent::set_names();
+
+        $sql = "SELECT
+                d.desp_id,
+                d.desp_fech,
+                d.desp_hora,
+                d.desp_galones,
+                d.desp_recibo,
+                d.desp_documento_siesa,
+
+                o.obras_id,
+                o.obras_nom,
+
+                v.vehi_id,
+                v.vehi_placa,
+
+                TRIM(
+                    CONCAT(
+                        COALESCE(cond.user_nombre, ''),
+                        ' ',
+                        COALESCE(cond.user_apellidos, '')
+                    )
+                ) AS conductor
+
+
+            FROM despachos_acpm d
+
+            INNER JOIN obras o
+                ON o.obras_id = d.desp_obra
+
+            INNER JOIN vehiculos v
+                ON v.vehi_id = d.desp_vehi
+
+            LEFT JOIN usuarios cond
+                ON cond.user_id = d.desp_cond
+
+
+            WHERE d.desp_fech BETWEEN :fecha_inicio AND :fecha_final
+
+            AND d.desp_galones IS NOT NULL
+            AND d.desp_galones > 0
+            AND d.desp_estado = 0";
+
+        /*
+     * FILTRO OBRA
+     */
+        if ($desp_obra !== '') {
+
+            $sql .= " AND d.desp_obra = :desp_obra";
+        }
+
+
+        /*
+     * FILTRO EQUIPO
+     */
+        if ($desp_vehi !== '') {
+
+            $sql .= " AND d.desp_vehi = :desp_vehi";
+        }
+
+
+        /*
+     * ESTADO SIESA
+     */
+        if ($estado_siesa === 'cargado') {
+
+            $sql .= " AND d.desp_documento_siesa IS NOT NULL
+                  AND TRIM(d.desp_documento_siesa) <> ''";
+        } elseif ($estado_siesa === 'pendiente') {
+
+            $sql .= " AND (
+                    d.desp_documento_siesa IS NULL
+                    OR TRIM(d.desp_documento_siesa) = ''
+                  )";
+        }
+
+
+        $sql .= " ORDER BY
+                d.desp_fech DESC,
+                d.desp_hora DESC,
+                d.desp_id DESC";
+
+
+        $stmt = $conectar->prepare($sql);
+
+
+        $stmt->bindValue(
+            ':fecha_inicio',
+            $fecha_inicio
+        );
+
+        $stmt->bindValue(
+            ':fecha_final',
+            $fecha_final
+        );
+
+
+        if ($desp_obra !== '') {
+
+            $stmt->bindValue(
+                ':desp_obra',
+                $desp_obra,
+                PDO::PARAM_INT
+            );
+        }
+
+
+        if ($desp_vehi !== '') {
+
+            $stmt->bindValue(
+                ':desp_vehi',
+                $desp_vehi,
+                PDO::PARAM_INT
+            );
+        }
+
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+    }
 }
 
 ?>

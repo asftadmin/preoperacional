@@ -20,8 +20,8 @@ class Conectar {
             $conectar = $this->dbh = new PDO("pgsql:host=$host;port=5432;dbname=$dbname", $usuario, $contrasena);
             return $conectar;
         } catch (PDOException $e) {
-            print "¡Error BD!: " . $e->getMessage() . "<br/>";
-            die();
+            // No exponer credenciales ni contaminar respuestas JSON con HTML.
+            throw $e;
         }
     }
     public function set_names() {
