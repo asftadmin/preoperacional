@@ -7,30 +7,26 @@ require_once('curl.php');
 header('Content-Type: application/json; charset=utf-8');
 $modelo = new TicketsSistemas();
 
-function responderTicketSistemas($status, $mensaje, $data = null, $codigoHttp = 200)
-{
+function responderTicketSistemas($status, $mensaje, $data = null, $codigoHttp = 200) {
     http_response_code($codigoHttp);
     echo json_encode(array('status' => $status, 'message' => $mensaje, 'data' => $data), JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-function exigirSesionTicketSistemas()
-{
+function exigirSesionTicketSistemas() {
     if (empty($_SESSION['user_id'])) {
         responderTicketSistemas('error', 'La sesión ha expirado.', null, 401);
     }
 }
 
-function exigirCsrfTicketSistemas()
-{
+function exigirCsrfTicketSistemas() {
     $token = isset($_POST['csrf_token']) ? (string) $_POST['csrf_token'] : '';
     if (empty($_SESSION['csrf_tickets_sistemas']) || !hash_equals($_SESSION['csrf_tickets_sistemas'], $token)) {
         responderTicketSistemas('error', 'La solicitud de seguridad no es válida. Recargue la página.', null, 403);
     }
 }
 
-function textoPostTicketSistemas($campo, $maximo, $obligatorio = false)
-{
+function textoPostTicketSistemas($campo, $maximo, $obligatorio = false) {
     $valor = isset($_POST[$campo]) && !is_array($_POST[$campo]) ? trim((string) $_POST[$campo]) : '';
     if ($obligatorio && $valor === '') {
         responderTicketSistemas('error', 'El campo ' . $campo . ' es obligatorio.', null, 422);
@@ -41,16 +37,14 @@ function textoPostTicketSistemas($campo, $maximo, $obligatorio = false)
     return $valor;
 }
 
-function valorPermitidoTicketSistemas($valor, $permitidos, $campo)
-{
+function valorPermitidoTicketSistemas($valor, $permitidos, $campo) {
     if (!in_array($valor, $permitidos, true)) {
         responderTicketSistemas('error', 'El valor de ' . $campo . ' no es válido.', null, 422);
     }
     return $valor;
 }
 
-function normalizarEmpleadoTicketSistemas($data)
-{
+function normalizarEmpleadoTicketSistemas($data) {
     if (!is_object($data)) {
         throw new RuntimeException('La API devolvió un empleado con formato inválido.');
     }
@@ -64,8 +58,7 @@ function normalizarEmpleadoTicketSistemas($data)
     );
 }
 
-function consultarEmpleadoTicketSistemas($valor, $criterio = 'documento')
-{
+function consultarEmpleadoTicketSistemas($valor, $criterio = 'documento') {
     $valor = trim((string) $valor);
     if ($criterio === 'documento') {
         if (!preg_match('/^[0-9]{3,20}$/D', $valor)) {
@@ -178,7 +171,8 @@ try {
                 responderTicketSistemas('error', 'El filtro de documento no es válido.', null, 422);
             }
             responderTicketSistemas('success', 'Tickets consultados.', $modelo->listarTickets(array(
-                'estado' => $estado, 'documento' => $documento,
+                'estado' => $estado,
+                'documento' => $documento,
                 'buscar' => mb_substr($buscar, 0, 100, 'UTF-8')
             )));
             break;
@@ -196,7 +190,9 @@ try {
                 $mensajeApi = $errorApi->getMessage();
             }
             responderTicketSistemas('success', 'Detalle consultado.', array(
-                'ticket' => $ticket, 'empleado_api' => $empleadoApi, 'mensaje_api' => $mensajeApi,
+                'ticket' => $ticket,
+                'empleado_api' => $empleadoApi,
+                'mensaje_api' => $mensajeApi,
                 'seguimientos' => $modelo->listarSeguimientos($ticketId),
                 'responsables' => $modelo->listarResponsables()
             ));
@@ -219,8 +215,11 @@ try {
                 responderTicketSistemas('error', 'Debe documentar la solución antes de resolver o cerrar el ticket.', null, 422);
             }
             $modelo->actualizarGestion($ticketId, array(
-                'estado' => $estado, 'prioridad' => $prioridad, 'responsable_id' => $responsableId,
-                'solucion' => $solucion, 'comentario' => textoPostTicketSistemas('comentario_gestion', 2000)
+                'estado' => $estado,
+                'prioridad' => $prioridad,
+                'responsable_id' => $responsableId,
+                'solucion' => $solucion,
+                'comentario' => textoPostTicketSistemas('comentario_gestion', 2000)
             ));
             responderTicketSistemas('success', 'La gestión del ticket fue actualizada.');
             break;
@@ -233,6 +232,160 @@ try {
                 responderTicketSistemas('error', 'No fue posible registrar el seguimiento.', null, 404);
             }
             responderTicketSistemas('success', 'Seguimiento registrado correctamente.');
+            break;
+        case 'kpiControlOperacion':
+
+            /*
+     * Matriz temporal de tiempos de atención.
+     * Más adelante puede migrarse a una tabla parametrizable.
+     */
+            $matrizTiempos = array(
+
+                'CRITICA' => array(
+                    'respuesta_minutos' => 15,
+                    'solucion_horas' => 3
+                ),
+
+                'ALTA' => array(
+                    'respuesta_minutos' => 45,
+                    'solucion_horas' => 8.5
+                ),
+
+                'MEDIA' => array(
+                    'respuesta_minutos' => 180,
+                    'solucion_horas' => 17
+                ),
+
+                'BAJA' => array(
+                    'respuesta_minutos' => 360,
+                    'solucion_horas' => 34
+                )
+
+            );
+
+            /*
+     * El modelo consulta y calcula los KPI.
+     */
+            $kpi = $modelo->kpiControlOperacion($matrizTiempos);
+
+            responderTicketSistemas(
+                'success',
+                'Indicadores de operación consultados correctamente.',
+                $kpi
+            );
+
+            break;
+
+        case 'listarTicketsRequierenAtencion':
+
+            /*
+     * Matriz temporal de tiempos de atención.
+     *
+     * Debe mantenerse igual a la utilizada
+     * para los KPI del control diario.
+     */
+            $matrizTiempos = array(
+
+                'CRITICA' => array(
+                    'respuesta_minutos' => 15,
+                    'solucion_horas' => 3
+                ),
+
+                'ALTA' => array(
+                    'respuesta_minutos' => 45,
+                    'solucion_horas' => 8.5
+                ),
+
+                'MEDIA' => array(
+                    'respuesta_minutos' => 180,
+                    'solucion_horas' => 17
+                ),
+
+                'BAJA' => array(
+                    'respuesta_minutos' => 360,
+                    'solucion_horas' => 34
+                )
+
+            );
+
+            /*
+     * El modelo determina qué tickets
+     * realmente requieren atención.
+     */
+            $tickets =
+                $modelo->listarTicketsRequierenAtencion(
+                    $matrizTiempos
+                );
+
+            responderTicketSistemas(
+                'success',
+                'Tickets que requieren atención consultados correctamente.',
+                $tickets
+            );
+
+            break;
+
+        case 'antiguedadTicketsPendientes':
+
+            /*
+     * El modelo agrupa los tickets pendientes
+     * según el tiempo transcurrido desde su creación.
+     */
+            $antiguedad =
+                $modelo->antiguedadTicketsPendientes();
+
+            responderTicketSistemas(
+                'success',
+                'Antigüedad de tickets pendientes consultada correctamente.',
+                $antiguedad
+            );
+
+            break;
+
+        case 'tiempoPromedioSolucionVsSla':
+
+            /*
+     * Matriz temporal SLA.
+     * Debe mantenerse igual a la utilizada
+     * en los KPI de operación.
+     */
+            $matrizTiempos = array(
+
+                'CRITICA' => array(
+                    'respuesta_minutos' => 15,
+                    'solucion_horas' => 3
+                ),
+
+                'ALTA' => array(
+                    'respuesta_minutos' => 45,
+                    'solucion_horas' => 8.5
+                ),
+
+                'MEDIA' => array(
+                    'respuesta_minutos' => 180,
+                    'solucion_horas' => 17
+                ),
+
+                'BAJA' => array(
+                    'respuesta_minutos' => 360,
+                    'solucion_horas' => 34
+                )
+
+            );
+
+
+            $datos =
+                $modelo->tiempoPromedioSolucionVsSla(
+                    $matrizTiempos
+                );
+
+
+            responderTicketSistemas(
+                'success',
+                'Tiempo promedio de solución consultado correctamente.',
+                $datos
+            );
+
             break;
 
         default:

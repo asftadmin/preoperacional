@@ -21,6 +21,7 @@ $hayConsultasLab = false;
 $hayRteObra = false;
 $mostrarGestionMtto = false;
 $mostrarTikets = false;
+$mostrarMesadeServicio = false;
 
 foreach ($datos as $row) {
     if ($row["permiso"] == "Si" && $row["menu_grupo"] == "items") {
@@ -71,6 +72,9 @@ foreach ($datos as $row) {
     if ($row["permiso"] == "Si" && $row["menu_grupo"] == "ticket") {
         $mostrarTikets = true;
     }
+    if ($row["permiso"] == "Si" && $row["menu_grupo"] == "Mesa de Servicio") {
+        $mostrarMesadeServicio   = true;
+    }
 }
 ?>
 <aside class="main-sidebar elevation-4">
@@ -78,7 +82,7 @@ foreach ($datos as $row) {
     <div class="sidebar">
         <div class="user-panel mt-5 pb-5 mb-3 d-flex">
             <div class="image">
-                <img src="../../public/img/logo-horizontal.svg" alt="ASFALTAR S.A.S">
+                <img src="../../public/img/logo-horizontal.svg" alt="ASFALTART S.A.S">
             </div>
         </div>
         <!-- INICIO -->
@@ -475,6 +479,32 @@ foreach ($datos as $row) {
                             <?php
                             foreach ($datos as $row) {
                                 if ($row["permiso"] == "Si" && $row["menu_grupo"] == "ticket") {
+                            ?>
+                                    <li class="nav-item">
+                                        <a href="<?php echo $row["menu_ruta"]; ?>" class="nav-link">
+                                            <i class="<?php echo $row["menu_icono"]; ?>"></i>
+                                            <p><?php echo $row["menu_nom"]; ?></p>
+                                        </a>
+                                    </li>
+                            <?php
+                                }
+                            }
+                            ?>
+                        </ul>
+                    </li>
+                <?php endif; ?>
+
+                <!-- MESA DE SERVICIOS -->
+                <?php if ($mostrarMesadeServicio): ?>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-headset"></i>
+                            <p>Mesa de Servicio <i class="fas fa-angle-left right"></i></p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <?php
+                            foreach ($datos as $row) {
+                                if ($row["permiso"] == "Si" && $row["menu_grupo"] == "Mesa de Servicio") {
                             ?>
                                     <li class="nav-item">
                                         <a href="<?php echo $row["menu_ruta"]; ?>" class="nav-link">
