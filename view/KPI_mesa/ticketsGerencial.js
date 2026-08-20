@@ -752,25 +752,70 @@ function renderizarTicketsArea(data) {
      */
     if (chartTicketsArea !== null) {
         chartTicketsArea.destroy();
+
         chartTicketsArea = null;
     }
 
+    /*
+     * Ordenamos de mayor a menor
+     * sin modificar el arreglo original.
+     */
     let datosOrdenados = data.slice();
 
     datosOrdenados.sort(function (a, b) {
         return parseInt(b.total || 0, 10) - parseInt(a.total || 0, 10);
     });
 
+    /*
+     * =====================================================
+     * TOP 10 ÁREAS
+     * =====================================================
+     */
+
+    let limite = 10;
+
+    let principales = datosOrdenados.slice(0, limite);
+
+    let restantes = datosOrdenados.slice(limite);
+
+    /*
+     * Agrupamos todas las áreas restantes
+     * bajo la categoría OTRAS ÁREAS.
+     */
+    if (restantes.length > 0) {
+        let totalOtrasAreas = 0;
+
+        restantes.forEach(function (item) {
+            totalOtrasAreas += parseInt(item.total || 0, 10);
+        });
+
+        principales.push({
+            area: 'OTRAS ÁREAS',
+
+            total: totalOtrasAreas,
+        });
+    }
+
+    /*
+     * Construcción de etiquetas y valores.
+     */
     let etiquetas = [];
+
     let valores = [];
 
-    datosOrdenados.forEach(function (item) {
+    principales.forEach(function (item) {
         etiquetas.push(item.area || 'Sin área');
 
         valores.push(parseInt(item.total || 0, 10));
     });
 
-    let alturaGrafico = Math.max(320, etiquetas.length * 45);
+    /*
+     * Altura fija porque solo mostraremos
+     * máximo 11 elementos:
+     *
+     * Top 10 + OTRAS ÁREAS.
+     */
+    let alturaGrafico = 420;
 
     $('#contenedor_tickets_area').html(`
 
@@ -821,6 +866,10 @@ function renderizarTicketsArea(data) {
         },
 
         options: {
+            /*
+             * Barras horizontales
+             * Chart.js 3+
+             */
             indexAxis: 'y',
 
             responsive: true,
@@ -871,7 +920,6 @@ function renderizarTicketsArea(data) {
         },
     });
 }
-
 /*
  * =========================================================
  * LOADING

@@ -384,6 +384,95 @@ if (
 
                         </div>
 
+                        <!-- ================================================= -->
+                        <!-- RESUMEN EJECUTIVO -->
+                        <!-- ================================================= -->
+
+                        <div class="card card-outline card-success">
+
+                            <div class="card-header">
+
+                                <h3 class="card-title">
+
+                                    <i class="fas fa-chart-pie mr-1"></i>
+
+                                    Resumen ejecutivo del periodo
+
+                                </h3>
+
+                            </div>
+
+
+                            <div class="card-body">
+
+                                <div class="row text-center">
+
+
+                                    <div class="
+                                    col-lg-4
+                                    col-md-4
+                                    border-right
+                                ">
+
+                                        <h3 id="indicador_porcentaje_cierre">
+                                            0%
+                                        </h3>
+
+                                        <small class="text-muted">
+
+                                            Tickets cerrados frente
+                                            a los recibidos. Indica qué proporción de las solicitudes 
+                                            recibidas en el periodo ha sido solucionada y cerrada.
+
+                                        </small>
+
+                                    </div>
+
+
+
+                                    <div class="
+                                    col-lg-4
+                                    col-md-4
+                                    border-right
+                                ">
+
+                                        <h3 id="indicador_cumplimiento">
+                                            0%
+                                        </h3>
+
+                                        <small class="text-muted">
+
+                                            Cumplimiento de tiempos
+                                            de atención. Mide qué porcentaje de solicitudes se resolvieron 
+                                            dentro del tiempo esperado según su nivel de prioridad.
+
+                                        </small>
+
+                                    </div>
+
+
+
+                                    <div class="col-lg-4 col-md-4">
+
+                                        <h3 id="indicador_backlog_critico">
+                                            0
+                                        </h3>
+
+                                        <small class="text-muted">
+
+                                            Solicitudes con mayor
+                                            antigüedad
+
+                                        </small>
+
+                                    </div>
+
+
+                                </div>
+
+                            </div>
+
+                        </div>
 
 
                         <!-- ================================================= -->
@@ -675,93 +764,7 @@ if (
 
 
 
-                        <!-- ================================================= -->
-                        <!-- RESUMEN EJECUTIVO -->
-                        <!-- ================================================= -->
 
-                        <div class="card card-outline card-success">
-
-                            <div class="card-header">
-
-                                <h3 class="card-title">
-
-                                    <i class="fas fa-chart-pie mr-1"></i>
-
-                                    Resumen ejecutivo del periodo
-
-                                </h3>
-
-                            </div>
-
-
-                            <div class="card-body">
-
-                                <div class="row text-center">
-
-
-                                    <div class="
-                                    col-lg-4
-                                    col-md-4
-                                    border-right
-                                ">
-
-                                        <h3 id="indicador_porcentaje_cierre">
-                                            0%
-                                        </h3>
-
-                                        <small class="text-muted">
-
-                                            Tickets cerrados frente
-                                            a los recibidos
-
-                                        </small>
-
-                                    </div>
-
-
-
-                                    <div class="
-                                    col-lg-4
-                                    col-md-4
-                                    border-right
-                                ">
-
-                                        <h3 id="indicador_cumplimiento">
-                                            0%
-                                        </h3>
-
-                                        <small class="text-muted">
-
-                                            Cumplimiento de tiempos
-                                            de atención
-
-                                        </small>
-
-                                    </div>
-
-
-
-                                    <div class="col-lg-4 col-md-4">
-
-                                        <h3 id="indicador_backlog_critico">
-                                            0
-                                        </h3>
-
-                                        <small class="text-muted">
-
-                                            Solicitudes con mayor
-                                            antigüedad
-
-                                        </small>
-
-                                    </div>
-
-
-                                </div>
-
-                            </div>
-
-                        </div>
 
 
                     </div>
