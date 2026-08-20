@@ -17,6 +17,60 @@ class TicketsSistemas extends Conectar {
         return (bool) $sentencia->fetchColumn();
     }
 
+    /*
+ * =====================================================
+ * ACCESO DASHBOARD GERENCIAL
+ * =====================================================
+ */
+
+    public function tieneAccesoDashboardGerencial(
+        $usuarioId
+    ) {
+
+        $conexion = parent::Conexion();
+
+        $sql = "
+        SELECT 1
+
+        FROM usuarios u
+
+        INNER JOIN permiso p
+            ON p.permiso_rol =
+               u.user_rol_usuario
+
+        INNER JOIN menu m
+            ON m.menu_id =
+               p.permiso_menu
+
+        WHERE u.user_id = :usuario
+
+          AND m.menu_identi =
+              'ticketsGerencial'
+
+          AND p.permiso = 'Si'
+
+          AND COALESCE(
+                p.permiso_estado,
+                1
+              ) = 1
+
+        LIMIT 1
+    ";
+
+        $sentencia =
+            $conexion->prepare($sql);
+
+        $sentencia->execute(array(
+
+            ':usuario' =>
+            $usuarioId
+
+        ));
+
+        return (bool)
+        $sentencia->fetchColumn();
+    }
+
     public function listarCategorias() {
         $conexion = parent::Conexion();
         return $conexion->query("SELECT categoria_id, nombre FROM tickets_sistemas_categorias WHERE activo = TRUE ORDER BY nombre")
@@ -835,5 +889,756 @@ class TicketsSistemas extends Conectar {
 
 
         return $serie;
+    }
+
+    /*
+ * =========================================================
+ * DASHBOARD GERENCIAL
+ * =========================================================
+ *
+ * Genera los indicadores de gestión de Mesa de Servicio
+ * para un rango determinado.
+ *
+ * Retorna:
+ *
+ * - KPI generales.
+ * - Comportamiento diario.
+ * - Antigüedad del backlog.
+ * - Tickets por categoría.
+ * - Tickets por área.
+ */
+    public function dashboardGerencial(
+        $fechaInicio,
+        $fechaFinal,
+        $matrizTiempos
+    ) {
+
+        $conexion = parent::Conexion();
+
+
+        /*
+     * =====================================================
+     * 1. KPI GENERALES
+     * =====================================================
+     *
+     * Recibidos:
+     * tickets creados dentro del rango.
+     *
+     * Cerrados:
+     * tickets cuya fecha de cierre corresponde al rango.
+     *
+     * Pendientes:
+     * tickets actualmente en estado EN_ESPERA.
+     */
+        $sqlKpi = "
+        SELECT
+
+            COUNT(*) FILTER (
+                WHERE t.fecha_creacion::date
+                    BETWEEN :fecha_inicio
+                    AND :fecha_final
+            ) AS recibidos,
+
+            COUNT(*) FILTER (
+                WHERE t.estado = 'CERRADO'
+                  AND t.fecha_cierre IS NOT NULL
+                  AND t.fecha_cierre::date
+                    BETWEEN :fecha_inicio
+                    AND :fecha_final
+            ) AS cerrados,
+
+            COUNT(*) FILTER (
+                WHERE t.estado = 'EN_ESPERA'
+            ) AS pendientes
+
+        FROM tickets_sistemas t
+    ";
+
+
+        $sentenciaKpi =
+            $conexion->prepare($sqlKpi);
+
+
+        $sentenciaKpi->execute(array(
+
+            ':fecha_inicio' =>
+            $fechaInicio,
+
+            ':fecha_final' =>
+            $fechaFinal
+
+        ));
+
+
+        $kpi =
+            $sentenciaKpi->fetch(PDO::FETCH_ASSOC);
+
+
+        $recibidos =
+            (int) ($kpi['recibidos'] ?? 0);
+
+        $cerrados =
+            (int) ($kpi['cerrados'] ?? 0);
+
+        $pendientes =
+            (int) ($kpi['pendientes'] ?? 0);
+
+
+
+        /*
+     * =====================================================
+     * 2. CUMPLIMIENTO DE TIEMPOS
+     * =====================================================
+     *
+     * Consultamos tickets cerrados dentro del periodo
+     * y calculamos su tiempo real de solución.
+     */
+        $sqlCumplimiento = "
+        SELECT
+
+            t.ticket_id,
+            t.prioridad,
+
+            EXTRACT(
+                EPOCH FROM (
+                    t.fecha_cierre
+                    -
+                    t.fecha_creacion
+                )
+            ) / 3600 AS horas_solucion
+
+        FROM tickets_sistemas t
+
+        WHERE t.estado = 'CERRADO'
+
+          AND t.fecha_cierre IS NOT NULL
+
+          AND t.fecha_cierre::date
+              BETWEEN :fecha_inicio
+              AND :fecha_final
+    ";
+
+
+        $sentenciaCumplimiento =
+            $conexion->prepare(
+                $sqlCumplimiento
+            );
+
+
+        $sentenciaCumplimiento->execute(array(
+
+            ':fecha_inicio' =>
+            $fechaInicio,
+
+            ':fecha_final' =>
+            $fechaFinal
+
+        ));
+
+
+        $ticketsCerrados =
+            $sentenciaCumplimiento
+            ->fetchAll(PDO::FETCH_ASSOC);
+
+
+        $evaluados = 0;
+
+        $cumplidos = 0;
+
+
+        foreach (
+            $ticketsCerrados
+            as $ticket
+        ) {
+
+            $prioridad =
+                strtoupper(
+                    trim(
+                        (string)
+                        $ticket['prioridad']
+                    )
+                );
+
+
+            /*
+         * Si la prioridad no está definida
+         * en la matriz SLA, no se utiliza
+         * para el porcentaje.
+         */
+            if (
+                !isset(
+                    $matrizTiempos[$prioridad]
+                )
+            ) {
+
+                continue;
+            }
+
+
+            $horasPermitidas =
+                (float)
+                $matrizTiempos[$prioridad]['solucion_horas'];
+
+
+            $horasSolucion =
+                (float)
+                $ticket['horas_solucion'];
+
+
+            $evaluados++;
+
+
+            if (
+                $horasSolucion
+                <=
+                $horasPermitidas
+            ) {
+
+                $cumplidos++;
+            }
+        }
+
+
+        $porcentajeCumplimiento =
+            $evaluados > 0
+            ? round(
+                (
+                    $cumplidos
+                    /
+                    $evaluados
+                )
+                    *
+                    100,
+                1
+            )
+            : 0;
+
+
+        /*
+     * Porcentaje de cierre.
+     *
+     * Este valor compara los cierres del periodo
+     * contra los tickets recibidos durante el mismo.
+     */
+        $porcentajeCierre =
+            $recibidos > 0
+            ? round(
+                (
+                    $cerrados
+                    /
+                    $recibidos
+                )
+                    *
+                    100,
+                1
+            )
+            : 0;
+
+
+
+        /*
+     * =====================================================
+     * 3. BACKLOG
+     * =====================================================
+     *
+     * Backlog:
+     * todo ticket que sigue activo.
+     *
+     * Estados:
+     * ABIERTO
+     * EN_PROCESO
+     * EN_ESPERA
+     */
+        $sqlBacklog = "
+        SELECT
+
+            COUNT(*) FILTER (
+                WHERE
+                    CURRENT_DATE
+                    -
+                    t.fecha_creacion::date
+                    BETWEEN 0 AND 3
+            ) AS rango_0_3,
+
+            COUNT(*) FILTER (
+                WHERE
+                    CURRENT_DATE
+                    -
+                    t.fecha_creacion::date
+                    BETWEEN 4 AND 7
+            ) AS rango_4_7,
+
+            COUNT(*) FILTER (
+                WHERE
+                    CURRENT_DATE
+                    -
+                    t.fecha_creacion::date
+                    BETWEEN 8 AND 15
+            ) AS rango_8_15,
+
+            COUNT(*) FILTER (
+                WHERE
+                    CURRENT_DATE
+                    -
+                    t.fecha_creacion::date
+                    > 15
+            ) AS rango_mayor_15
+
+        FROM tickets_sistemas t
+
+        WHERE t.estado IN (
+            'ABIERTO',
+            'EN_PROCESO',
+            'EN_ESPERA'
+        )
+    ";
+
+
+        $sentenciaBacklog =
+            $conexion->prepare(
+                $sqlBacklog
+            );
+
+
+        $sentenciaBacklog->execute();
+
+
+        $backlogResultado =
+            $sentenciaBacklog
+            ->fetch(PDO::FETCH_ASSOC);
+
+
+        $backlog = array(
+
+            array(
+                'rango' => '0 - 3 días',
+                'total' =>
+                (int)
+                (
+                    $backlogResultado['rango_0_3']
+                    ?? 0
+                )
+            ),
+
+            array(
+                'rango' => '4 - 7 días',
+                'total' =>
+                (int)
+                (
+                    $backlogResultado['rango_4_7']
+                    ?? 0
+                )
+            ),
+
+            array(
+                'rango' => '8 - 15 días',
+                'total' =>
+                (int)
+                (
+                    $backlogResultado['rango_8_15']
+                    ?? 0
+                )
+            ),
+
+            array(
+                'rango' => 'Más de 15 días',
+                'total' =>
+                (int)
+                (
+                    $backlogResultado['rango_mayor_15']
+                    ?? 0
+                )
+            )
+
+        );
+
+
+        /*
+     * KPI de backlog crítico.
+     *
+     * Para la vista gerencial se consideran
+     * críticos los pendientes con más de 15 días.
+     */
+        $backlogCritico =
+            (int)
+            (
+                $backlogResultado['rango_mayor_15']
+                ?? 0
+            );
+
+
+
+        /*
+     * =====================================================
+     * 4. COMPORTAMIENTO
+     * =====================================================
+     *
+     * Construimos una serie por día:
+     *
+     * - recibidos
+     * - cerrados
+     *
+     * generate_series permite mostrar también
+     * días sin tickets.
+     */
+        $sqlComportamiento = "
+        WITH fechas AS (
+
+            SELECT
+                generate_series(
+                    CAST(:fecha_inicio AS date),
+                    CAST(:fecha_final AS date),
+                    INTERVAL '1 day'
+                )::date AS fecha
+
+        ),
+
+        recibidos AS (
+
+            SELECT
+
+                t.fecha_creacion::date AS fecha,
+
+                COUNT(*) AS total
+
+            FROM tickets_sistemas t
+
+            WHERE t.fecha_creacion::date
+                BETWEEN :fecha_inicio
+                AND :fecha_final
+
+            GROUP BY
+                t.fecha_creacion::date
+
+        ),
+
+        cerrados AS (
+
+            SELECT
+
+                t.fecha_cierre::date AS fecha,
+
+                COUNT(*) AS total
+
+            FROM tickets_sistemas t
+
+            WHERE t.estado = 'CERRADO'
+
+              AND t.fecha_cierre IS NOT NULL
+
+              AND t.fecha_cierre::date
+                  BETWEEN :fecha_inicio
+                  AND :fecha_final
+
+            GROUP BY
+                t.fecha_cierre::date
+
+        )
+
+        SELECT
+
+            f.fecha,
+
+            COALESCE(
+                r.total,
+                0
+            ) AS recibidos,
+
+            COALESCE(
+                c.total,
+                0
+            ) AS cerrados
+
+        FROM fechas f
+
+        LEFT JOIN recibidos r
+            ON r.fecha = f.fecha
+
+        LEFT JOIN cerrados c
+            ON c.fecha = f.fecha
+
+        ORDER BY
+            f.fecha
+    ";
+
+
+        $sentenciaComportamiento =
+            $conexion->prepare(
+                $sqlComportamiento
+            );
+
+
+        $sentenciaComportamiento
+            ->execute(array(
+
+                ':fecha_inicio' =>
+                $fechaInicio,
+
+                ':fecha_final' =>
+                $fechaFinal
+
+            ));
+
+
+        $comportamientoDb =
+            $sentenciaComportamiento
+            ->fetchAll(PDO::FETCH_ASSOC);
+
+
+        $comportamiento = array();
+
+
+        foreach (
+            $comportamientoDb
+            as $fila
+        ) {
+
+            $comportamiento[] =
+                array(
+
+                    'fecha' =>
+                    date(
+                        'd/m',
+                        strtotime(
+                            $fila['fecha']
+                        )
+                    ),
+
+                    'recibidos' =>
+                    (int)
+                    $fila['recibidos'],
+
+                    'cerrados' =>
+                    (int)
+                    $fila['cerrados']
+
+                );
+        }
+
+
+
+        /*
+     * =====================================================
+     * 5. TICKETS POR CATEGORÍA
+     * =====================================================
+     */
+        $sqlCategorias = "
+        SELECT
+
+            c.categoria_id,
+
+            c.nombre AS categoria,
+
+            COUNT(*) AS total
+
+        FROM tickets_sistemas t
+
+        INNER JOIN
+            tickets_sistemas_categorias c
+
+            ON c.categoria_id =
+               t.categoria_id
+
+        WHERE t.fecha_creacion::date
+            BETWEEN :fecha_inicio
+            AND :fecha_final
+
+        GROUP BY
+            c.categoria_id,
+            c.nombre
+
+        ORDER BY
+            total DESC,
+            c.nombre
+    ";
+
+
+        $sentenciaCategorias =
+            $conexion->prepare(
+                $sqlCategorias
+            );
+
+
+        $sentenciaCategorias
+            ->execute(array(
+
+                ':fecha_inicio' =>
+                $fechaInicio,
+
+                ':fecha_final' =>
+                $fechaFinal
+
+            ));
+
+
+        $categoriasDb =
+            $sentenciaCategorias
+            ->fetchAll(PDO::FETCH_ASSOC);
+
+
+        $categorias = array();
+
+
+        foreach (
+            $categoriasDb
+            as $categoria
+        ) {
+
+            $categorias[] = array(
+
+                'categoria_id' =>
+                (int)
+                $categoria['categoria_id'],
+
+                'categoria' =>
+                $categoria['categoria'],
+
+                'total' =>
+                (int)
+                $categoria['total']
+
+            );
+        }
+
+
+
+        /*
+     * =====================================================
+     * 6. TICKETS POR ÁREA
+     * =====================================================
+     *
+     * El área corresponde a la copia almacenada
+     * del empleado al momento de crear el ticket.
+     */
+        $sqlAreas = "
+    SELECT
+
+        COALESCE(
+            NULLIF(
+                TRIM(
+                    t.ubicacion
+                ),
+                ''
+            ),
+            'SIN UBICACIÓN'
+        ) AS area,
+
+        COUNT(*) AS total
+
+    FROM tickets_sistemas t
+
+    WHERE t.fecha_creacion::date
+        BETWEEN :fecha_inicio
+        AND :fecha_final
+
+    GROUP BY
+
+        COALESCE(
+            NULLIF(
+                TRIM(
+                    t.ubicacion
+                ),
+                ''
+            ),
+            'SIN UBICACIÓN'
+        )
+
+    ORDER BY
+        total DESC,
+        area
+";
+
+
+        $sentenciaAreas =
+            $conexion->prepare(
+                $sqlAreas
+            );
+
+
+        $sentenciaAreas->execute(array(
+
+            ':fecha_inicio' =>
+            $fechaInicio,
+
+            ':fecha_final' =>
+            $fechaFinal
+
+        ));
+
+
+        $areasDb =
+            $sentenciaAreas
+            ->fetchAll(PDO::FETCH_ASSOC);
+
+
+        $areas = array();
+
+
+        foreach ($areasDb as $area) {
+
+            $areas[] = array(
+
+                'area' =>
+                $area['area'],
+
+                'total' =>
+                (int) $area['total']
+
+            );
+        }
+
+
+
+        /*
+     * =====================================================
+     * RESPUESTA FINAL
+     * =====================================================
+     */
+        return array(
+
+            'kpis' => array(
+
+                'recibidos' =>
+                $recibidos,
+
+                'cerrados' =>
+                $cerrados,
+
+                'pendientes' =>
+                $pendientes,
+
+                'cumplimiento' =>
+                $porcentajeCumplimiento,
+
+                'porcentaje_cierre' =>
+                $porcentajeCierre,
+
+                'backlog_critico' =>
+                $backlogCritico,
+
+                /*
+             * Datos complementarios.
+             */
+                'tickets_evaluados_sla' =>
+                $evaluados,
+
+                'tickets_cumplen_sla' =>
+                $cumplidos
+
+            ),
+
+            'comportamiento' =>
+            $comportamiento,
+
+            'backlog' =>
+            $backlog,
+
+            'categorias' =>
+            $categorias,
+
+            'areas' =>
+            $areas
+
+        );
     }
 }

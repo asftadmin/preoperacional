@@ -96,10 +96,54 @@ function consultarEmpleadoTicketSistemas($valor, $criterio = 'documento') {
 }
 
 exigirSesionTicketSistemas();
-if (!$modelo->tieneAcceso((int) $_SESSION['user_id'])) {
-    responderTicketSistemas('error', 'No tiene permiso para utilizar la mesa de servicio.', null, 403);
+$op = isset($_GET['op'])
+    ? (string) $_GET['op']
+    : '';
+
+
+/*
+ * =====================================================
+ * VALIDACIÓN DE ACCESO SEGÚN OPERACIÓN
+ * =====================================================
+ */
+
+if ($op === 'dashboardGerencial') {
+
+    /*
+     * Dashboard gerencial.
+     */
+    if (
+        !$modelo->tieneAccesoDashboardGerencial(
+            (int) $_SESSION['user_id']
+        )
+    ) {
+
+        responderTicketSistemas(
+            'error',
+            'No tiene permiso para consultar el dashboard gerencial.',
+            null,
+            403
+        );
+    }
+} else {
+
+    /*
+     * Operaciones normales de Mesa de Servicio.
+     */
+    if (
+        !$modelo->tieneAcceso(
+            (int) $_SESSION['user_id']
+        )
+    ) {
+
+        responderTicketSistemas(
+            'error',
+            'No tiene permiso para utilizar la mesa de servicio.',
+            null,
+            403
+        );
+    }
 }
-$op = isset($_GET['op']) ? (string) $_GET['op'] : '';
 
 try {
     switch ($op) {
@@ -384,6 +428,156 @@ try {
                 'success',
                 'Tiempo promedio de solución consultado correctamente.',
                 $datos
+            );
+
+            break;
+
+        case 'dashboardGerencial':
+
+            /*
+     * =====================================================
+     * DASHBOARD GERENCIAL
+     * =====================================================
+     *
+     * Consulta los principales indicadores de la Mesa
+     * de Servicio dentro del rango de fechas seleccionado.
+     */
+
+            $fechaInicio =
+                isset($_GET['fecha_inicio'])
+                && !is_array($_GET['fecha_inicio'])
+                ? trim((string) $_GET['fecha_inicio'])
+                : '';
+
+            $fechaFinal =
+                isset($_GET['fecha_final'])
+                && !is_array($_GET['fecha_final'])
+                ? trim((string) $_GET['fecha_final'])
+                : '';
+
+
+            /*
+     * Validamos que ambas fechas sean obligatorias.
+     */
+            if (
+                $fechaInicio === ''
+                ||
+                $fechaFinal === ''
+            ) {
+
+                responderTicketSistemas(
+                    'error',
+                    'Debe seleccionar un rango de fechas.',
+                    null,
+                    422
+                );
+            }
+
+
+            /*
+     * Validamos el formato YYYY-MM-DD.
+     */
+            $fechaInicioValida =
+                DateTime::createFromFormat(
+                    'Y-m-d',
+                    $fechaInicio
+                );
+
+            $fechaFinalValida =
+                DateTime::createFromFormat(
+                    'Y-m-d',
+                    $fechaFinal
+                );
+
+
+            if (
+                !$fechaInicioValida
+                ||
+                $fechaInicioValida->format('Y-m-d') !== $fechaInicio
+                ||
+                !$fechaFinalValida
+                ||
+                $fechaFinalValida->format('Y-m-d') !== $fechaFinal
+            ) {
+
+                responderTicketSistemas(
+                    'error',
+                    'El rango de fechas no tiene un formato válido.',
+                    null,
+                    422
+                );
+            }
+
+
+            /*
+     * La fecha inicial no puede superar
+     * la fecha final.
+     */
+            if (
+                strtotime($fechaInicio)
+                >
+                strtotime($fechaFinal)
+            ) {
+
+                responderTicketSistemas(
+                    'error',
+                    'La fecha inicial no puede ser mayor a la fecha final.',
+                    null,
+                    422
+                );
+            }
+
+
+            /*
+     * Matriz temporal de tiempos de atención.
+     *
+     * Es la misma matriz utilizada actualmente
+     * por el control operativo.
+     *
+     * Más adelante debe parametrizarse si se
+     * decide almacenar los SLA en base de datos.
+     */
+            $matrizTiempos = array(
+
+                'CRITICA' => array(
+                    'respuesta_minutos' => 15,
+                    'solucion_horas' => 3
+                ),
+
+                'ALTA' => array(
+                    'respuesta_minutos' => 45,
+                    'solucion_horas' => 8.5
+                ),
+
+                'MEDIA' => array(
+                    'respuesta_minutos' => 180,
+                    'solucion_horas' => 17
+                ),
+
+                'BAJA' => array(
+                    'respuesta_minutos' => 360,
+                    'solucion_horas' => 34
+                )
+
+            );
+
+
+            /*
+     * Toda la lógica de consulta queda
+     * centralizada en el modelo.
+     */
+            $dashboard =
+                $modelo->dashboardGerencial(
+                    $fechaInicio,
+                    $fechaFinal,
+                    $matrizTiempos
+                );
+
+
+            responderTicketSistemas(
+                'success',
+                'Indicadores gerenciales consultados correctamente.',
+                $dashboard
             );
 
             break;
