@@ -22,6 +22,58 @@ switch ($_POST["opcion"]) {
         $repdia_recib = $repdia_fech . $repdia_no;
         $repdia_placa = $repdia_fech . $vehi_placa;
         $repdia_recib = trim($repdia_recib);
+        header('Content-Type: application/json; charset=utf-8');
+
+        /*
+            * VALIDAR KILOMETRAJE / HOROMETRO ACTUAL
+        */
+
+        /* KM / HR INICIAL DEL VEHICULO */
+        $repdia_kilo = trim($_POST['repdia_kilo'] ?? '');
+
+        /* KM / HR PARA CAMBIO O ADICION DE ACEITE */
+        $repdia_km_hm = isset($_POST['repdia_km_hm']) && $_POST['repdia_km_hm'] !== ''
+            ? (int) $_POST['repdia_km_hm']
+            : null;
+
+        $repdia_kilo = (int) $repdia_kilo;
+
+        /*
+    * Consultar el último cierre del vehículo.
+    * El SQL permanece únicamente en el modelo.
+    */
+        $ultimo_cierre = $reportes_diarios->get_ultimo_cierre_vehiculo(
+            (int) $_POST['repdia_vehi']
+        );
+
+        /*
+    * El valor 0 está permitido cuando el medidor presenta fallas.
+    */
+        if ($repdia_kilo !== 0 && $ultimo_cierre !== null) {
+
+            $valor_anterior = (int) $ultimo_cierre['valor_cierre'];
+
+            /*
+     * Si el cierre anterior también fue 0,
+     * no existe una referencia válida para comparar.
+     */
+            if (
+                $valor_anterior > 0 &&
+                $repdia_kilo < $valor_anterior
+            ) {
+
+                echo json_encode([
+                    "status" => "errores",
+                    "message" =>
+                    "El valor ingresado (" . $repdia_kilo . ") es menor al último cierre del vehículo (" .
+                        $valor_anterior . ") registrado el " .
+                        $ultimo_cierre['fecha_cierre'] .
+                        ". Puede ingresar el mismo valor, uno mayor o 0 si el medidor presenta una falla."
+                ]);
+
+                exit;
+            }
+        }
         /* SI EL FORMULARIO DE ESE DIA YA SE ENCUENTRA REGISTRADO */
         $repdia_id = $_POST["repdia_id"];
         if (empty($repdia_id) && $reportes_diarios->repExiste($_POST["repdia_recib"])) {
@@ -40,7 +92,7 @@ switch ($_POST["opcion"]) {
                     $_POST['repdia_acet_hidr'],
                     $_POST['repdia_acet_tram'],
                     $_POST['repdia_acet_gras'],
-                    $_POST['repdia_kilo'],
+                    $repdia_kilo,
                     $_POST['repdia_estado'],
                     $repdia_placa,
                     $_POST['repdia_observa'],

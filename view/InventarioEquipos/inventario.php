@@ -194,14 +194,14 @@ if (empty($_SESSION['csrf_inventario_equipos'])) {
                                                 'software_verificado' => 'Software registrado o marcado no aplica'
                                             );
                                             foreach ($checksEntrega as $id => $texto): ?>
-                                                <div class="col-md-4 mb-2">
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input check-entrega"
-                                                            id="<?= $id ?>" name="<?= $id ?>" value="1">
-                                                        <label class="custom-control-label"
-                                                            for="<?= $id ?>"><?= $texto ?></label>
-                                                    </div>
+                                            <div class="col-md-4 mb-2">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input check-entrega"
+                                                        id="<?= $id ?>" name="<?= $id ?>" value="1">
+                                                    <label class="custom-control-label"
+                                                        for="<?= $id ?>"><?= $texto ?></label>
                                                 </div>
+                                            </div>
                                             <?php endforeach; ?>
                                         </div>
                                         <button class="btn btn-primary mt-3" type="submit" id="btnGuardarAsignacion">
