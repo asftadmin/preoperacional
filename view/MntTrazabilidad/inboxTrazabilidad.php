@@ -87,14 +87,14 @@ if (is_array($datos) && count($datos) > 0) {
 
                             <h3 class="card-title">
                                 <i class="fas fa-list mr-2"></i>
-                                Formatos registrados
+                                Trazabilidad de Mezcla registradas
                             </h3>
 
                             <div class="card-tools">
 
-                                <button type="button" class="btn btn-primary btn-sm" id="btn_nuevo_formato">
+                                <button type="button" class="btn btn-dark btn-sm" id="btn_nuevo_formato">
                                     <i class="fas fa-plus mr-1"></i>
-                                    Nuevo formato
+                                    Agregar trazabilidad
                                 </button>
 
                             </div>
