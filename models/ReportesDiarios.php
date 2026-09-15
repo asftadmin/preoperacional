@@ -1,9 +1,10 @@
 <?php
 
 /* CLASE REPORTES DIARIOS */
-class  ReportesDiarios extends Conectar {
-
-    public function repExiste($repdia_recib) {
+class ReportesDiarios extends Conectar
+{
+    public function repExiste($repdia_recib)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = 'SELECT COUNT(*) AS count FROM reportes_diarios WHERE repdia_recib = ? and repdia_estado =1 ';
@@ -14,7 +15,8 @@ class  ReportesDiarios extends Conectar {
         return $result['count'] > 0;
     }
 
-    public function repEstado($repdia_recib) {
+    public function repEstado($repdia_recib)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = 'UPDATE reportes_diarios SET repdia_estado = 1, repdia_hr_term = NOW() WHERE repdia_recib  = ?';
@@ -25,10 +27,11 @@ class  ReportesDiarios extends Conectar {
     }
 
     /* LISTAR TIPOS DE ACTIVIDADES */
-    public function combo_actividades($tipo_id) {
+    public function combo_actividades($tipo_id)
+    {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT * FROM actividades INNER JOIN tipo_vehiculo on tipo_vehiculo.tipo_id = actividades.act_tipo WHERE tipo_id =?";
+        $sql = 'SELECT * FROM actividades INNER JOIN tipo_vehiculo on tipo_vehiculo.tipo_id = actividades.act_tipo WHERE tipo_id =?';
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $tipo_id);
         $sql->execute();
@@ -36,17 +39,19 @@ class  ReportesDiarios extends Conectar {
     }
 
     /* LISTAR OBRAS ASFALTO */
-    public function combo_obras_asfl() {
+    public function combo_obras_asfl()
+    {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT * FROM obras where obra_estado=1 and tipo_obra=1";
+        $sql = 'SELECT * FROM obras where obra_estado=1 and tipo_obra=1';
         $sql = $conectar->prepare($sql);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
 
     /* SELECT DE MATERIA PRIMA */
-    public function get_mtprm_combo() {
+    public function get_mtprm_combo()
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT *,
@@ -61,28 +66,31 @@ class  ReportesDiarios extends Conectar {
     }
 
     /* LISTAR OBRAS CONCRETO */
-    public function combo_obras_cnct() {
+    public function combo_obras_cnct()
+    {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT * FROM obras where obra_estado=1 and tipo_obra=2";
+        $sql = 'SELECT * FROM obras where obra_estado=1 and tipo_obra=2';
         $sql = $conectar->prepare($sql);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
 
     /* MOSTRAR DATOS AL EDITAR */
-    public function get_repdia_id($repdia_recib) {
+    public function get_repdia_id($repdia_recib)
+    {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT * FROM reportes_diarios WHERE repdia_recib = ?";
+        $sql = 'SELECT * FROM reportes_diarios WHERE repdia_recib = ?';
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_recib);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
 
-    /* MOSTRAR DATOS  */
-    public function listar_repdia($repdia_recib) {
+    /* MOSTRAR DATOS */
+    public function listar_repdia($repdia_recib)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT CONCAT(usuarios.user_nombre, ' ', usuarios.user_apellidos) AS conductor_nombre_completo, * FROM reportes_diarios 
@@ -96,7 +104,8 @@ class  ReportesDiarios extends Conectar {
     }
 
     /* GUARDAR LAS PREGUNTAS */
-    public function guardar_preguntas($repdia_cond, $repdia_vehi, $repdia_actv, $repdia_volu, $repdia_recib, $repdia_gaso, $repdia_acpm, $repdia_acet_moto, $repdia_acet_hidr, $repdia_acet_tram, $repdia_acet_gras, $repdia_kilo, $repdia_estado, $repdia_placa, $repdia_observa, $repdia_obras, $repdia_kilo_final, $repdia_puntas, $repdia_mtprima, $repdia_residente, $repdia_inspec, $repdia_ca, $repdia_km_hr, $repdia_num_viajes) {
+    public function guardar_preguntas($repdia_cond, $repdia_vehi, $repdia_actv, $repdia_volu, $repdia_recib, $repdia_gaso, $repdia_acpm, $repdia_acet_moto, $repdia_acet_hidr, $repdia_acet_tram, $repdia_acet_gras, $repdia_kilo, $repdia_estado, $repdia_placa, $repdia_observa, $repdia_obras, $repdia_kilo_final, $repdia_puntas, $repdia_mtprima, $repdia_residente, $repdia_inspec, $repdia_ca, $repdia_km_hr, $repdia_num_viajes)
+    {
         // Convertir cadena vacía en NULL si es necesario
         if ($repdia_mtprima === '') {
             $repdia_mtprima = null;
@@ -130,17 +139,19 @@ class  ReportesDiarios extends Conectar {
         $sql->bindValue(20, $repdia_residente, PDO::PARAM_INT);
         $sql->bindValue(21, $repdia_inspec, PDO::PARAM_INT);
         $sql->bindValue(22, $repdia_ca, PDO::PARAM_STR);
-        $sql->bindValue(23, $repdia_km_hr  === null ? null : $repdia_km_hr, $repdia_km_hr === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-        $sql->bindValue(24, $repdia_num_viajes  === null ? null : $repdia_num_viajes, $repdia_num_viajes === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $sql->bindValue(23, $repdia_km_hr === null ? null : $repdia_km_hr, $repdia_km_hr === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $sql->bindValue(24, $repdia_num_viajes === null ? null : $repdia_num_viajes, $repdia_num_viajes === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
 
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
+
     /* CONSULTA RENDIMIENTO */
-    public function get_repdia_grafico($repdia_vehi) {
+    public function get_repdia_grafico($repdia_vehi)
+    {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT 
+        $sql = 'SELECT 
             DISTINCT(repdia_fech),
             SUM(repdia_kilo_final - repdia_kilo) AS kilometraje,
             SUM(repdia_gaso + repdia_acpm) AS consumo,
@@ -163,7 +174,7 @@ class  ReportesDiarios extends Conectar {
             repdia_fech, vehi_placa
         ORDER BY 
             repdia_fech DESC
-        LIMIT 5;";
+        LIMIT 5;';
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_vehi);
         $sql->execute();
@@ -171,10 +182,11 @@ class  ReportesDiarios extends Conectar {
     }
 
     /* CONSULTA RENDIMIENTO HOROMETRAJE */
-    public function get_repdia_grafico_hrs($repdia_vehi) {
+    public function get_repdia_grafico_hrs($repdia_vehi)
+    {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT 
+        $sql = 'SELECT 
             SUM(repdia_kilo_final - repdia_kilo) AS horometraje,
             SUM(repdia_gaso + repdia_acpm) AS consumo,
             CASE 
@@ -190,17 +202,18 @@ class  ReportesDiarios extends Conectar {
         WHERE (repdia_gaso + repdia_acpm) <> 0 
         AND repdia_vehi = ?
         GROUP BY repdia_fech, vehi_placa
-        LIMIT 5;";
+        LIMIT 5;';
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_vehi);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
 
-    public function get_repdia_tabla_grafico($repdia_vehi) {
+    public function get_repdia_tabla_grafico($repdia_vehi)
+    {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT 
+        $sql = 'SELECT 
             SUM (repdia_kilo_final - repdia_kilo) AS kilometraje,
             SUM (repdia_gaso + repdia_acpm) AS consumo,
             CASE 
@@ -209,17 +222,18 @@ class  ReportesDiarios extends Conectar {
             END AS rendimiento, vehi_placa, repdia_fech, repdia_placa
         FROM reportes_diarios INNER JOIN vehiculos ON reportes_diarios.repdia_vehi = vehiculos.vehi_id
         WHERE (repdia_gaso + repdia_acpm) <> 0 and repdia_vehi =?
-        GROUP BY repdia_fech, vehi_placa,repdia_placa";
+        GROUP BY repdia_fech, vehi_placa,repdia_placa';
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_vehi);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
 
-    public function get_repdia_tabla_grafico_hrs($repdia_vehi) {
+    public function get_repdia_tabla_grafico_hrs($repdia_vehi)
+    {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT 
+        $sql = 'SELECT 
             SUM (repdia_kilo_final - repdia_kilo) AS kilometraje,
             SUM (repdia_gaso + repdia_acpm) AS consumo,
             CASE 
@@ -228,14 +242,15 @@ class  ReportesDiarios extends Conectar {
             END AS rendimiento, vehi_placa, repdia_fech, repdia_placa
         FROM reportes_diarios INNER JOIN vehiculos ON reportes_diarios.repdia_vehi = vehiculos.vehi_id
         WHERE (repdia_kilo_final - repdia_kilo) <> 0 and repdia_vehi =?
-        GROUP BY repdia_fech, vehi_placa,repdia_placa";
+        GROUP BY repdia_fech, vehi_placa,repdia_placa';
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_vehi);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
 
-    public function detalle_tabla_grafico($repdia_placa) {
+    public function detalle_tabla_grafico($repdia_placa)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT 
@@ -247,14 +262,15 @@ class  ReportesDiarios extends Conectar {
             END AS rendimiento, vehi_placa, repdia_fech, repdia_kilo, repdia_kilo_final, repdia_gaso, repdia_acpm, vehi_id
         FROM reportes_diarios INNER JOIN vehiculos ON reportes_diarios.repdia_vehi = vehiculos.vehi_id
         WHERE (repdia_gaso + repdia_acpm) <> 0 and repdia_placa = ?
-		GROUP BY  vehi_placa, repdia_fech, repdia_kilo, repdia_kilo_final, repdia_gaso, repdia_acpm, vehi_id";
+\t\tGROUP BY  vehi_placa, repdia_fech, repdia_kilo, repdia_kilo_final, repdia_gaso, repdia_acpm, vehi_id";
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_placa);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
 
-    public function detalle_tabla_grafico_hrs($repdia_placa) {
+    public function detalle_tabla_grafico_hrs($repdia_placa)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT 
@@ -266,15 +282,17 @@ class  ReportesDiarios extends Conectar {
             END AS rendimiento, vehi_placa, repdia_fech, repdia_kilo, repdia_kilo_final, repdia_gaso, repdia_acpm, vehi_id
         FROM reportes_diarios INNER JOIN vehiculos ON reportes_diarios.repdia_vehi = vehiculos.vehi_id
         WHERE (repdia_kilo_final - repdia_kilo) <> 0 and repdia_placa = ?
-		GROUP BY  vehi_placa, repdia_fech, repdia_kilo, repdia_kilo_final, repdia_gaso, repdia_acpm, vehi_id";
+\t\tGROUP BY  vehi_placa, repdia_fech, repdia_kilo, repdia_kilo_final, repdia_gaso, repdia_acpm, vehi_id";
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_placa);
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
+
     /* CONSULTA RENDIMIENTO FRESADORA */
-    public function get_repdia_grafico_fresadora($repdia_vehi) {
-        $fecha_inicio = $_POST['fecha_inicio']; // Obtener la fecha de inicio desde un formulario HTML
+    public function get_repdia_grafico_fresadora($repdia_vehi)
+    {
+        $fecha_inicio = $_POST['fecha_inicio'];  // Obtener la fecha de inicio desde un formulario HTML
         $fecha_final = $_POST['fecha_final'];
 
         $conectar = parent::conexion();
@@ -306,14 +324,15 @@ class  ReportesDiarios extends Conectar {
         return $resultado = $sql->fetchAll();
     }
 
-    public function get_repdia_tabla_grafico_frsd($repdia_vehi) {
+    public function get_repdia_tabla_grafico_frsd($repdia_vehi)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT 
         repdia_fech,
         vehi_placa,
         tipo_nombre,
-		repdia_placa,
+\t\trepdia_placa,
         SUM(repdia_kilo) AS total_kilometraje_inicial,
         SUM(repdia_kilo_final) AS total_kilometraje_final,
         SUM(repdia_kilo_final - repdia_kilo) AS total_kilometraje,
@@ -338,21 +357,22 @@ class  ReportesDiarios extends Conectar {
         return $resultado = $sql->fetchAll();
     }
 
-    public function detalle_tabla_grafica_frsd($repdia_placa) {
+    public function detalle_tabla_grafica_frsd($repdia_placa)
+    {
         $conectar = parent::conexion();
         parent::set_names();
         $sql = "SELECT 
         repdia_fech,
         vehi_placa,
         tipo_nombre,
-		repdia_kilo,
-		repdia_kilo_final,
+\t\trepdia_kilo,
+\t\trepdia_kilo_final,
         SUM(repdia_kilo_final - repdia_kilo) AS total_kilometraje,
-		repdia_volu,
+\t\trepdia_volu,
         SUM(repdia_volu) AS total_volumen,
         CAST(SUM(repdia_volu) AS NUMERIC) / CAST(SUM(repdia_kilo_final - repdia_kilo) AS NUMERIC) AS rendimiento,
-		repdia_placa,
-		tipo_nombre
+\t\trepdia_placa,
+\t\ttipo_nombre
         FROM 
         reportes_diarios 
         LEFT JOIN 
@@ -365,7 +385,7 @@ class  ReportesDiarios extends Conectar {
         vehiculos.vehi_tipo = tipo_vehiculo.tipo_id
         WHERE 
         repdia_placa = ? AND
-		(repdia_kilo_final - repdia_kilo) <> 0
+\t\t(repdia_kilo_final - repdia_kilo) <> 0
         GROUP BY 
         repdia_fech, vehi_placa,tipo_nombre,repdia_volu,repdia_kilo_final,repdia_kilo,repdia_placa,tipo_nombre;";
         $sql = $conectar->prepare($sql);
@@ -373,9 +393,11 @@ class  ReportesDiarios extends Conectar {
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
+
     /* CONSULTA RENDIMIENTO FRESADORA  PUNTAS/M3 */
-    public function get_repdia_grafico_frsd_pnts($repdia_vehi) {
-        $fecha_inicio = $_POST['fecha_inicio']; // Obtener la fecha de inicio desde un formulario HTML
+    public function get_repdia_grafico_frsd_pnts($repdia_vehi)
+    {
+        $fecha_inicio = $_POST['fecha_inicio'];  // Obtener la fecha de inicio desde un formulario HTML
         $fecha_final = $_POST['fecha_final'];
 
         $conectar = parent::conexion();
@@ -406,10 +428,12 @@ class  ReportesDiarios extends Conectar {
         $sql->execute();
         return $resultado = $sql->fetchAll();
     }
-    public function get_repdia_tabla_grafico_frsd_pnts($repdia_vehi) {
+
+    public function get_repdia_tabla_grafico_frsd_pnts($repdia_vehi)
+    {
         $conectar = parent::conexion();
         parent::set_names();
-        $sql = "SELECT 
+        $sql = 'SELECT 
         repdia_fech,
         vehi_placa,
         tipo_nombre,
@@ -430,7 +454,7 @@ class  ReportesDiarios extends Conectar {
         WHERE 
         repdia_vehi = ?  AND repdia_volu <> 0
         GROUP BY 
-        repdia_fech, vehi_placa,tipo_nombre,repdia_placa;";
+        repdia_fech, vehi_placa,tipo_nombre,repdia_placa;';
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_vehi);
         $sql->execute();
@@ -438,23 +462,26 @@ class  ReportesDiarios extends Conectar {
     }
 
     /* ULTIMO CIERRE DE KILOMETRAJE / HOROMETRO DEL VEHICULO */
-    public function get_ultimo_cierre_vehiculo($repdia_vehi) {
+    public function get_ultimo_cierre_vehiculo($repdia_vehi)
+    {
         $conectar = parent::conexion();
         parent::set_names();
 
-        $sql = "
-        SELECT
-            repdia_fech::date AS fecha_cierre,
-            MAX(repdia_kilo_final) AS valor_cierre
-        FROM reportes_diarios
-        WHERE repdia_vehi = ?
-          AND repdia_estado = 0
-          AND repdia_fech::date < CURRENT_DATE
-          AND repdia_kilo_final IS NOT NULL
-        GROUP BY repdia_fech::date
-        ORDER BY fecha_cierre DESC
-        LIMIT 1
-    ";
+        $sql = '
+                SELECT
+                    repdia_fech AS fecha_cierre,
+                    repdia_hr_term AS hora_cierre,
+                    repdia_kilo_final AS valor_cierre
+                FROM reportes_diarios
+                WHERE repdia_vehi = ?
+                AND repdia_fech < CURRENT_DATE
+                AND repdia_kilo_final IS NOT NULL
+                AND repdia_hr_term IS NOT NULL
+                ORDER BY
+                    repdia_fech DESC,
+                    repdia_hr_term DESC
+                LIMIT 1;
+                ';
 
         $sql = $conectar->prepare($sql);
         $sql->bindValue(1, $repdia_vehi, PDO::PARAM_INT);

@@ -7,15 +7,19 @@ BUCARAMANGA-SANTANDER
 ?>
 <?php
 session_start();
-class Conectar {
+
+class Conectar
+{
     protected $dbh;
-    protected function Conexion() {
+
+    protected function Conexion()
+    {
         try {
             // Cambiar los valores según tu configuración de PostgreSQL   192.168.0.200  masterd_asft
-            $host = "172.16.5.2"; //172.16.5.2
-            $dbname = "preoperacional_prueba";
-            $usuario = "postgres";
-            $contrasena = "masterd_asft";
+            $host = '172.16.5.2';  // 172.16.5.2
+            $dbname = 'preoperacional_vehiculos';
+            $usuario = 'postgres';
+            $contrasena = 'masterd_asft';
 
             $conectar = $this->dbh = new PDO("pgsql:host=$host;port=5432;dbname=$dbname", $usuario, $contrasena);
             return $conectar;
@@ -24,21 +28,27 @@ class Conectar {
             throw $e;
         }
     }
-    public function set_names() {
+
+    public function set_names()
+    {
         return $this->dbh->query("SET NAMES 'utf8'");
     }
-    public function getConexion() {
+
+    public function getConexion()
+    {
         return $this->Conexion();
     }
+
     /*     public static function ruta() {
         //return "http://181.204.219.154:3396/preoperacional/";
         return "http://localhost/preoperacional/";
     } */
 
-    public static function ruta() {
+    public static function ruta()
+    {
         $protocol = (
-            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || ($_SERVER['SERVER_PORT'] ?? '') == 443
+            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+            ($_SERVER['SERVER_PORT'] ?? '') == 443
         ) ? 'https' : 'http';
 
         $host = $_SERVER['HTTP_HOST'];
@@ -46,7 +56,6 @@ class Conectar {
         return $protocol . '://' . $host . '/preoperacional/';
     }
 }
-
 
 ?>
 <?php
