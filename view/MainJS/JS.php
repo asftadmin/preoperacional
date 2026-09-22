@@ -8,6 +8,8 @@
 <!-- AdminLTE -->
 <script src="../../public/plugins/js/adminlte.js"></script>
 <script src="../../public/plugins/sweetalert2/sweetalert.min.js"></script>
+<!-- Notificaciones -->
+<script src="../MainNav/notificaciones.js"></script>
 <!-- DataTables  & Plugins -->
 <script src="../../public/plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="../../public/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>

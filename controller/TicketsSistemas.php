@@ -1,32 +1,58 @@
 <?php
 
-require_once('../config/conexion.php');
-require_once('../models/TicketsSistemas.php');
-require_once('curl.php');
+require_once ('../config/conexion.php');
+require_once ('../models/TicketsSistemas.php');
+require_once ('curl.php');
 
 header('Content-Type: application/json; charset=utf-8');
 $modelo = new TicketsSistemas();
 
-function responderTicketSistemas($status, $mensaje, $data = null, $codigoHttp = 200) {
+function responderTicketSistemas($status, $mensaje, $data = null, $codigoHttp = 200)
+{
     http_response_code($codigoHttp);
     echo json_encode(array('status' => $status, 'message' => $mensaje, 'data' => $data), JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-function exigirSesionTicketSistemas() {
+function exigirSesionTicketSistemas()
+{
     if (empty($_SESSION['user_id'])) {
         responderTicketSistemas('error', 'La sesión ha expirado.', null, 401);
     }
 }
 
-function exigirCsrfTicketSistemas() {
+function exigirCsrfTicketSistemas()
+{
     $token = isset($_POST['csrf_token']) ? (string) $_POST['csrf_token'] : '';
     if (empty($_SESSION['csrf_tickets_sistemas']) || !hash_equals($_SESSION['csrf_tickets_sistemas'], $token)) {
         responderTicketSistemas('error', 'La solicitud de seguridad no es válida. Recargue la página.', null, 403);
     }
 }
 
-function textoPostTicketSistemas($campo, $maximo, $obligatorio = false) {
+function exigirCsrfNotificaciones()
+{
+    $token = isset($_POST['csrf_token'])
+        ? (string) $_POST['csrf_token']
+        : '';
+
+    if (
+        empty($_SESSION['csrf_notificaciones']) ||
+        !hash_equals(
+            $_SESSION['csrf_notificaciones'],
+            $token
+        )
+    ) {
+        responderTicketSistemas(
+            'error',
+            'La solicitud de seguridad no es válida. Recargue la página.',
+            null,
+            403
+        );
+    }
+}
+
+function textoPostTicketSistemas($campo, $maximo, $obligatorio = false)
+{
     $valor = isset($_POST[$campo]) && !is_array($_POST[$campo]) ? trim((string) $_POST[$campo]) : '';
     if ($obligatorio && $valor === '') {
         responderTicketSistemas('error', 'El campo ' . $campo . ' es obligatorio.', null, 422);
@@ -37,14 +63,16 @@ function textoPostTicketSistemas($campo, $maximo, $obligatorio = false) {
     return $valor;
 }
 
-function valorPermitidoTicketSistemas($valor, $permitidos, $campo) {
+function valorPermitidoTicketSistemas($valor, $permitidos, $campo)
+{
     if (!in_array($valor, $permitidos, true)) {
         responderTicketSistemas('error', 'El valor de ' . $campo . ' no es válido.', null, 422);
     }
     return $valor;
 }
 
-function normalizarEmpleadoTicketSistemas($data) {
+function normalizarEmpleadoTicketSistemas($data)
+{
     if (!is_object($data)) {
         throw new RuntimeException('La API devolvió un empleado con formato inválido.');
     }
@@ -58,7 +86,8 @@ function normalizarEmpleadoTicketSistemas($data) {
     );
 }
 
-function consultarEmpleadoTicketSistemas($valor, $criterio = 'documento') {
+function consultarEmpleadoTicketSistemas($valor, $criterio = 'documento')
+{
     $valor = trim((string) $valor);
     if ($criterio === 'documento') {
         if (!preg_match('/^[0-9]{3,20}$/D', $valor)) {
@@ -100,7 +129,6 @@ $op = isset($_GET['op'])
     ? (string) $_GET['op']
     : '';
 
-
 /*
  * =====================================================
  * VALIDACIÓN DE ACCESO SEGÚN OPERACIÓN
@@ -108,7 +136,6 @@ $op = isset($_GET['op'])
  */
 
 if ($op === 'dashboardGerencial') {
-
     /*
      * Dashboard gerencial.
      */
@@ -117,7 +144,6 @@ if ($op === 'dashboardGerencial') {
             (int) $_SESSION['user_id']
         )
     ) {
-
         responderTicketSistemas(
             'error',
             'No tiene permiso para consultar el dashboard gerencial.',
@@ -126,7 +152,6 @@ if ($op === 'dashboardGerencial') {
         );
     }
 } else {
-
     /*
      * Operaciones normales de Mesa de Servicio.
      */
@@ -135,7 +160,6 @@ if ($op === 'dashboardGerencial') {
             (int) $_SESSION['user_id']
         )
     ) {
-
         responderTicketSistemas(
             'error',
             'No tiene permiso para utilizar la mesa de servicio.',
@@ -223,9 +247,11 @@ try {
 
         case 'detalle':
             $ticketId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-            if (!$ticketId) responderTicketSistemas('error', 'El identificador del ticket no es válido.', null, 422);
+            if (!$ticketId)
+                responderTicketSistemas('error', 'El identificador del ticket no es válido.', null, 422);
             $ticket = $modelo->obtenerTicket($ticketId);
-            if ($ticket === null) responderTicketSistemas('error', 'El ticket no existe.', null, 404);
+            if ($ticket === null)
+                responderTicketSistemas('error', 'El ticket no existe.', null, 404);
             $empleadoApi = null;
             $mensajeApi = '';
             try {
@@ -245,12 +271,14 @@ try {
         case 'actualizarGestion':
             exigirCsrfTicketSistemas();
             $ticketId = filter_input(INPUT_POST, 'ticket_id', FILTER_VALIDATE_INT);
-            if (!$ticketId) responderTicketSistemas('error', 'El identificador del ticket no es válido.', null, 422);
+            if (!$ticketId)
+                responderTicketSistemas('error', 'El identificador del ticket no es válido.', null, 422);
             $estado = valorPermitidoTicketSistemas(textoPostTicketSistemas('estado', 20, true), array('ABIERTO', 'EN_PROCESO', 'EN_ESPERA', 'RESUELTO', 'CERRADO', 'CANCELADO'), 'estado');
             $prioridad = valorPermitidoTicketSistemas(textoPostTicketSistemas('prioridad', 10, true), array('BAJA', 'MEDIA', 'ALTA', 'CRITICA'), 'prioridad');
             $responsableTexto = textoPostTicketSistemas('responsable_id', 20);
             $responsableId = $responsableTexto === '' ? null : filter_var($responsableTexto, FILTER_VALIDATE_INT);
-            if ($responsableTexto !== '' && !$responsableId) responderTicketSistemas('error', 'El responsable seleccionado no es válido.', null, 422);
+            if ($responsableTexto !== '' && !$responsableId)
+                responderTicketSistemas('error', 'El responsable seleccionado no es válido.', null, 422);
             if ($responsableId !== null && !$modelo->responsableExiste($responsableId)) {
                 responderTicketSistemas('error', 'El responsable seleccionado no existe.', null, 422);
             }
@@ -278,38 +306,32 @@ try {
             responderTicketSistemas('success', 'Seguimiento registrado correctamente.');
             break;
         case 'kpiControlOperacion':
-
             /*
-     * Matriz temporal de tiempos de atención.
-     * Más adelante puede migrarse a una tabla parametrizable.
-     */
+             * Matriz temporal de tiempos de atención.
+             * Más adelante puede migrarse a una tabla parametrizable.
+             */
             $matrizTiempos = array(
-
                 'CRITICA' => array(
                     'respuesta_minutos' => 15,
                     'solucion_horas' => 3
                 ),
-
                 'ALTA' => array(
                     'respuesta_minutos' => 45,
                     'solucion_horas' => 8.5
                 ),
-
                 'MEDIA' => array(
                     'respuesta_minutos' => 180,
                     'solucion_horas' => 17
                 ),
-
                 'BAJA' => array(
                     'respuesta_minutos' => 360,
                     'solucion_horas' => 34
                 )
-
             );
 
             /*
-     * El modelo consulta y calcula los KPI.
-     */
+             * El modelo consulta y calcula los KPI.
+             */
             $kpi = $modelo->kpiControlOperacion($matrizTiempos);
 
             responderTicketSistemas(
@@ -320,42 +342,112 @@ try {
 
             break;
 
+        case 'contadorNotificaciones':
+            $usuarioId = (int) $_SESSION['user_id'];
+
+            $total = $modelo->contarNotificacionesNoLeidas(
+                $usuarioId
+            );
+
+            responderTicketSistemas(
+                'success',
+                'Notificaciones pendientes consultadas.',
+                array(
+                    'total' => $total
+                )
+            );
+
+            break;
+
+        case 'listarNotificaciones':
+            $usuarioId = (int) $_SESSION['user_id'];
+
+            $notificaciones =
+                $modelo->listarNotificaciones(
+                    $usuarioId,
+                    8
+                );
+
+            responderTicketSistemas(
+                'success',
+                'Notificaciones consultadas.',
+                $notificaciones
+            );
+
+            break;
+
+        case 'marcarNotificacionLeida':
+            exigirCsrfNotificaciones();
+
+            $notificacionId = filter_input(
+                INPUT_POST,
+                'notificacion_id',
+                FILTER_VALIDATE_INT
+            );
+
+            if (!$notificacionId) {
+                responderTicketSistemas(
+                    'error',
+                    'La notificación seleccionada no es válida.',
+                    null,
+                    422
+                );
+            }
+
+            $usuarioId = (int) $_SESSION['user_id'];
+
+            $actualizada =
+                $modelo->marcarNotificacionLeida(
+                    $notificacionId,
+                    $usuarioId
+                );
+
+            if (!$actualizada) {
+                responderTicketSistemas(
+                    'error',
+                    'La notificación no existe o ya fue consultada.',
+                    null,
+                    404
+                );
+            }
+
+            responderTicketSistemas(
+                'success',
+                'Notificación marcada como leída.'
+            );
+
+            break;
+
         case 'listarTicketsRequierenAtencion':
-
             /*
-     * Matriz temporal de tiempos de atención.
-     *
-     * Debe mantenerse igual a la utilizada
-     * para los KPI del control diario.
-     */
+             * Matriz temporal de tiempos de atención.
+             *
+             * Debe mantenerse igual a la utilizada
+             * para los KPI del control diario.
+             */
             $matrizTiempos = array(
-
                 'CRITICA' => array(
                     'respuesta_minutos' => 15,
                     'solucion_horas' => 3
                 ),
-
                 'ALTA' => array(
                     'respuesta_minutos' => 45,
                     'solucion_horas' => 8.5
                 ),
-
                 'MEDIA' => array(
                     'respuesta_minutos' => 180,
                     'solucion_horas' => 17
                 ),
-
                 'BAJA' => array(
                     'respuesta_minutos' => 360,
                     'solucion_horas' => 34
                 )
-
             );
 
             /*
-     * El modelo determina qué tickets
-     * realmente requieren atención.
-     */
+             * El modelo determina qué tickets
+             * realmente requieren atención.
+             */
             $tickets =
                 $modelo->listarTicketsRequierenAtencion(
                     $matrizTiempos
@@ -370,11 +462,10 @@ try {
             break;
 
         case 'antiguedadTicketsPendientes':
-
             /*
-     * El modelo agrupa los tickets pendientes
-     * según el tiempo transcurrido desde su creación.
-     */
+             * El modelo agrupa los tickets pendientes
+             * según el tiempo transcurrido desde su creación.
+             */
             $antiguedad =
                 $modelo->antiguedadTicketsPendientes();
 
@@ -387,42 +478,34 @@ try {
             break;
 
         case 'tiempoPromedioSolucionVsSla':
-
             /*
-     * Matriz temporal SLA.
-     * Debe mantenerse igual a la utilizada
-     * en los KPI de operación.
-     */
+             * Matriz temporal SLA.
+             * Debe mantenerse igual a la utilizada
+             * en los KPI de operación.
+             */
             $matrizTiempos = array(
-
                 'CRITICA' => array(
                     'respuesta_minutos' => 15,
                     'solucion_horas' => 3
                 ),
-
                 'ALTA' => array(
                     'respuesta_minutos' => 45,
                     'solucion_horas' => 8.5
                 ),
-
                 'MEDIA' => array(
                     'respuesta_minutos' => 180,
                     'solucion_horas' => 17
                 ),
-
                 'BAJA' => array(
                     'respuesta_minutos' => 360,
                     'solucion_horas' => 34
                 )
-
             );
-
 
             $datos =
                 $modelo->tiempoPromedioSolucionVsSla(
                     $matrizTiempos
                 );
-
 
             responderTicketSistemas(
                 'success',
@@ -433,38 +516,34 @@ try {
             break;
 
         case 'dashboardGerencial':
-
             /*
-     * =====================================================
-     * DASHBOARD GERENCIAL
-     * =====================================================
-     *
-     * Consulta los principales indicadores de la Mesa
-     * de Servicio dentro del rango de fechas seleccionado.
-     */
+             * =====================================================
+             * DASHBOARD GERENCIAL
+             * =====================================================
+             *
+             * Consulta los principales indicadores de la Mesa
+             * de Servicio dentro del rango de fechas seleccionado.
+             */
 
             $fechaInicio =
-                isset($_GET['fecha_inicio'])
-                && !is_array($_GET['fecha_inicio'])
-                ? trim((string) $_GET['fecha_inicio'])
-                : '';
+                isset($_GET['fecha_inicio']) &&
+                !is_array($_GET['fecha_inicio'])
+                    ? trim((string) $_GET['fecha_inicio'])
+                    : '';
 
             $fechaFinal =
-                isset($_GET['fecha_final'])
-                && !is_array($_GET['fecha_final'])
-                ? trim((string) $_GET['fecha_final'])
-                : '';
-
+                isset($_GET['fecha_final']) &&
+                !is_array($_GET['fecha_final'])
+                    ? trim((string) $_GET['fecha_final'])
+                    : '';
 
             /*
-     * Validamos que ambas fechas sean obligatorias.
-     */
+             * Validamos que ambas fechas sean obligatorias.
+             */
             if (
-                $fechaInicio === ''
-                ||
+                $fechaInicio === '' ||
                 $fechaFinal === ''
             ) {
-
                 responderTicketSistemas(
                     'error',
                     'Debe seleccionar un rango de fechas.',
@@ -473,10 +552,9 @@ try {
                 );
             }
 
-
             /*
-     * Validamos el formato YYYY-MM-DD.
-     */
+             * Validamos el formato YYYY-MM-DD.
+             */
             $fechaInicioValida =
                 DateTime::createFromFormat(
                     'Y-m-d',
@@ -489,17 +567,12 @@ try {
                     $fechaFinal
                 );
 
-
             if (
-                !$fechaInicioValida
-                ||
-                $fechaInicioValida->format('Y-m-d') !== $fechaInicio
-                ||
-                !$fechaFinalValida
-                ||
+                !$fechaInicioValida ||
+                $fechaInicioValida->format('Y-m-d') !== $fechaInicio ||
+                !$fechaFinalValida ||
                 $fechaFinalValida->format('Y-m-d') !== $fechaFinal
             ) {
-
                 responderTicketSistemas(
                     'error',
                     'El rango de fechas no tiene un formato válido.',
@@ -508,17 +581,14 @@ try {
                 );
             }
 
-
             /*
-     * La fecha inicial no puede superar
-     * la fecha final.
-     */
+             * La fecha inicial no puede superar
+             * la fecha final.
+             */
             if (
-                strtotime($fechaInicio)
-                >
+                strtotime($fechaInicio) >
                 strtotime($fechaFinal)
             ) {
-
                 responderTicketSistemas(
                     'error',
                     'La fecha inicial no puede ser mayor a la fecha final.',
@@ -527,52 +597,44 @@ try {
                 );
             }
 
-
             /*
-     * Matriz temporal de tiempos de atención.
-     *
-     * Es la misma matriz utilizada actualmente
-     * por el control operativo.
-     *
-     * Más adelante debe parametrizarse si se
-     * decide almacenar los SLA en base de datos.
-     */
+             * Matriz temporal de tiempos de atención.
+             *
+             * Es la misma matriz utilizada actualmente
+             * por el control operativo.
+             *
+             * Más adelante debe parametrizarse si se
+             * decide almacenar los SLA en base de datos.
+             */
             $matrizTiempos = array(
-
                 'CRITICA' => array(
                     'respuesta_minutos' => 15,
                     'solucion_horas' => 3
                 ),
-
                 'ALTA' => array(
                     'respuesta_minutos' => 45,
                     'solucion_horas' => 8.5
                 ),
-
                 'MEDIA' => array(
                     'respuesta_minutos' => 180,
                     'solucion_horas' => 17
                 ),
-
                 'BAJA' => array(
                     'respuesta_minutos' => 360,
                     'solucion_horas' => 34
                 )
-
             );
 
-
             /*
-     * Toda la lógica de consulta queda
-     * centralizada en el modelo.
-     */
+             * Toda la lógica de consulta queda
+             * centralizada en el modelo.
+             */
             $dashboard =
                 $modelo->dashboardGerencial(
                     $fechaInicio,
                     $fechaFinal,
                     $matrizTiempos
                 );
-
 
             responderTicketSistemas(
                 'success',

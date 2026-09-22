@@ -1,7 +1,9 @@
 <?php
 
-class TicketsSistemas extends Conectar {
-    public function tieneAcceso($usuarioId) {
+class TicketsSistemas extends Conectar
+{
+    public function tieneAcceso($usuarioId)
+    {
         $conexion = parent::Conexion();
         $sql = "SELECT 1
                 FROM usuarios u
@@ -18,15 +20,14 @@ class TicketsSistemas extends Conectar {
     }
 
     /*
- * =====================================================
- * ACCESO DASHBOARD GERENCIAL
- * =====================================================
- */
+     * =====================================================
+     * ACCESO DASHBOARD GERENCIAL
+     * =====================================================
+     */
 
     public function tieneAccesoDashboardGerencial(
         $usuarioId
     ) {
-
         $conexion = parent::Conexion();
 
         $sql = "
@@ -61,30 +62,31 @@ class TicketsSistemas extends Conectar {
             $conexion->prepare($sql);
 
         $sentencia->execute(array(
-
             ':usuario' =>
-            $usuarioId
-
+                $usuarioId
         ));
 
-        return (bool)
-        $sentencia->fetchColumn();
+        return (bool) $sentencia->fetchColumn();
     }
 
-    public function listarCategorias() {
+    public function listarCategorias()
+    {
         $conexion = parent::Conexion();
-        return $conexion->query("SELECT categoria_id, nombre FROM tickets_sistemas_categorias WHERE activo = TRUE ORDER BY nombre")
+        return $conexion
+            ->query('SELECT categoria_id, nombre FROM tickets_sistemas_categorias WHERE activo = TRUE ORDER BY nombre')
             ->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function categoriaActivaExiste($categoriaId) {
+    public function categoriaActivaExiste($categoriaId)
+    {
         $conexion = parent::Conexion();
         $sentencia = $conexion->prepare('SELECT 1 FROM tickets_sistemas_categorias WHERE categoria_id = :categoria AND activo = TRUE');
         $sentencia->execute(array(':categoria' => $categoriaId));
         return (bool) $sentencia->fetchColumn();
     }
 
-    public function listarResponsables() {
+    public function listarResponsables()
+    {
         $conexion = parent::Conexion();
         $sql = "SELECT u.user_id, TRIM(u.user_nombre || ' ' || u.user_apellidos) AS nombre,
                        COALESCE(r.rol_cargo, '') AS rol
@@ -93,28 +95,132 @@ class TicketsSistemas extends Conectar {
         return $conexion->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function responsableExiste($usuarioId) {
+    public function responsableExiste($usuarioId)
+    {
         $conexion = parent::Conexion();
         $sentencia = $conexion->prepare('SELECT 1 FROM usuarios WHERE user_id = :usuario');
         $sentencia->execute(array(':usuario' => $usuarioId));
         return (bool) $sentencia->fetchColumn();
     }
 
-    public function crearTicket($datos) {
+    /*     public function crearTicket($datos)
+        {
+            $conexion = parent::Conexion();
+            $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $conexion->beginTransaction();
+            try {
+                $consecutivo = (int) $conexion->query("SELECT nextval('tickets_sistemas_consecutivo_seq')")->fetchColumn();
+                $numero = 'TS-' . date('Y') . '-' . str_pad((string) $consecutivo, 6, '0', STR_PAD_LEFT);
+                $sql = 'INSERT INTO tickets_sistemas
+                        (ticket_numero, empleado_documento, empleado_nombre, empleado_correo,
+                         empleado_cargo, empleado_area, tipo, categoria_id, asunto, descripcion,
+                         prioridad, canal, ubicacion, equipo)
+                        VALUES (:numero, :documento, :nombre, :correo, :cargo, :area, :tipo,
+                                :categoria, :asunto, :descripcion, :prioridad, :canal, :ubicacion, :equipo)
+                        RETURNING ticket_id';
+                $sentencia = $conexion->prepare($sql);
+                $sentencia->execute(array(
+                    ':numero' => $numero,
+                    ':documento' => $datos['empleado_documento'],
+                    ':nombre' => $datos['empleado_nombre'],
+                    ':correo' => $datos['empleado_correo'],
+                    ':cargo' => $datos['empleado_cargo'],
+                    ':area' => $datos['empleado_area'],
+                    ':tipo' => $datos['tipo'],
+                    ':categoria' => $datos['categoria_id'],
+                    ':asunto' => $datos['asunto'],
+                    ':descripcion' => $datos['descripcion'],
+                    ':prioridad' => $datos['prioridad'],
+                    ':canal' => $datos['canal'],
+                    ':ubicacion' => $datos['ubicacion'],
+                    ':equipo' => $datos['equipo']
+                ));
+                $ticketId = (int) $sentencia->fetchColumn();
+                $seguimiento = $conexion->prepare("INSERT INTO tickets_sistemas_seguimientos
+                    (ticket_id, tipo, comentario, estado_nuevo) VALUES (:ticket, 'CREACION', :comentario, 'ABIERTO')");
+                $seguimiento->execute(array(':ticket' => $ticketId, ':comentario' => 'Ticket registrado para ' . $datos['empleado_nombre'] . '.'));
+                $conexion->commit();
+                return array('ticket_id' => $ticketId, 'ticket_numero' => $numero);
+            } catch (Throwable $error) {
+                if ($conexion->inTransaction()) {
+                    $conexion->rollBack();
+                }
+                throw $error;
+            }
+        } */
+
+    public function crearTicket($datos)
+    {
         $conexion = parent::Conexion();
-        $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        $conexion->setAttribute(
+            PDO::ATTR_ERRMODE,
+            PDO::ERRMODE_EXCEPTION
+        );
+
         $conexion->beginTransaction();
+
         try {
-            $consecutivo = (int) $conexion->query("SELECT nextval('tickets_sistemas_consecutivo_seq')")->fetchColumn();
-            $numero = 'TS-' . date('Y') . '-' . str_pad((string) $consecutivo, 6, '0', STR_PAD_LEFT);
-            $sql = "INSERT INTO tickets_sistemas
-                    (ticket_numero, empleado_documento, empleado_nombre, empleado_correo,
-                     empleado_cargo, empleado_area, tipo, categoria_id, asunto, descripcion,
-                     prioridad, canal, ubicacion, equipo)
-                    VALUES (:numero, :documento, :nombre, :correo, :cargo, :area, :tipo,
-                            :categoria, :asunto, :descripcion, :prioridad, :canal, :ubicacion, :equipo)
-                    RETURNING ticket_id";
+            /*
+             * Generar consecutivo del ticket.
+             */
+            $consecutivo = (int) $conexion
+                ->query("SELECT nextval('tickets_sistemas_consecutivo_seq')")
+                ->fetchColumn();
+
+            $numero = 'TS-'
+                . date('Y')
+                . '-'
+                . str_pad(
+                    (string) $consecutivo,
+                    6,
+                    '0',
+                    STR_PAD_LEFT
+                );
+
+            /*
+             * Crear ticket.
+             */
+            $sql = '
+            INSERT INTO tickets_sistemas
+            (
+                ticket_numero,
+                empleado_documento,
+                empleado_nombre,
+                empleado_correo,
+                empleado_cargo,
+                empleado_area,
+                tipo,
+                categoria_id,
+                asunto,
+                descripcion,
+                prioridad,
+                canal,
+                ubicacion,
+                equipo
+            )
+            VALUES
+            (
+                :numero,
+                :documento,
+                :nombre,
+                :correo,
+                :cargo,
+                :area,
+                :tipo,
+                :categoria,
+                :asunto,
+                :descripcion,
+                :prioridad,
+                :canal,
+                :ubicacion,
+                :equipo
+            )
+            RETURNING ticket_id
+        ';
+
             $sentencia = $conexion->prepare($sql);
+
             $sentencia->execute(array(
                 ':numero' => $numero,
                 ':documento' => $datos['empleado_documento'],
@@ -131,21 +237,206 @@ class TicketsSistemas extends Conectar {
                 ':ubicacion' => $datos['ubicacion'],
                 ':equipo' => $datos['equipo']
             ));
+
             $ticketId = (int) $sentencia->fetchColumn();
-            $seguimiento = $conexion->prepare("INSERT INTO tickets_sistemas_seguimientos
-                (ticket_id, tipo, comentario, estado_nuevo) VALUES (:ticket, 'CREACION', :comentario, 'ABIERTO')");
-            $seguimiento->execute(array(':ticket' => $ticketId, ':comentario' => 'Ticket registrado para ' . $datos['empleado_nombre'] . '.'));
+
+            /*
+             * Registrar seguimiento inicial.
+             */
+            $seguimiento = $conexion->prepare("
+            INSERT INTO tickets_sistemas_seguimientos
+            (
+                ticket_id,
+                tipo,
+                comentario,
+                estado_nuevo
+            )
+            VALUES
+            (
+                :ticket,
+                'CREACION',
+                :comentario,
+                'ABIERTO'
+            )
+        ");
+
+            $seguimiento->execute(array(
+                ':ticket' => $ticketId,
+                ':comentario' =>
+                    'Ticket registrado para '
+                    . $datos['empleado_nombre']
+                    . '.'
+            ));
+
+            /*
+             * Generar notificación interna para los usuarios
+             * autorizados para gestionar Tickets de Sistemas.
+             */
+            $mensajeNotificacion =
+                $numero
+                . ' - '
+                . $datos['asunto'];
+
+            $notificacion = $conexion->prepare("
+            INSERT INTO tickets_sistemas_notificaciones
+            (
+                ticket_id,
+                usuario_id,
+                tipo,
+                titulo,
+                mensaje
+            )
+
+            SELECT
+                :ticket,
+                u.user_id,
+                'NUEVO_TICKET',
+                'Nuevo ticket registrado',
+                :mensaje
+
+            FROM usuarios u
+
+            INNER JOIN permiso p
+                ON p.permiso_rol = u.user_rol_usuario
+
+            INNER JOIN menu m
+                ON m.menu_id = p.permiso_menu
+
+            WHERE m.menu_identi = 'ticketsSistemas'
+
+              AND p.permiso = 'Si'
+
+              AND COALESCE(
+                    p.permiso_estado,
+                    1
+                  ) = 1
+
+            GROUP BY
+                u.user_id
+        ");
+
+            $notificacion->execute(array(
+                ':ticket' => $ticketId,
+                ':mensaje' => $mensajeNotificacion
+            ));
+
+            /*
+             * Confirmar ticket, seguimiento y notificación.
+             */
             $conexion->commit();
-            return array('ticket_id' => $ticketId, 'ticket_numero' => $numero);
+
+            return array(
+                'ticket_id' => $ticketId,
+                'ticket_numero' => $numero
+            );
         } catch (Throwable $error) {
             if ($conexion->inTransaction()) {
                 $conexion->rollBack();
             }
+
             throw $error;
         }
     }
 
-    public function listarTickets($filtros = array()) {
+    public function contarNotificacionesNoLeidas($usuarioId)
+    {
+        $conexion = parent::Conexion();
+
+        $sql = '
+        SELECT COUNT(*)
+        FROM tickets_sistemas_notificaciones
+        WHERE usuario_id = :usuario
+          AND leida = FALSE
+    ';
+
+        $sentencia = $conexion->prepare($sql);
+
+        $sentencia->execute(array(
+            ':usuario' => $usuarioId
+        ));
+
+        return (int) $sentencia->fetchColumn();
+    }
+
+    public function listarNotificaciones($usuarioId, $limite = 8)
+    {
+        $conexion = parent::Conexion();
+
+        $limite = (int) $limite;
+
+        if ($limite <= 0 || $limite > 20) {
+            $limite = 8;
+        }
+
+        $sql = '
+        SELECT
+            n.notificacion_id,
+            n.ticket_id,
+            n.tipo,
+            n.titulo,
+            n.mensaje,
+            n.leida,
+            n.fecha_creacion,
+            n.fecha_lectura,
+            t.ticket_numero,
+            t.prioridad,
+            t.estado
+        FROM tickets_sistemas_notificaciones n
+
+        INNER JOIN tickets_sistemas t
+            ON t.ticket_id = n.ticket_id
+
+        WHERE n.usuario_id = :usuario
+
+        ORDER BY
+            n.leida ASC,
+            n.fecha_creacion DESC
+
+        LIMIT ' . $limite;
+
+        $sentencia = $conexion->prepare($sql);
+
+        $sentencia->execute(array(
+            ':usuario' => $usuarioId
+        ));
+
+        return $sentencia->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function marcarNotificacionLeida(
+        $notificacionId,
+        $usuarioId
+    ) {
+        $conexion = parent::Conexion();
+
+        $sql = '
+        UPDATE tickets_sistemas_notificaciones
+
+        SET
+            leida = TRUE,
+            fecha_lectura = CASE
+                WHEN fecha_lectura IS NULL
+                    THEN CURRENT_TIMESTAMP
+                ELSE fecha_lectura
+            END
+
+        WHERE notificacion_id = :notificacion
+
+          AND usuario_id = :usuario
+    ';
+
+        $sentencia = $conexion->prepare($sql);
+
+        $sentencia->execute(array(
+            ':notificacion' => $notificacionId,
+            ':usuario' => $usuarioId
+        ));
+
+        return $sentencia->rowCount() === 1;
+    }
+
+    public function listarTickets($filtros = array())
+    {
         $conexion = parent::Conexion();
         $condiciones = array('1 = 1');
         $parametros = array();
@@ -167,13 +458,14 @@ class TicketsSistemas extends Conectar {
                 FROM tickets_sistemas t
                 INNER JOIN tickets_sistemas_categorias c ON c.categoria_id = t.categoria_id
                 LEFT JOIN usuarios u ON u.user_id = t.responsable_id
-                WHERE " . implode(' AND ', $condiciones) . " ORDER BY t.fecha_creacion DESC";
+                WHERE " . implode(' AND ', $condiciones) . ' ORDER BY t.fecha_creacion DESC';
         $sentencia = $conexion->prepare($sql);
         $sentencia->execute($parametros);
         return $sentencia->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerTicket($ticketId) {
+    public function obtenerTicket($ticketId)
+    {
         $conexion = parent::Conexion();
         $sql = "SELECT t.*, c.nombre AS categoria,
                        NULLIF(TRIM(COALESCE(u.user_nombre, '') || ' ' || COALESCE(u.user_apellidos, '')), '') AS responsable
@@ -187,7 +479,8 @@ class TicketsSistemas extends Conectar {
         return $ticket === false ? null : $ticket;
     }
 
-    public function listarSeguimientos($ticketId) {
+    public function listarSeguimientos($ticketId)
+    {
         $conexion = parent::Conexion();
         $sql = "SELECT s.*, TRIM(COALESCE(u.user_nombre, '') || ' ' || COALESCE(u.user_apellidos, '')) AS responsable
                 FROM tickets_sistemas_seguimientos s
@@ -198,7 +491,8 @@ class TicketsSistemas extends Conectar {
         return $sentencia->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function actualizarGestion($ticketId, $datos) {
+    public function actualizarGestion($ticketId, $datos)
+    {
         $conexion = parent::Conexion();
         $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $conexion->beginTransaction();
@@ -222,9 +516,9 @@ class TicketsSistemas extends Conectar {
             $sentencia->bindValue(':estado_cierre', $datos['estado']);
             $sentencia->bindValue(':ticket', $ticketId, PDO::PARAM_INT);
             $sentencia->execute();
-            $seguimiento = $conexion->prepare("INSERT INTO tickets_sistemas_seguimientos
+            $seguimiento = $conexion->prepare('INSERT INTO tickets_sistemas_seguimientos
                 (ticket_id, tipo, comentario, estado_anterior, estado_nuevo, responsable_id)
-                VALUES (:ticket, :tipo, :comentario, :anterior, :nuevo, :responsable)");
+                VALUES (:ticket, :tipo, :comentario, :anterior, :nuevo, :responsable)');
             $seguimiento->bindValue(':ticket', $ticketId, PDO::PARAM_INT);
             $seguimiento->bindValue(':tipo', $datos['estado'] === 'CERRADO' ? 'CIERRE' : 'GESTION');
             $seguimiento->bindValue(':comentario', $datos['comentario'] !== '' ? $datos['comentario'] : 'Se actualizó la gestión del ticket.');
@@ -242,7 +536,8 @@ class TicketsSistemas extends Conectar {
         }
     }
 
-    public function agregarSeguimiento($ticketId, $comentario) {
+    public function agregarSeguimiento($ticketId, $comentario)
+    {
         $conexion = parent::Conexion();
         $sql = "INSERT INTO tickets_sistemas_seguimientos (ticket_id, tipo, comentario)
                 SELECT :ticket, 'COMENTARIO', :comentario
@@ -252,16 +547,17 @@ class TicketsSistemas extends Conectar {
         return $sentencia->rowCount() === 1;
     }
 
-    public function kpiControlOperacion($matrizTiempos) {
+    public function kpiControlOperacion($matrizTiempos)
+    {
         $conexion = parent::Conexion();
 
         /*
-     * KPI generales:
-     * - recibidos hoy
-     * - cerrados hoy
-     * - pendientes
-     * - pendientes sin responsable
-     */
+         * KPI generales:
+         * - recibidos hoy
+         * - cerrados hoy
+         * - pendientes
+         * - pendientes sin responsable
+         */
         $sql = "
         SELECT
 
@@ -299,11 +595,10 @@ class TicketsSistemas extends Conectar {
 
         $resultado = $sentencia->fetch(PDO::FETCH_ASSOC);
 
-
         /*
-     * Consultamos únicamente los tickets activos
-     * para validar si superaron el tiempo de solución.
-     */
+         * Consultamos únicamente los tickets activos
+         * para validar si superaron el tiempo de solución.
+         */
         $sqlVencidos = "
         SELECT
             t.ticket_id,
@@ -328,17 +623,14 @@ class TicketsSistemas extends Conectar {
 
         $ticketsActivos = $sentenciaVencidos->fetchAll(PDO::FETCH_ASSOC);
 
-
         $fueraTiempo = 0;
         $fueraTiempoPrioritario = 0;
 
-
         /*
-     * Comparamos las horas transcurridas
-     * contra la matriz definida en el controller.
-     */
+         * Comparamos las horas transcurridas
+         * contra la matriz definida en el controller.
+         */
         foreach ($ticketsActivos as $ticket) {
-
             $prioridad = strtoupper(trim($ticket['prioridad']));
 
             if (!isset($matrizTiempos[$prioridad])) {
@@ -351,9 +643,7 @@ class TicketsSistemas extends Conectar {
             $horasTranscurridas =
                 (float) $ticket['horas_transcurridas'];
 
-
             if ($horasTranscurridas > $horasPermitidas) {
-
                 $fueraTiempo++;
 
                 if (
@@ -368,37 +658,30 @@ class TicketsSistemas extends Conectar {
             }
         }
 
-
         return array(
-
             'recibidos_hoy' =>
-            (int) $resultado['recibidos_hoy'],
-
+                (int) $resultado['recibidos_hoy'],
             'cerrados_hoy' =>
-            (int) $resultado['cerrados_hoy'],
-
+                (int) $resultado['cerrados_hoy'],
             'pendientes' =>
-            (int) $resultado['pendientes'],
-
+                (int) $resultado['pendientes'],
             'sin_asignar' =>
-            (int) $resultado['sin_asignar'],
-
+                (int) $resultado['sin_asignar'],
             'fuera_tiempo' =>
-            $fueraTiempo,
-
+                $fueraTiempo,
             'fuera_tiempo_prioritario' =>
-            $fueraTiempoPrioritario
-
+                $fueraTiempoPrioritario
         );
     }
 
-    public function listarTicketsRequierenAtencion($matrizTiempos) {
+    public function listarTicketsRequierenAtencion($matrizTiempos)
+    {
         $conexion = parent::Conexion();
 
         /*
-     * Consultamos únicamente tickets que todavía
-     * forman parte de la operación activa.
-     */
+         * Consultamos únicamente tickets que todavía
+         * forman parte de la operación activa.
+         */
         $sql = "
         SELECT
 
@@ -460,7 +743,6 @@ class TicketsSistemas extends Conectar {
         $resultado = array();
 
         foreach ($tickets as $ticket) {
-
             $prioridad = strtoupper(
                 trim((string) $ticket['prioridad'])
             );
@@ -468,19 +750,17 @@ class TicketsSistemas extends Conectar {
             $horasTranscurridas = (float) $ticket['horas_transcurridas'];
 
             /*
-         * Por defecto asumimos que el ticket
-         * todavía no está fuera de tiempo.
-         */
+             * Por defecto asumimos que el ticket
+             * todavía no está fuera de tiempo.
+             */
             $fueraTiempo = false;
 
             /*
-         * Si la prioridad existe en la matriz,
-         * comparamos contra el tiempo máximo de solución.
-         */
+             * Si la prioridad existe en la matriz,
+             * comparamos contra el tiempo máximo de solución.
+             */
             if (isset($matrizTiempos[$prioridad])) {
-
-                $horasPermitidas = (float)
-                $matrizTiempos[$prioridad]['solucion_horas'];
+                $horasPermitidas = (float) $matrizTiempos[$prioridad]['solucion_horas'];
 
                 if ($horasTranscurridas > $horasPermitidas) {
                     $fueraTiempo = true;
@@ -488,16 +768,16 @@ class TicketsSistemas extends Conectar {
             }
 
             /*
-         * Validamos las condiciones de atención.
-         */
+             * Validamos las condiciones de atención.
+             */
             $esCritica = $prioridad === 'CRITICA';
             $esAlta = $prioridad === 'ALTA';
             $sinAsignar = empty($ticket['responsable_id']);
 
             /*
-         * Si no cumple ninguna condición,
-         * no debe aparecer en esta bandeja.
-         */
+             * Si no cumple ninguna condición,
+             * no debe aparecer en esta bandeja.
+             */
             if (
                 !$fueraTiempo &&
                 !$esCritica &&
@@ -508,10 +788,10 @@ class TicketsSistemas extends Conectar {
             }
 
             /*
-         * Construimos la situación del ticket.
-         *
-         * Puede tener más de una condición al mismo tiempo.
-         */
+             * Construimos la situación del ticket.
+             *
+             * Puede tener más de una condición al mismo tiempo.
+             */
             $situaciones = array();
 
             if ($fueraTiempo) {
@@ -531,98 +811,79 @@ class TicketsSistemas extends Conectar {
             }
 
             /*
-         * Creamos un nivel de prioridad para ordenar
-         * posteriormente los resultados.
-         */
+             * Creamos un nivel de prioridad para ordenar
+             * posteriormente los resultados.
+             */
             $orden = 5;
 
             if ($esCritica) {
-
                 $orden = 1;
             } elseif ($fueraTiempo) {
-
                 $orden = 2;
             } elseif ($esAlta) {
-
                 $orden = 3;
             } elseif ($sinAsignar) {
-
                 $orden = 4;
             }
 
             $resultado[] = array(
-
                 'ticket_id' =>
-                (int) $ticket['ticket_id'],
-
+                    (int) $ticket['ticket_id'],
                 'ticket_numero' =>
-                $ticket['ticket_numero'],
-
+                    $ticket['ticket_numero'],
                 'fecha_creacion' =>
-                $ticket['fecha_creacion'],
-
+                    $ticket['fecha_creacion'],
                 'empleado_nombre' =>
-                $ticket['empleado_nombre'],
-
+                    $ticket['empleado_nombre'],
                 'empleado_area' =>
-                $ticket['empleado_area'],
-
+                    $ticket['empleado_area'],
                 'asunto' =>
-                $ticket['asunto'],
-
+                    $ticket['asunto'],
                 'categoria' =>
-                $ticket['categoria'],
-
+                    $ticket['categoria'],
                 'prioridad' =>
-                $prioridad,
-
+                    $prioridad,
                 'responsable' =>
-                $ticket['responsable']
-                    ?: 'Sin asignar',
-
+                    $ticket['responsable']
+                        ?: 'Sin asignar',
                 'horas_transcurridas' =>
-                round(
-                    $horasTranscurridas,
-                    1
-                ),
-
+                    round(
+                        $horasTranscurridas,
+                        1
+                    ),
                 'fuera_tiempo' =>
-                $fueraTiempo,
-
+                    $fueraTiempo,
                 'situaciones' =>
-                $situaciones,
-
+                    $situaciones,
                 'estado' =>
-                $ticket['estado'],
+                    $ticket['estado'],
 
                 /*
-             * Este dato se utiliza únicamente para ordenar.
-             * No es una columna de base de datos.
-             */
+                 * Este dato se utiliza únicamente para ordenar.
+                 * No es una columna de base de datos.
+                 */
                 '_orden' =>
-                $orden
+                    $orden
             );
         }
 
         /*
-     * Orden:
-     *
-     * 1. CRITICA
-     * 2. Fuera de tiempo
-     * 3. ALTA
-     * 4. Sin asignar
-     *
-     * Dentro de la misma condición,
-     * primero aparece el ticket más antiguo.
-     */
+         * Orden:
+         *
+         * 1. CRITICA
+         * 2. Fuera de tiempo
+         * 3. ALTA
+         * 4. Sin asignar
+         *
+         * Dentro de la misma condición,
+         * primero aparece el ticket más antiguo.
+         */
         usort(
             $resultado,
             function ($a, $b) {
-
                 if ($a['_orden'] === $b['_orden']) {
-
-                    return $b['horas_transcurridas']
-                        <=> $a['horas_transcurridas'];
+                    return $b['horas_transcurridas'] <=>
+                        $a['horas_transcurridas'];
                 }
 
                 return $a['_orden'] <=> $b['_orden'];
@@ -630,8 +891,8 @@ class TicketsSistemas extends Conectar {
         );
 
         /*
-     * Quitamos el dato interno utilizado para ordenar.
-     */
+         * Quitamos el dato interno utilizado para ordenar.
+         */
         foreach ($resultado as &$ticket) {
             unset($ticket['_orden']);
         }
@@ -642,10 +903,11 @@ class TicketsSistemas extends Conectar {
     }
 
     /*
- * Este indicador mide antigüedad del backlog.
- * No corresponde al cálculo de SLA.
- */
-    public function antiguedadTicketsPendientes() {
+     * Este indicador mide antigüedad del backlog.
+     * No corresponde al cálculo de SLA.
+     */
+    public function antiguedadTicketsPendientes()
+    {
         $conexion = parent::Conexion();
 
         $sql = "
@@ -718,35 +980,31 @@ class TicketsSistemas extends Conectar {
         $resultado = $sentencia->fetch(PDO::FETCH_ASSOC);
 
         return array(
-
             'rango_0_1' =>
-            (int) ($resultado['rango_0_1'] ?? 0),
-
+                (int) ($resultado['rango_0_1'] ?? 0),
             'rango_2_3' =>
-            (int) ($resultado['rango_2_3'] ?? 0),
-
+                (int) ($resultado['rango_2_3'] ?? 0),
             'rango_4_7' =>
-            (int) ($resultado['rango_4_7'] ?? 0),
-
+                (int) ($resultado['rango_4_7'] ?? 0),
             'rango_mayor_7' =>
-            (int) ($resultado['rango_mayor_7'] ?? 0)
-
+                (int) ($resultado['rango_mayor_7'] ?? 0)
         );
     }
 
     /*
- * =====================================================
- * TIEMPO PROMEDIO DE SOLUCION VS SLA
- * =====================================================
- */
+     * =====================================================
+     * TIEMPO PROMEDIO DE SOLUCION VS SLA
+     * =====================================================
+     */
 
-    public function tiempoPromedioSolucionVsSla($matrizTiempos) {
+    public function tiempoPromedioSolucionVsSla($matrizTiempos)
+    {
         $conexion = parent::Conexion();
 
         /*
-     * Consultamos los últimos 7 días en los que
-     * existan tickets cerrados.
-     */
+         * Consultamos los últimos 7 días en los que
+         * existan tickets cerrados.
+         */
         $sql = "
         SELECT
             t.ticket_id,
@@ -784,14 +1042,12 @@ class TicketsSistemas extends Conectar {
 
         $tickets = $sentencia->fetchAll(PDO::FETCH_ASSOC);
 
-
         /*
-     * Agrupamos los tickets por fecha de cierre.
-     */
+         * Agrupamos los tickets por fecha de cierre.
+         */
         $agrupados = array();
 
         foreach ($tickets as $ticket) {
-
             $fecha = $ticket['fecha_cierre_dia'];
 
             $prioridad = strtoupper(
@@ -799,15 +1055,14 @@ class TicketsSistemas extends Conectar {
             );
 
             /*
-         * Si la prioridad no existe en la matriz,
-         * no la utilizamos para el cálculo.
-         */
+             * Si la prioridad no existe en la matriz,
+             * no la utilizamos para el cálculo.
+             */
             if (!isset($matrizTiempos[$prioridad])) {
                 continue;
             }
 
             if (!isset($agrupados[$fecha])) {
-
                 $agrupados[$fecha] = array(
                     'suma_real' => 0,
                     'suma_sla' => 0,
@@ -815,22 +1070,19 @@ class TicketsSistemas extends Conectar {
                 );
             }
 
-
             /*
-         * Tiempo real del ticket:
-         * fecha cierre - fecha creación.
-         */
+             * Tiempo real del ticket:
+             * fecha cierre - fecha creación.
+             */
             $horasReal =
                 (float) $ticket['horas_solucion'];
 
-
             /*
-         * SLA máximo permitido
-         * según la prioridad del ticket.
-         */
+             * SLA máximo permitido
+             * según la prioridad del ticket.
+             */
             $horasSla =
                 (float) $matrizTiempos[$prioridad]['solucion_horas'];
-
 
             $agrupados[$fecha]['suma_real'] +=
                 $horasReal;
@@ -841,14 +1093,12 @@ class TicketsSistemas extends Conectar {
             $agrupados[$fecha]['tickets']++;
         }
 
-
         /*
-     * Construimos la serie final.
-     */
+         * Construimos la serie final.
+         */
         $serie = array();
 
         foreach ($agrupados as $fecha => $datos) {
-
             if ($datos['tickets'] <= 0) {
                 continue;
             }
@@ -861,75 +1111,67 @@ class TicketsSistemas extends Conectar {
                 $datos['suma_sla']
                 / $datos['tickets'];
 
-
             $serie[] = array(
-
                 'fecha' =>
-                date(
-                    'd/m',
-                    strtotime($fecha)
-                ),
-
+                    date(
+                        'd/m',
+                        strtotime($fecha)
+                    ),
                 'promedio_real' =>
-                round(
-                    $promedioReal,
-                    2
-                ),
-
+                    round(
+                        $promedioReal,
+                        2
+                    ),
                 'promedio_sla' =>
-                round(
-                    $promedioSla,
-                    2
-                ),
-
+                    round(
+                        $promedioSla,
+                        2
+                    ),
                 'tickets_cerrados' =>
-                (int) $datos['tickets']
+                    (int) $datos['tickets']
             );
         }
-
 
         return $serie;
     }
 
     /*
- * =========================================================
- * DASHBOARD GERENCIAL
- * =========================================================
- *
- * Genera los indicadores de gestión de Mesa de Servicio
- * para un rango determinado.
- *
- * Retorna:
- *
- * - KPI generales.
- * - Comportamiento diario.
- * - Antigüedad del backlog.
- * - Tickets por categoría.
- * - Tickets por área.
- */
+     * =========================================================
+     * DASHBOARD GERENCIAL
+     * =========================================================
+     *
+     * Genera los indicadores de gestión de Mesa de Servicio
+     * para un rango determinado.
+     *
+     * Retorna:
+     *
+     * - KPI generales.
+     * - Comportamiento diario.
+     * - Antigüedad del backlog.
+     * - Tickets por categoría.
+     * - Tickets por área.
+     */
     public function dashboardGerencial(
         $fechaInicio,
         $fechaFinal,
         $matrizTiempos
     ) {
-
         $conexion = parent::Conexion();
 
-
         /*
-     * =====================================================
-     * 1. KPI GENERALES
-     * =====================================================
-     *
-     * Recibidos:
-     * tickets creados dentro del rango.
-     *
-     * Cerrados:
-     * tickets cuya fecha de cierre corresponde al rango.
-     *
-     * Pendientes:
-     * tickets actualmente en estado EN_ESPERA.
-     */
+         * =====================================================
+         * 1. KPI GENERALES
+         * =====================================================
+         *
+         * Recibidos:
+         * tickets creados dentro del rango.
+         *
+         * Cerrados:
+         * tickets cuya fecha de cierre corresponde al rango.
+         *
+         * Pendientes:
+         * tickets actualmente en estado EN_ESPERA.
+         */
         $sqlKpi = "
         SELECT
 
@@ -954,25 +1196,18 @@ class TicketsSistemas extends Conectar {
         FROM tickets_sistemas t
     ";
 
-
         $sentenciaKpi =
             $conexion->prepare($sqlKpi);
 
-
         $sentenciaKpi->execute(array(
-
             ':fecha_inicio' =>
-            $fechaInicio,
-
+                $fechaInicio,
             ':fecha_final' =>
-            $fechaFinal
-
+                $fechaFinal
         ));
-
 
         $kpi =
             $sentenciaKpi->fetch(PDO::FETCH_ASSOC);
-
 
         $recibidos =
             (int) ($kpi['recibidos'] ?? 0);
@@ -983,16 +1218,14 @@ class TicketsSistemas extends Conectar {
         $pendientes =
             (int) ($kpi['pendientes'] ?? 0);
 
-
-
         /*
-     * =====================================================
-     * 2. CUMPLIMIENTO DE TIEMPOS
-     * =====================================================
-     *
-     * Consultamos tickets cerrados dentro del periodo
-     * y calculamos su tiempo real de solución.
-     */
+         * =====================================================
+         * 2. CUMPLIMIENTO DE TIEMPOS
+         * =====================================================
+         *
+         * Consultamos tickets cerrados dentro del periodo
+         * y calculamos su tiempo real de solución.
+         */
         $sqlCumplimiento = "
         SELECT
 
@@ -1018,137 +1251,108 @@ class TicketsSistemas extends Conectar {
               AND :fecha_final
     ";
 
-
         $sentenciaCumplimiento =
             $conexion->prepare(
                 $sqlCumplimiento
             );
 
-
         $sentenciaCumplimiento->execute(array(
-
             ':fecha_inicio' =>
-            $fechaInicio,
-
+                $fechaInicio,
             ':fecha_final' =>
-            $fechaFinal
-
+                $fechaFinal
         ));
-
 
         $ticketsCerrados =
             $sentenciaCumplimiento
-            ->fetchAll(PDO::FETCH_ASSOC);
-
+                ->fetchAll(PDO::FETCH_ASSOC);
 
         $evaluados = 0;
 
         $cumplidos = 0;
 
-
         foreach (
-            $ticketsCerrados
-            as $ticket
+            $ticketsCerrados as $ticket
         ) {
-
             $prioridad =
                 strtoupper(
                     trim(
-                        (string)
-                        $ticket['prioridad']
+                        (string) $ticket['prioridad']
                     )
                 );
 
-
             /*
-         * Si la prioridad no está definida
-         * en la matriz SLA, no se utiliza
-         * para el porcentaje.
-         */
+             * Si la prioridad no está definida
+             * en la matriz SLA, no se utiliza
+             * para el porcentaje.
+             */
             if (
                 !isset(
                     $matrizTiempos[$prioridad]
                 )
             ) {
-
                 continue;
             }
 
-
             $horasPermitidas =
-                (float)
-                $matrizTiempos[$prioridad]['solucion_horas'];
-
+                (float) $matrizTiempos[$prioridad]['solucion_horas'];
 
             $horasSolucion =
-                (float)
-                $ticket['horas_solucion'];
-
+                (float) $ticket['horas_solucion'];
 
             $evaluados++;
 
-
             if (
-                $horasSolucion
-                <=
+                $horasSolucion <=
                 $horasPermitidas
             ) {
-
                 $cumplidos++;
             }
         }
 
-
         $porcentajeCumplimiento =
             $evaluados > 0
-            ? round(
-                (
-                    $cumplidos
-                    /
-                    $evaluados
+                ? round(
+                    (
+                        $cumplidos
+                        / $evaluados
+                    )
+                        * 100,
+                    1
                 )
-                    *
-                    100,
-                1
-            )
-            : 0;
-
+                : 0;
 
         /*
-     * Porcentaje de cierre.
-     *
-     * Este valor compara los cierres del periodo
-     * contra los tickets recibidos durante el mismo.
-     */
+         * Porcentaje de cierre.
+         *
+         * Este valor compara los cierres del periodo
+         * contra los tickets recibidos durante el mismo.
+         */
         $porcentajeCierre =
             $recibidos > 0
-            ? round(
-                (
-                    $cerrados
-                    /
-                    $recibidos
+                ? round(
+                    (
+                        $cerrados
+                        / $recibidos
+                    )
+                        * 100,
+                    1
                 )
-                    *
-                    100,
-                1
-            )
-            : 0;
-
-
+                : 0;
 
         /*
-     * =====================================================
-     * 3. BACKLOG
-     * =====================================================
-     *
-     * Backlog:
-     * todo ticket que sigue activo.
-     *
-     * Estados:
-     * ABIERTO
-     * EN_PROCESO
-     * EN_ESPERA
-     */
+         * =====================================================
+         * 3. BACKLOG
+         * =====================================================
+         *
+         * Backlog:
+         * todo ticket que sigue activo.
+         *
+         * Estados:
+         * ABIERTO
+         * EN_PROCESO
+         * EN_ESPERA
+         */
         $sqlBacklog = "
         SELECT
 
@@ -1193,94 +1397,77 @@ class TicketsSistemas extends Conectar {
         )
     ";
 
-
         $sentenciaBacklog =
             $conexion->prepare(
                 $sqlBacklog
             );
 
-
         $sentenciaBacklog->execute();
-
 
         $backlogResultado =
             $sentenciaBacklog
-            ->fetch(PDO::FETCH_ASSOC);
-
+                ->fetch(PDO::FETCH_ASSOC);
 
         $backlog = array(
-
             array(
                 'rango' => '0 - 3 días',
                 'total' =>
-                (int)
-                (
-                    $backlogResultado['rango_0_3']
-                    ?? 0
-                )
+                    (int) (
+                        $backlogResultado['rango_0_3']
+                            ?? 0
+                    )
             ),
-
             array(
                 'rango' => '4 - 7 días',
                 'total' =>
-                (int)
-                (
-                    $backlogResultado['rango_4_7']
-                    ?? 0
-                )
+                    (int) (
+                        $backlogResultado['rango_4_7']
+                            ?? 0
+                    )
             ),
-
             array(
                 'rango' => '8 - 15 días',
                 'total' =>
-                (int)
-                (
-                    $backlogResultado['rango_8_15']
-                    ?? 0
-                )
+                    (int) (
+                        $backlogResultado['rango_8_15']
+                            ?? 0
+                    )
             ),
-
             array(
                 'rango' => 'Más de 15 días',
                 'total' =>
-                (int)
-                (
-                    $backlogResultado['rango_mayor_15']
-                    ?? 0
-                )
+                    (int) (
+                        $backlogResultado['rango_mayor_15']
+                            ?? 0
+                    )
             )
-
         );
 
-
         /*
-     * KPI de backlog crítico.
-     *
-     * Para la vista gerencial se consideran
-     * críticos los pendientes con más de 15 días.
-     */
+         * KPI de backlog crítico.
+         *
+         * Para la vista gerencial se consideran
+         * críticos los pendientes con más de 15 días.
+         */
         $backlogCritico =
-            (int)
-            (
+            (int) (
                 $backlogResultado['rango_mayor_15']
-                ?? 0
+                    ?? 0
             );
 
-
-
         /*
-     * =====================================================
-     * 4. COMPORTAMIENTO
-     * =====================================================
-     *
-     * Construimos una serie por día:
-     *
-     * - recibidos
-     * - cerrados
-     *
-     * generate_series permite mostrar también
-     * días sin tickets.
-     */
+         * =====================================================
+         * 4. COMPORTAMIENTO
+         * =====================================================
+         *
+         * Construimos una serie por día:
+         *
+         * - recibidos
+         * - cerrados
+         *
+         * generate_series permite mostrar también
+         * días sin tickets.
+         */
         $sqlComportamiento = "
         WITH fechas AS (
 
@@ -1361,68 +1548,50 @@ class TicketsSistemas extends Conectar {
             f.fecha
     ";
 
-
         $sentenciaComportamiento =
             $conexion->prepare(
                 $sqlComportamiento
             );
 
-
         $sentenciaComportamiento
             ->execute(array(
-
                 ':fecha_inicio' =>
-                $fechaInicio,
-
+                    $fechaInicio,
                 ':fecha_final' =>
-                $fechaFinal
-
+                    $fechaFinal
             ));
-
 
         $comportamientoDb =
             $sentenciaComportamiento
-            ->fetchAll(PDO::FETCH_ASSOC);
-
+                ->fetchAll(PDO::FETCH_ASSOC);
 
         $comportamiento = array();
 
-
         foreach (
-            $comportamientoDb
-            as $fila
+            $comportamientoDb as $fila
         ) {
-
             $comportamiento[] =
                 array(
-
                     'fecha' =>
-                    date(
-                        'd/m',
-                        strtotime(
-                            $fila['fecha']
-                        )
-                    ),
-
+                        date(
+                            'd/m',
+                            strtotime(
+                                $fila['fecha']
+                            )
+                        ),
                     'recibidos' =>
-                    (int)
-                    $fila['recibidos'],
-
+                        (int) $fila['recibidos'],
                     'cerrados' =>
-                    (int)
-                    $fila['cerrados']
-
+                        (int) $fila['cerrados']
                 );
         }
 
-
-
         /*
-     * =====================================================
-     * 5. TICKETS POR CATEGORÍA
-     * =====================================================
-     */
-        $sqlCategorias = "
+         * =====================================================
+         * 5. TICKETS POR CATEGORÍA
+         * =====================================================
+         */
+        $sqlCategorias = '
         SELECT
 
             c.categoria_id,
@@ -1450,66 +1619,48 @@ class TicketsSistemas extends Conectar {
         ORDER BY
             total DESC,
             c.nombre
-    ";
-
+    ';
 
         $sentenciaCategorias =
             $conexion->prepare(
                 $sqlCategorias
             );
 
-
         $sentenciaCategorias
             ->execute(array(
-
                 ':fecha_inicio' =>
-                $fechaInicio,
-
+                    $fechaInicio,
                 ':fecha_final' =>
-                $fechaFinal
-
+                    $fechaFinal
             ));
-
 
         $categoriasDb =
             $sentenciaCategorias
-            ->fetchAll(PDO::FETCH_ASSOC);
-
+                ->fetchAll(PDO::FETCH_ASSOC);
 
         $categorias = array();
 
-
         foreach (
-            $categoriasDb
-            as $categoria
+            $categoriasDb as $categoria
         ) {
-
             $categorias[] = array(
-
                 'categoria_id' =>
-                (int)
-                $categoria['categoria_id'],
-
+                    (int) $categoria['categoria_id'],
                 'categoria' =>
-                $categoria['categoria'],
-
+                    $categoria['categoria'],
                 'total' =>
-                (int)
-                $categoria['total']
-
+                    (int) $categoria['total']
             );
         }
 
-
-
         /*
-     * =====================================================
-     * 6. TICKETS POR ÁREA
-     * =====================================================
-     *
-     * El área corresponde a la copia almacenada
-     * del empleado al momento de crear el ticket.
-     */
+         * =====================================================
+         * 6. TICKETS POR ÁREA
+         * =====================================================
+         *
+         * El área corresponde a la copia almacenada
+         * del empleado al momento de crear el ticket.
+         */
         $sqlAreas = "
     SELECT
 
@@ -1548,97 +1699,108 @@ class TicketsSistemas extends Conectar {
         area
 ";
 
-
         $sentenciaAreas =
             $conexion->prepare(
                 $sqlAreas
             );
 
-
         $sentenciaAreas->execute(array(
-
             ':fecha_inicio' =>
-            $fechaInicio,
-
+                $fechaInicio,
             ':fecha_final' =>
-            $fechaFinal
-
+                $fechaFinal
         ));
-
 
         $areasDb =
             $sentenciaAreas
-            ->fetchAll(PDO::FETCH_ASSOC);
-
+                ->fetchAll(PDO::FETCH_ASSOC);
 
         $areas = array();
 
-
         foreach ($areasDb as $area) {
-
             $areas[] = array(
-
                 'area' =>
-                $area['area'],
-
+                    $area['area'],
                 'total' =>
-                (int) $area['total']
-
+                    (int) $area['total']
             );
         }
 
-
-
         /*
-     * =====================================================
-     * RESPUESTA FINAL
-     * =====================================================
-     */
+         * =====================================================
+         * RESPUESTA FINAL
+         * =====================================================
+         */
         return array(
-
             'kpis' => array(
-
                 'recibidos' =>
-                $recibidos,
-
+                    $recibidos,
                 'cerrados' =>
-                $cerrados,
-
+                    $cerrados,
                 'pendientes' =>
-                $pendientes,
-
+                    $pendientes,
                 'cumplimiento' =>
-                $porcentajeCumplimiento,
-
+                    $porcentajeCumplimiento,
                 'porcentaje_cierre' =>
-                $porcentajeCierre,
-
+                    $porcentajeCierre,
                 'backlog_critico' =>
-                $backlogCritico,
+                    $backlogCritico,
 
                 /*
-             * Datos complementarios.
-             */
+                 * Datos complementarios.
+                 */
                 'tickets_evaluados_sla' =>
-                $evaluados,
-
+                    $evaluados,
                 'tickets_cumplen_sla' =>
-                $cumplidos
-
+                    $cumplidos
             ),
-
             'comportamiento' =>
-            $comportamiento,
-
+                $comportamiento,
             'backlog' =>
-            $backlog,
-
+                $backlog,
             'categorias' =>
-            $categorias,
-
+                $categorias,
             'areas' =>
-            $areas
-
+                $areas
         );
+    }
+
+    public function crearNotificacion(
+        $ticketId,
+        $usuarioId,
+        $tipo,
+        $titulo,
+        $mensaje
+    ) {
+        $conexion = parent::Conexion();
+
+        $sql = '
+        INSERT INTO tickets_sistemas_notificaciones
+        (
+            ticket_id,
+            usuario_id,
+            tipo,
+            titulo,
+            mensaje
+        )
+        VALUES
+        (
+            :ticket,
+            :usuario,
+            :tipo,
+            :titulo,
+            :mensaje
+        )
+    ';
+
+        $sentencia = $conexion->prepare($sql);
+
+        return $sentencia->execute(array(
+            ':ticket' => $ticketId,
+            ':usuario' => $usuarioId,
+            ':tipo' => $tipo,
+            ':titulo' => $titulo,
+            ':mensaje' => $mensaje
+        ));
     }
 }
