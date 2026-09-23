@@ -1,8 +1,9 @@
 <?php
 
-require_once ('../config/conexion.php');
-require_once ('../models/TicketsSistemas.php');
-require_once ('curl.php');
+require_once('../config/conexion.php');
+require_once('../models/TicketsSistemas.php');
+require_once('../models/EmailTickets.php');
+require_once('curl.php');
 
 header('Content-Type: application/json; charset=utf-8');
 $modelo = new TicketsSistemas();
@@ -225,6 +226,46 @@ try {
                 'equipo' => textoPostTicketSistemas('equipo', 150)
             );
             $creado = $modelo->crearTicket($datos);
+            try {
+
+                $ticket = $modelo->obtenerTicket(
+                    $creado['ticket_id']
+                );
+
+                if ($ticket !== null) {
+                    error_log(
+                        'MAIL_HOST getenv: '
+                            . var_export(
+                                getenv('MAIL_HOST'),
+                                true
+                            )
+                    );
+
+                    error_log(
+                        'MAIL_HOST SERVER: '
+                            . var_export(
+                                isset($_SERVER['MAIL_HOST'])
+                                    ? $_SERVER['MAIL_HOST']
+                                    : null,
+                                true
+                            )
+                    );
+
+                    $correoTickets = new EmailTickets();
+
+                    $correoTickets->enviarNuevoTicket(
+                        $ticket
+                    );
+                }
+            } catch (Throwable $errorCorreo) {
+
+                error_log(
+                    'Error enviando correo del ticket '
+                        . $creado['ticket_numero']
+                        . ': '
+                        . $errorCorreo->getMessage()
+                );
+            }
             responderTicketSistemas('success', 'Ticket ' . $creado['ticket_numero'] . ' registrado correctamente.', $creado, 201);
             break;
 
@@ -528,14 +569,14 @@ try {
             $fechaInicio =
                 isset($_GET['fecha_inicio']) &&
                 !is_array($_GET['fecha_inicio'])
-                    ? trim((string) $_GET['fecha_inicio'])
-                    : '';
+                ? trim((string) $_GET['fecha_inicio'])
+                : '';
 
             $fechaFinal =
                 isset($_GET['fecha_final']) &&
                 !is_array($_GET['fecha_final'])
-                    ? trim((string) $_GET['fecha_final'])
-                    : '';
+                ? trim((string) $_GET['fecha_final'])
+                : '';
 
             /*
              * Validamos que ambas fechas sean obligatorias.
