@@ -238,4 +238,54 @@ class TicketsSistemasController
             );
         }
     }
+
+    /*
+     * =====================================================
+     * MIS TICKETS
+     * =====================================================
+     */
+
+    public function misTickets()
+    {
+        try {
+            $documento = isset($_GET['documento'])
+                ? trim((string) $_GET['documento'])
+                : '';
+
+            if (
+                $documento === '' ||
+                !preg_match('/^[0-9]+$/', $documento)
+            ) {
+                ApiResponse::json(
+                    false,
+                    'El documento del empleado no es válido.',
+                    null,
+                    400
+                );
+            }
+
+            $tickets = $this->modelo->listarMisTickets(
+                $documento
+            );
+
+            ApiResponse::json(
+                true,
+                'Tickets consultados correctamente.',
+                $tickets,
+                200
+            );
+        } catch (Throwable $e) {
+            error_log(
+                'API Tickets - Error consultando tickets: '
+                . $e->getMessage()
+            );
+
+            ApiResponse::json(
+                false,
+                'No fue posible consultar los tickets.',
+                null,
+                500
+            );
+        }
+    }
 }

@@ -68,6 +68,16 @@ try {
             break;
 
         /*
+         * Consultar tickets de un empleado.
+         *
+         * GET /api/tickets.php?op=misTickets&documento=1095934409
+         */
+        case 'misTickets':
+            validarMetodo('GET');
+            $controller->misTickets();
+            break;
+
+        /*
          * Operación no encontrada.
          */
         default:

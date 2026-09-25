@@ -609,4 +609,51 @@ class TicketsSistemasApi extends Conectar
             return null;
         }
     }
+
+    /*
+     * =====================================================
+     * LISTAR TICKETS DEL EMPLEADO
+     * =====================================================
+     */
+
+    public function listarMisTickets($documento)
+    {
+        try {
+            $conexion = parent::Conexion();
+
+            $sql = '
+            SELECT
+                t.ticket_id,
+                t.ticket_numero,
+                t.tipo,
+                t.asunto,
+                t.prioridad,
+                t.estado,
+                t.fecha_creacion,
+                c.nombre AS categoria
+            FROM public.tickets_sistemas t
+            INNER JOIN public.tickets_sistemas_categorias c
+                ON c.categoria_id = t.categoria_id
+            WHERE t.empleado_documento = :documento
+            ORDER BY
+                t.fecha_creacion DESC,
+                t.ticket_id DESC
+        ';
+
+            $sentencia = $conexion->prepare($sql);
+
+            $sentencia->execute(array(
+                ':documento' => $documento
+            ));
+
+            return $sentencia->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            error_log(
+                'API Tickets - Error listando tickets del empleado: '
+                . $e->getMessage()
+            );
+
+            throw $e;
+        }
+    }
 }
