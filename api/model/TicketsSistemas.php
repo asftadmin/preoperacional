@@ -28,7 +28,7 @@ class TicketsSistemasApi extends Conectar
         } catch (Throwable $e) {
             error_log(
                 'API Tickets - Error listando categorías: '
-                . $e->getMessage()
+                    . $e->getMessage()
             );
 
             return [];
@@ -124,7 +124,7 @@ class TicketsSistemasApi extends Conectar
         return $sentencia->execute([
             ':ticket_id' => $ticketId,
             ':comentario' =>
-                'Ticket creado por el usuario desde Control de Personal.'
+            'Ticket creado por el usuario desde Control de Personal.'
         ]);
     }
 
@@ -390,7 +390,7 @@ class TicketsSistemasApi extends Conectar
                 return [
                     'success' => false,
                     'message' =>
-                        'La categoría seleccionada no existe o está inactiva.'
+                    'La categoría seleccionada no existe o está inactiva.'
                 ];
             }
 
@@ -462,20 +462,20 @@ class TicketsSistemasApi extends Conectar
                 ':empleado_documento' => $documento,
                 ':empleado_nombre' => $nombre,
                 ':empleado_correo' =>
-                    $correo !== '' ? $correo : null,
+                $correo !== '' ? $correo : null,
                 ':empleado_cargo' =>
-                    $cargo !== '' ? $cargo : null,
+                $cargo !== '' ? $cargo : null,
                 ':empleado_area' =>
-                    $area !== '' ? $area : null,
+                $area !== '' ? $area : null,
                 ':tipo' => $tipo,
                 ':categoria_id' => $categoriaId,
                 ':asunto' => $asunto,
                 ':descripcion' => $descripcion,
                 ':prioridad' => $prioridad,
                 ':ubicacion' =>
-                    $ubicacion !== '' ? $ubicacion : null,
+                $ubicacion !== '' ? $ubicacion : null,
                 ':equipo' =>
-                    $equipo !== '' ? $equipo : null
+                $equipo !== '' ? $equipo : null
             ]);
 
             $ticketId = $sentencia->fetchColumn();
@@ -544,13 +544,13 @@ class TicketsSistemasApi extends Conectar
 
             error_log(
                 'API Tickets - Error creando ticket: '
-                . $e->getMessage()
+                    . $e->getMessage()
             );
 
             return [
                 'success' => false,
                 'message' =>
-                    'No fue posible crear el ticket. Intente nuevamente.'
+                'No fue posible crear el ticket. Intente nuevamente.'
             ];
         }
     }
@@ -603,7 +603,7 @@ class TicketsSistemasApi extends Conectar
         } catch (Throwable $e) {
             error_log(
                 'API Tickets - Error obteniendo ticket: '
-                . $e->getMessage()
+                    . $e->getMessage()
             );
 
             return null;
@@ -650,10 +650,95 @@ class TicketsSistemasApi extends Conectar
         } catch (Throwable $e) {
             error_log(
                 'API Tickets - Error listando tickets del empleado: '
-                . $e->getMessage()
+                    . $e->getMessage()
             );
 
             throw $e;
         }
+    }
+
+    /*
+ * =====================================================
+ * DETALLE DE TICKET DEL EMPLEADO
+ * =====================================================
+ */
+    public function obtenerDetalleEmpleado($ticketId, $documento)
+    {
+        $conexion = parent::Conexion();
+
+        $sql = "
+        SELECT
+            t.ticket_id,
+            t.ticket_numero,
+            t.tipo,
+            t.asunto,
+            t.descripcion,
+            t.prioridad,
+            t.estado,
+            t.ubicacion,
+            t.equipo,
+            t.solucion,
+            t.fecha_creacion,
+            t.fecha_actualizacion,
+            t.fecha_cierre,
+            c.nombre AS categoria
+        FROM tickets_sistemas t
+        INNER JOIN tickets_sistemas_categorias c
+            ON c.categoria_id = t.categoria_id
+        WHERE t.ticket_id = :ticket
+          AND t.empleado_documento = :documento
+        LIMIT 1
+    ";
+
+        $sentencia = $conexion->prepare($sql);
+
+        $sentencia->execute(array(
+            ':ticket' => $ticketId,
+            ':documento' => $documento
+        ));
+
+        $ticket = $sentencia->fetch(PDO::FETCH_ASSOC);
+
+        return $ticket === false
+            ? null
+            : $ticket;
+    }
+
+
+    /*
+ * =====================================================
+ * SEGUIMIENTOS DEL TICKET DEL EMPLEADO
+ * =====================================================
+ */
+    public function listarSeguimientosEmpleado($ticketId, $documento)
+    {
+        $conexion = parent::Conexion();
+
+        $sql = "
+        SELECT
+            s.seguimiento_id,
+            s.tipo,
+            s.comentario,
+            s.estado_anterior,
+            s.estado_nuevo,
+            s.fecha_creacion
+        FROM tickets_sistemas_seguimientos s
+        INNER JOIN tickets_sistemas t
+            ON t.ticket_id = s.ticket_id
+        WHERE s.ticket_id = :ticket
+          AND t.empleado_documento = :documento
+        ORDER BY
+            s.fecha_creacion ASC,
+            s.seguimiento_id ASC
+    ";
+
+        $sentencia = $conexion->prepare($sql);
+
+        $sentencia->execute(array(
+            ':ticket' => $ticketId,
+            ':documento' => $documento
+        ));
+
+        return $sentencia->fetchAll(PDO::FETCH_ASSOC);
     }
 }

@@ -134,8 +134,8 @@ class TicketsSistemasController
             try {
                 $ticketId =
                     isset($respuesta['data']['ticket_id'])
-                        ? (int) $respuesta['data']['ticket_id']
-                        : 0;
+                    ? (int) $respuesta['data']['ticket_id']
+                    : 0;
 
                 if ($ticketId > 0) {
                     /*
@@ -166,15 +166,15 @@ class TicketsSistemasController
                  */
                 error_log(
                     'API Tickets - Error enviando correo del ticket '
-                    . (
-                        isset(
-                            $respuesta['data']['ticket_numero']
-                        )
+                        . (
+                            isset(
+                                $respuesta['data']['ticket_numero']
+                            )
                             ? $respuesta['data']['ticket_numero']
                             : ''
-                    )
-                    . ': '
-                    . $errorCorreo->getMessage()
+                        )
+                        . ': '
+                        . $errorCorreo->getMessage()
                 );
             }
 
@@ -198,7 +198,7 @@ class TicketsSistemasController
         } catch (Throwable $e) {
             error_log(
                 'API Tickets - Error en controlador crear: '
-                . $e->getMessage()
+                    . $e->getMessage()
             );
 
             ApiResponse::json(
@@ -227,7 +227,7 @@ class TicketsSistemasController
         } catch (Throwable $e) {
             error_log(
                 'API Tickets - Error consultando categorías: '
-                . $e->getMessage()
+                    . $e->getMessage()
             );
 
             ApiResponse::json(
@@ -277,7 +277,7 @@ class TicketsSistemasController
         } catch (Throwable $e) {
             error_log(
                 'API Tickets - Error consultando tickets: '
-                . $e->getMessage()
+                    . $e->getMessage()
             );
 
             ApiResponse::json(
@@ -287,5 +287,71 @@ class TicketsSistemasController
                 500
             );
         }
+    }
+
+    /*
+ * =====================================================
+ * DETALLE DEL TICKET DEL EMPLEADO
+ * =====================================================
+ */
+    public function detalle()
+    {
+        $ticketId = isset($_GET['id'])
+            ? filter_var($_GET['id'], FILTER_VALIDATE_INT)
+            : false;
+
+        $documento = isset($_GET['documento'])
+            ? trim((string) $_GET['documento'])
+            : '';
+
+        if (!$ticketId) {
+            ApiResponse::json(
+                false,
+                'El ticket indicado no es válido.',
+                null,
+                422
+            );
+        }
+
+        if (
+            $documento === ''
+            || !preg_match('/^[0-9]{3,20}$/D', $documento)
+        ) {
+            ApiResponse::json(
+                false,
+                'El documento no es válido.',
+                null,
+                422
+            );
+        }
+
+        $ticket = $this->modelo->obtenerDetalleEmpleado(
+            $ticketId,
+            $documento
+        );
+
+        if ($ticket === null) {
+            ApiResponse::json(
+                false,
+                'El ticket no existe o no pertenece al empleado.',
+                null,
+                404
+            );
+        }
+
+        $seguimientos = $this->modelo->listarSeguimientosEmpleado(
+            $ticketId,
+            $documento
+        );
+
+        ApiResponse::json(
+            true,
+            'Detalle del ticket consultado correctamente.',
+            array(
+                'ticket' => $ticket,
+                'seguimientos' => $seguimientos
+            ),
+            200
+        );
     }
 }

@@ -78,6 +78,18 @@ try {
             break;
 
         /*
+        * Consultar detalle de un ticket del empleado.
+        *
+        * GET /api/tickets.php?op=detalle&id=64&documento=1095934409
+        */
+        case 'detalle':
+            validarMetodo('GET');
+
+            $controller->detalle();
+
+            break;
+
+        /*
          * Operación no encontrada.
          */
         default:
@@ -96,7 +108,7 @@ try {
      */
     error_log(
         'API Tickets - Error general: '
-        . $e->getMessage()
+            . $e->getMessage()
     );
 
     /*
