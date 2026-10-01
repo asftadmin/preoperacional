@@ -461,6 +461,13 @@ if (is_array($datos) and count($datos) > 0) {
                             <!-- RENDIMIENTO COMBUSTIBLE -->
                             <div id="rendimiento_combustible" class="tab-pane">
                                 <div class="container-fluid">
+                                    <p class="text-muted mt-2">Vehiculos: km reportados / galones autorizados.
+                                        Maquinaria: galones autorizados / horas reportadas.
+                                        Las autorizaciones se toman por fecha de creacion, excluyendo anuladas.
+                                        El recorrido suma las diferencias final - inicial validas de cada actividad;
+                                        las lecturas inicial y final muestran los extremos del dia.
+                                        El rendimiento del periodo usa los totales del filtro, incluidos dias sin cruce.
+                                        Sin datos indica que falta una fuente o no se puede dividir.</p>
 
                                     <!-- FILTROS -->
                                     <div class="card card-info">
@@ -544,10 +551,10 @@ if (is_array($datos) and count($datos) > 0) {
                                                         <thead class="bg-info">
                                                             <tr>
                                                                 <th>Fecha</th>
-                                                                <th>Galones</th>
-                                                                <th>Km Anterior</th>
-                                                                <th>Km Actual</th>
-                                                                <th>Diferencia</th>
+                                                                <th>Galones autorizados</th>
+                                                                <th>Km inicial</th>
+                                                                <th>Km final</th>
+                                                                <th>Km reportados</th>
                                                                 <th>Km/GL</th>
                                                             </tr>
                                                         </thead>

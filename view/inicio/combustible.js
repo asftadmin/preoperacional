@@ -60,6 +60,17 @@ $(document).ready(function () {
         var placa = $('#comb_placa').val() || '';
         var obra = $('#comb_obra').val() || '';
 
+        limpiarResultadoCombustible();
+        if (!placa) {
+            $('#divGraficoIndividual').text('Selecciona una placa.');
+            return;
+        }
+        var maquinaria = esMaquinariaCombustible();
+        $('#tablaKmGal thead th').eq(2).text(maquinaria ? 'Horometro inicial' : 'Km inicial');
+        $('#tablaKmGal thead th').eq(3).text(maquinaria ? 'Horometro final' : 'Km final');
+        $('#tablaKmGal thead th').eq(4).text(maquinaria ? 'Horas reportadas' : 'Km reportados');
+        $('#tablaKmGal thead th').eq(5).text(maquinaria ? 'GL/HORA' : 'KM/GL');
+
         /* detectar tipo del vehículo seleccionado */
         var tipoId = parseInt($('#comb_placa option:selected').data('tipo')) || 0;
         var esMaquinaria = [2, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 17].indexOf(tipoId) !== -1;
@@ -72,12 +83,13 @@ $(document).ready(function () {
             $('#tituloGrafico').text('EVOLUCIÓN KM/GL — VEHÍCULOS');
             $('#tituloTabla').text('DETALLE KM/GL — VEHÍCULOS');
             cargarGraficoIndividual(placa, obra, fechaIni, fechaFin);
-            cargarTablaKmGal(placa, obra, fechaIni, fechaFin);
+
         }
     });
 
     /* ── limpiar ── */
     $('#btnLimpiarComb').on('click', function () {
+        limpiarResultadoCombustible();
         /* limpiar filtros */
         $('#comb_fechas').val('');
         $('#comb_placa').val('').trigger('change');  // trigger limpia el combo obras
@@ -181,6 +193,7 @@ function cargarGraficoIndividual(placa, obra, fechaIni, fechaFin) {
         success: function (res) {
             if (res.success && res.data.length) {
                 renderGraficoIndividual(res.data);
+                cargarTablaGlHora(res.data);
             } else {
                 $('#divGraficoIndividual').html('<p class="text-center text-muted mt-4">Sin datos para mostrar.</p>');
             }
@@ -195,8 +208,8 @@ function renderGraficoIndividual(data) {
     $('#divGraficoIndividual').empty().html('<canvas id="canvasIndividual"></canvas>');
 
     var labels = data.map(function (d) { return d.desp_fech; });
-    var valores = data.map(function (d) { return parseFloat(d.km_por_galon) || 0; });
-    var promedio = (valores.reduce(function (a, b) { return a + b; }, 0) / valores.length).toFixed(2);
+    var valores = data.map(function (d) { return d.km_por_galon === null ? null : Number(d.km_por_galon); });
+    var promedio = rendimientoPeriodo(data, false);
 
     var ctx = document.getElementById('canvasIndividual').getContext('2d');
 
@@ -242,7 +255,7 @@ function renderGraficoIndividual(data) {
                     color: '#17a2b8',
                     font: { size: 11, weight: 'bold' },
                     formatter: function (value) {
-                        return value.toFixed(2);
+                        return value === null ? '' : value.toFixed(2);
                     }
                 }
             },
@@ -275,78 +288,9 @@ function renderGraficoIndividual(data) {
 
     /* promedio debajo del gráfico */
     $('#promedio_individual').html(
-        'Promedio: <strong style="color:#17a2b8">' + promedio + ' km/gl</strong>'
+        'Rendimiento del periodo: <strong style="color:#17a2b8">' + promedio + ' km/gl</strong>'
     );
 }
-function cargarTablaKmGal(placa, obra, fechaIni, fechaFin) {
-
-    /* destruir si existe */
-    if ($.fn.DataTable.isDataTable('#tablaKmGal')) {
-        $('#tablaKmGal').DataTable().destroy();
-    }
-    $('#tbodyKmGal').empty();
-
-    $.ajax({
-        url: '../../controller/Despachos.php?op=kmGalIndividual',
-        type: 'POST',
-        dataType: 'json',
-        data: {
-            vehi_id: placa,
-            obra: obra,
-            fechaIni: fechaIni,
-            fechaFin: fechaFin
-        },
-        success: function (res) {
-            if (res.success && res.data.length) {
-                $.each(res.data, function (i, d) {
-                    $('#tbodyKmGal').append(
-                        '<tr>' +
-                        '<td>' + d.desp_fech + '</td>' +
-                        '<td>' + d.desp_galones + '</td>' +
-                        '<td>' + Number(d.km_hr_anterior).toLocaleString('es-CO') + '</td>' +
-                        '<td>' + Number(d.km_hr_actual).toLocaleString('es-CO') + '</td>' +
-                        '<td>' + Number(d.diferencia).toLocaleString('es-CO') + '</td>' +
-                        '<td><strong>' + parseFloat(d.km_por_galon).toFixed(2) + '</strong></td>' +
-                        '</tr>'
-                    );
-                });
-            }
-
-            $('#tablaKmGal').DataTable({
-                language: {
-                    processing: "Procesando...",
-                    search: "Buscar:",
-                    lengthMenu: "Mostrar _MENU_ registros",
-                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                    infoEmpty: "Mostrando 0 a 0 de 0 registros",
-                    infoFiltered: "(filtrado de _MAX_ registros totales)",
-                    loadingRecords: "Cargando...",
-                    zeroRecords: "No se encontraron resultados",
-                    emptyTable: "No hay datos disponibles",
-                    paginate: {
-                        first: "Primero",
-                        previous: "Anterior",
-                        next: "Siguiente",
-                        last: "Último"
-                    }
-                },
-                order: [[0, 'desc']],
-                pageLength: 10,
-                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
-                columnDefs: [
-                    { targets: [1, 2, 3, 4, 5], className: 'text-right' }
-                ],
-                bDestroy: true
-            });
-        },
-        error: function () {
-            $('#tbodyKmGal').html(
-                '<tr><td colspan="7" class="text-center text-danger">Error al cargar datos.</td></tr>'
-            );
-        }
-    });
-}
-
 function cargarHorometro(placa, obra, fechaIni, fechaFin) {
     if (!placa) {
         $('#divGraficoIndividual').html('<p class="text-center text-muted mt-4">Selecciona una placa.</p>');
@@ -395,11 +339,11 @@ function cargarTablaGlHora(data) {
         $tbody.append(
             '<tr>' +
                 '<td>' + d.desp_fech + '</td>' +
-                '<td>' + d.desp_galones + '</td>' +
-                '<td>' + Number(d.hr_anterior).toLocaleString('es-CO') + '</td>' +
-                '<td>' + Number(d.hr_actual).toLocaleString('es-CO')   + '</td>' +
-                '<td>' + Number(d.diferencia).toLocaleString('es-CO')  + '</td>' +
-                '<td><strong>' + parseFloat(d.gl_por_hora).toFixed(2) + '</strong></td>' +
+                '<td>' + formatoCombustible(d.desp_galones) + '</td>' +
+                '<td>' + formatoCombustible(d.hr_anterior) + '</td>' +
+                '<td>' + formatoCombustible(d.hr_actual)   + '</td>' +
+                '<td>' + formatoCombustible(d.diferencia)  + '</td>' +
+                '<td><strong>' + formatoCombustible(esMaquinariaCombustible() ? d.gl_por_hora : d.km_por_galon) + '</strong></td>' +
             '</tr>'
         );
     });
@@ -431,8 +375,8 @@ function renderGraficoHorometro(data) {
     $('#divGraficoIndividual').empty().html('<canvas id="canvasHorometro"></canvas>');
 
     var labels = data.map(function (d) { return d.desp_fech; });
-    var valores = data.map(function (d) { return parseFloat(d.gl_por_hora) || 0; });
-    var promedio = (valores.reduce(function (a, b) { return a + b; }, 0) / valores.length).toFixed(2);
+    var valores = data.map(function (d) { return d.gl_por_hora === null ? null : Number(d.gl_por_hora); });
+    var promedio = rendimientoPeriodo(data, true);
 
     var ctx = document.getElementById('canvasHorometro').getContext('2d');
 
@@ -474,7 +418,7 @@ function renderGraficoHorometro(data) {
                     color: '#17a2b8',
                     font: { size: 11, weight: 'bold' },
                     formatter: function (value) {
-                        return value.toFixed(2);
+                        return value === null ? '' : value.toFixed(2);
                     }
                 }
             },
@@ -492,7 +436,7 @@ function renderGraficoHorometro(data) {
                         font: { size: 11 }
                     },
                     ticks: {
-                        callback: function (value) { return value.toFixed(2); }
+                        callback: function (value) { return value === null ? '' : value.toFixed(2); }
                     }
                 }
             }
@@ -500,9 +444,37 @@ function renderGraficoHorometro(data) {
         plugins: [ChartDataLabels]
     });
 
-    $('#promedio_horometro').html(
-        'Promedio: <strong style="color:#17a2b8">' + promedio + ' gl/hora</strong>'
+    $('#promedio_individual').html(
+        'Rendimiento del periodo: <strong style="color:#17a2b8">' + promedio + ' gl/hora</strong>'
     );
 }
 
 
+
+function esMaquinariaCombustible() {
+    return [2, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 17].indexOf(
+        parseInt($('#comb_placa option:selected').data('tipo'), 10)) !== -1;
+}
+
+function formatoCombustible(valor) {
+    return valor === null || valor === undefined ? 'Sin datos' :
+        Number(valor).toLocaleString('es-CO', { maximumFractionDigits: 2 });
+}
+
+function rendimientoPeriodo(data, maquinaria) {
+    var recorrido = 0, galones = 0, tieneRecorrido = false;
+    data.forEach(function (d) {
+        if (d.diferencia !== null) {
+            recorrido += Number(d.diferencia);
+            tieneRecorrido = true;
+        }
+        galones += Number(d.desp_galones || 0);
+    });
+    if (!tieneRecorrido || galones <= 0 || (maquinaria && recorrido <= 0)) return 'Sin datos';
+    return (maquinaria ? galones / recorrido : recorrido / galones).toFixed(2);
+}
+
+function limpiarResultadoCombustible() {
+    if ($.fn.DataTable.isDataTable('#tablaKmGal')) $('#tablaKmGal').DataTable().destroy();
+    $('#tbodyKmGal, #promedio_individual, #divGraficoIndividual').empty();
+}

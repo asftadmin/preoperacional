@@ -136,55 +136,52 @@ class  Despachos extends Conectar {
     }
 
     public function get_km_gal_individual($vehi_id, $obra = '', $fechaIni = '', $fechaFin = '') {
+        return $this->get_rendimiento_diario($vehi_id, $obra, $fechaIni, $fechaFin);
+    }
+
+    // Sumar las fuentes por separado evita duplicar galones por actividad.
+    private function get_rendimiento_diario($vehi_id, $obra, $fechaIni, $fechaFin) {
         $conectar = parent::conexion();
-
-        $sql = "WITH despachos_base AS (
-                    SELECT 
-                        d.desp_id,
-                        d.desp_fech,
-                        d.desp_galones,
-                        d.desp_km_hr AS km_hr_actual,
-                        d.desp_obra,
-                        LAG(d.desp_km_hr) OVER (PARTITION BY d.desp_vehi ORDER BY d.desp_fech, d.desp_id) AS km_hr_anterior
-                    FROM despachos_acpm d
-                    WHERE d.desp_vehi = :vehi_id";
-
-        if ($obra !== '') {
-            $sql .= " AND d.desp_obra = :obra";
-        }
-
-        if ($fechaIni !== '' && $fechaFin !== '') {
-            $sql .= " AND d.desp_fech BETWEEN :fechaIni AND :fechaFin";
-        }
-
-        $sql .= ")
-                SELECT 
-                    desp_fech,
-                    desp_galones,
-                    km_hr_actual,
-                    km_hr_anterior,
-                    km_hr_actual - km_hr_anterior AS diferencia,
-                    CASE 
-                        WHEN (km_hr_actual - km_hr_anterior) <= 0 THEN NULL
-                        ELSE ROUND((km_hr_actual - km_hr_anterior)::numeric / NULLIF(desp_galones, 0), 2)
-                    END AS km_por_galon
-                FROM despachos_base
-                WHERE km_hr_anterior IS NOT NULL
-                AND (km_hr_actual - km_hr_anterior) > 0
-                ORDER BY desp_fech ASC";
-
+        $sql = "WITH parametros AS (
+            SELECT CAST(:vehi_id AS integer) AS vehiculo,
+                   CAST(:obra AS integer) AS obra,
+                   CAST(:fechaIni AS date) AS inicio,
+                   CAST(:fechaFin AS date) AS fin
+        ), recorridos AS (
+            SELECT r.repdia_fech::date AS fecha,
+                   MIN(r.repdia_kilo) AS inicial, MAX(r.repdia_kilo_final) AS final,
+                   SUM(r.repdia_kilo_final - r.repdia_kilo) AS recorrido
+            FROM reportes_diarios r CROSS JOIN parametros p
+            WHERE r.repdia_vehi = p.vehiculo
+              AND r.repdia_kilo >= 0 AND r.repdia_kilo_final >= r.repdia_kilo
+              AND (p.obra IS NULL OR r.repdia_obras = p.obra)
+              AND (p.inicio IS NULL OR r.repdia_fech::date >= p.inicio)
+              AND (p.fin IS NULL OR r.repdia_fech::date <= p.fin)
+            GROUP BY r.repdia_fech::date
+        ), autorizaciones AS (
+            SELECT d.desp_fech_crea::date AS fecha,
+                   SUM(d.desp_galones_autorizados) AS galones
+            FROM despachos_acpm d CROSS JOIN parametros p
+            WHERE d.desp_vehi = p.vehiculo AND d.desp_estado = 0
+              AND d.desp_galones_autorizados > 0
+              AND (p.obra IS NULL OR d.desp_obra = p.obra)
+              AND (p.inicio IS NULL OR d.desp_fech_crea::date >= p.inicio)
+              AND (p.fin IS NULL OR d.desp_fech_crea::date <= p.fin)
+            GROUP BY d.desp_fech_crea::date
+        )
+        SELECT COALESCE(r.fecha, a.fecha) AS desp_fech, a.galones AS desp_galones,
+               r.inicial AS km_hr_anterior, r.final AS km_hr_actual,
+               r.inicial AS hr_anterior, r.final AS hr_actual,
+               r.recorrido AS diferencia,
+               ROUND(r.recorrido::numeric / NULLIF(a.galones, 0), 2) AS km_por_galon,
+               ROUND(a.galones::numeric / NULLIF(r.recorrido, 0), 2) AS gl_por_hora
+        FROM recorridos r FULL JOIN autorizaciones a ON r.fecha = a.fecha
+        ORDER BY COALESCE(r.fecha, a.fecha)";
         $stmt = $conectar->prepare($sql);
         $stmt->bindValue(':vehi_id', $vehi_id, PDO::PARAM_INT);
-
-        if ($obra !== '') {
-            $stmt->bindValue(':obra', $obra, PDO::PARAM_INT);
-        }
-
-        if ($fechaIni !== '' && $fechaFin !== '') {
-            $stmt->bindValue(':fechaIni', $fechaIni);
-            $stmt->bindValue(':fechaFin', $fechaFin);
-        }
-
+        $stmt->bindValue(':obra', $obra === '' ? null : $obra);
+        $stmt->bindValue(':fechaIni', $fechaIni === '' ? null : $fechaIni);
+        $stmt->bindValue(':fechaFin', $fechaFin === '' ? null : $fechaFin);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -209,61 +206,7 @@ class  Despachos extends Conectar {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     public function get_gl_hora_individual($vehi_id, $obra = '', $fechaIni = '', $fechaFin = '') {
-        $conectar = parent::conexion();
-
-        $sql = "WITH despachos_base AS (
-                SELECT 
-                    d.desp_id,
-                    d.desp_fech,
-                    d.desp_galones,
-                    d.desp_km_hr AS hr_actual,
-                    d.desp_obra,
-                    LAG(d.desp_km_hr) OVER (
-                        PARTITION BY d.desp_vehi 
-                        ORDER BY d.desp_fech, d.desp_id
-                    ) AS hr_anterior
-                FROM despachos_acpm d
-                LEFT JOIN obras o ON o.obras_id = d.desp_obra
-                WHERE d.desp_vehi = :vehi_id
-            )
-            SELECT 
-                desp_fech,
-                desp_galones,
-                hr_actual,
-                hr_anterior,
-                hr_actual - hr_anterior AS diferencia,
-                CASE 
-                    WHEN (hr_actual - hr_anterior) <= 0 THEN NULL
-                    ELSE ROUND(desp_galones::numeric / NULLIF(hr_actual - hr_anterior, 0), 2)
-                END AS gl_por_hora
-            FROM despachos_base
-            WHERE hr_anterior IS NOT NULL
-            AND (hr_actual - hr_anterior) > 0";
-
-        if ($obra !== '') {
-            $sql .= " AND desp_obra = :obra";
-        }
-
-        if ($fechaIni !== '' && $fechaFin !== '') {
-            $sql .= " AND desp_fech BETWEEN :fechaIni AND :fechaFin";
-        }
-
-        $sql .= " ORDER BY desp_fech ASC";
-
-        $stmt = $conectar->prepare($sql);
-        $stmt->bindValue(':vehi_id', $vehi_id, PDO::PARAM_INT);
-
-        if ($obra !== '') {
-            $stmt->bindValue(':obra', $obra, PDO::PARAM_INT);
-        }
-
-        if ($fechaIni !== '' && $fechaFin !== '') {
-            $stmt->bindValue(':fechaIni', $fechaIni);
-            $stmt->bindValue(':fechaFin', $fechaFin);
-        }
-
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->get_rendimiento_diario($vehi_id, $obra, $fechaIni, $fechaFin);
     }
 
     public function get_placas_combustible() {
