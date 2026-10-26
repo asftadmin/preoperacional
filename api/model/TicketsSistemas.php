@@ -1,9 +1,26 @@
 <?php
 
 require_once __DIR__ . '/../../config/conexion.php';
+require_once __DIR__ . '/TicketsSoportes.php';
 
 class TicketsSistemasApi extends Conectar
 {
+    // Consulta el detalle y seguimientos respetando al propietario del ticket.
+    public function obtenerDetalleEmpleado($id, $documento)
+    {
+        $conexion = parent::Conexion();
+        $stmt = $conexion->prepare('SELECT t.*, c.nombre AS categoria FROM public.tickets_sistemas t
+            INNER JOIN public.tickets_sistemas_categorias c ON c.categoria_id = t.categoria_id
+            WHERE t.ticket_id = ? AND t.empleado_documento = ?');
+        $stmt->execute([$id, $documento]);
+        $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$ticket) { return null; }
+        $stmt = $conexion->prepare('SELECT s.* FROM public.tickets_sistemas_seguimientos s
+            WHERE s.ticket_id = ? ORDER BY s.fecha_creacion, s.seguimiento_id');
+        $stmt->execute([$id]);
+        return ['ticket' => $ticket, 'seguimientos' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
+    }
+
     /**
      * Listar categorías activas disponibles para crear tickets.
      */
@@ -376,6 +393,26 @@ class TicketsSistemasApi extends Conectar
 
             $conexion->beginTransaction();
 
+            // El token vincula únicamente soportes temporales del mismo empleado.
+            $soporteToken = $datos['soporte_token'] ?? '';
+            if (!is_string($soporteToken) || ($soporteToken !== '' && !preg_match('/^[a-f0-9]{64}$/', $soporteToken))) {
+                throw new InvalidArgumentException('Token de soporte no válido.');
+            }
+            if ($soporteToken !== '') {
+                TicketsSoportesApi::bloquear($conexion, $documento, $soporteToken);
+                // Un reintento del mismo formulario con soportes devuelve el ticket ya registrado.
+                $previo = $conexion->prepare('SELECT t.ticket_id, t.ticket_numero, t.estado
+                    FROM public.tickets_sistemas_soportes s
+                    INNER JOIN public.tickets_sistemas t ON t.ticket_id = s.ticket_id
+                    WHERE s.empleado_documento = ? AND s.soporte_token = ? LIMIT 1');
+                $previo->execute([$documento, $soporteToken]);
+                $ticketPrevio = $previo->fetch(PDO::FETCH_ASSOC);
+                if ($ticketPrevio) {
+                    $conexion->commit();
+                    return ['success' => true, 'message' => 'Ticket ya registrado.', 'data' => $ticketPrevio];
+                }
+            }
+
             /*
              * Validar categoría.
              */
@@ -523,6 +560,12 @@ class TicketsSistemasApi extends Conectar
              * Confirmar ticket, seguimiento
              * y notificaciones.
              */
+            // Asociación atómica: un fallo conserva el ticket y soportes sin cambios.
+            if ($soporteToken !== '') {
+                $adjuntos = $conexion->prepare('UPDATE public.tickets_sistemas_soportes SET ticket_id = ?
+                    WHERE empleado_documento = ? AND soporte_token = ? AND ticket_id IS NULL');
+                $adjuntos->execute([$ticketId, $documento, $soporteToken]);
+            }
             $conexion->commit();
 
             return [

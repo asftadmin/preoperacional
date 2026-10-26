@@ -91,3 +91,14 @@ Módulo nuevo para inventario, componentes, asignación, entrega, devolución, c
 - Debe crearse o seleccionarse una base de pruebas antes de ejecutar `database/inventario_equipos.sql`.
 - Conviene trasladar la configuración sensible de la API de empleados a variables de entorno.
 - El wireframe aprobado no fue proporcionado; la interfaz implementada sigue las convenciones existentes de AdminLTE 3.
+
+## Soportes de tickets desde Control de Personal
+
+- api/tickets.php: rutas JSON subirSoporte, eliminarSoporte, listarSoportes, descargarSoporte y detalle.
+- api/controller/TicketsSistemas.php: valida entradas y delega soportes/detalle al modelo; sin SQL.
+- api/model/TicketsSistemas.php: asociación de soportes en la creación transaccional, reintentos del lote con archivos sin duplicados y detalle por propietario.
+- api/model/TicketsSoportes.php (nuevo): metadatos PostgreSQL, validación del contenido real, límites de 10 MB/10 archivos, almacenamiento privado, eliminación temporal, consulta y descarga por propietario; limpieza de temporales del propietario mayores de 24 horas al realizar nuevas cargas.
+- Migración fuente: C:/xampp/htdocs/evds2023/database/migrations/20261026_preoperacional_tickets_soportes.sql, aplicada en preoperacional_prueba, base configurada actualmente. Nueva tabla tickets_sistemas_soportes con FK a tickets_sistemas.ticket_id.
+- Archivos fuera de htdocs: C:/xampp/storage/tickets_sistemas por defecto; configuración opcional TICKETS_SOPORTES_DIR. API conserva el contrato JSON y autenticación Bearer existentes; Control de Personal resuelve la identidad desde la sesión.
+- Pruebas en evds2023/tests/tickets_soportes.php: 23 verificaciones en tablas temporales de PostgreSQL, sin tickets reales; rollback inducido, propietario, MIME/tamaño, asociación, descarga, reintentos, límite y limpieza. Chrome/API simulada en tickets_soportes_vista.cjs. Rechazo HTTP sin credencial devuelve JSON limpio.
+- Pendiente prueba integrada con sesión real de Control de Personal. Para otras instalaciones, desplegar API/modelos y ejecutar la migración en su base de preoperacional. No se ha configurado una tarea periódica para temporales de usuarios que no vuelvan a cargar archivos.

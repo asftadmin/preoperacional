@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../helpers/Response.php';
 require_once __DIR__ . '/../model/TicketsSistemas.php';
+require_once __DIR__ . '/../model/TicketsSoportes.php';
 
 /*
  * Reutilizamos el servicio de correo
@@ -11,6 +12,63 @@ require_once __DIR__ . '/../../models/EmailTickets.php';
 
 class TicketsSistemasController
 {
+    // Devuelve el detalle solo al documento enviado por el consumidor autenticado.
+    public function detalle()
+    {
+        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
+        $documento = $_GET['documento'] ?? '';
+        if (!$id || $id < 1 || !is_string($documento) || !preg_match('/^[0-9]{1,20}$/', $documento)) {
+            ApiResponse::json(false, 'Ticket no válido.', null, 422);
+        }
+        $detalle = $this->modelo->obtenerDetalleEmpleado($id, $documento);
+        if ($detalle === null) { ApiResponse::json(false, 'Ticket no disponible.', null, 404); }
+        ApiResponse::json(true, 'Detalle consultado.', $detalle);
+    }
+
+    // Valida las entradas JSON y delega toda persistencia al modelo de soportes.
+    public function soportes($op)
+    {
+        try {
+            $datos = json_decode(file_get_contents('php://input'), true);
+            if (!is_array($datos) || !isset($datos['empleado_documento'])
+                || !is_string($datos['empleado_documento'])
+                || !preg_match('/^[0-9]{1,20}$/', $datos['empleado_documento'])) {
+                throw new InvalidArgumentException('Empleado no válido.');
+            }
+            $documento = $datos['empleado_documento'];
+            $modelo = new TicketsSoportesApi();
+            if (in_array($op, ['subirSoporte', 'eliminarSoporte'], true)) {
+                if (!isset($datos['soporte_token']) || !is_string($datos['soporte_token'])
+                    || !preg_match('/^[a-f0-9]{64}$/', $datos['soporte_token'])) {
+                    throw new InvalidArgumentException('Token de soporte no válido.');
+                }
+            }
+            if ($op === 'subirSoporte') {
+                if (!isset($datos['nombre'], $datos['contenido']) || !is_string($datos['nombre'])
+                    || !is_string($datos['contenido']) || strlen($datos['contenido']) > 13981016) {
+                    throw new InvalidArgumentException('Archivo no válido o demasiado grande.');
+                }
+                $resultado = $modelo->subir($documento, $datos['soporte_token'],
+                    basename(str_replace('\\', '/', $datos['nombre'])), $datos['contenido']);
+            } else {
+                $campo = $op === 'listarSoportes' ? 'ticket_id' : 'soporte_id';
+                $id = filter_var($datos[$campo] ?? null, FILTER_VALIDATE_INT);
+                if (!$id || $id < 1) { throw new InvalidArgumentException('Identificador no válido.'); }
+                if ($op === 'eliminarSoporte') {
+                    $modelo->eliminar($documento, $datos['soporte_token'], $id);
+                    $resultado = null;
+                } elseif ($op === 'listarSoportes') {
+                    $resultado = $modelo->listar($documento, $id);
+                } else {
+                    $resultado = $modelo->descargar($documento, $id);
+                }
+            }
+            ApiResponse::json(true, 'Operación de soporte completada.', $resultado);
+        } catch (InvalidArgumentException $e) {
+            ApiResponse::json(false, $e->getMessage(), null, 422);
+        }
+    }
+
     private $modelo;
 
     public function __construct()

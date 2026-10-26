@@ -43,6 +43,21 @@ try {
      * Enrutamiento.
      */
     switch ($op) {
+        // El detalle existente en la vista requiere una respuesta de la API.
+        case 'detalle':
+            validarMetodo('GET');
+            $controller->detalle();
+            break;
+
+        // Operaciones JSON de soportes; el consumidor autentica al empleado.
+        case 'subirSoporte':
+        case 'eliminarSoporte':
+        case 'listarSoportes':
+        case 'descargarSoporte':
+            validarMetodo('POST');
+            $controller->soportes($op);
+            break;
+
         /*
          * Crear nuevo ticket.
          *
