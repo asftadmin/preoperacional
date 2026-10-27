@@ -5,22 +5,6 @@ require_once __DIR__ . '/TicketsSoportes.php';
 
 class TicketsSistemasApi extends Conectar
 {
-    // Consulta el detalle y seguimientos respetando al propietario del ticket.
-    public function obtenerDetalleEmpleado($id, $documento)
-    {
-        $conexion = parent::Conexion();
-        $stmt = $conexion->prepare('SELECT t.*, c.nombre AS categoria FROM public.tickets_sistemas t
-            INNER JOIN public.tickets_sistemas_categorias c ON c.categoria_id = t.categoria_id
-            WHERE t.ticket_id = ? AND t.empleado_documento = ?');
-        $stmt->execute([$id, $documento]);
-        $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$ticket) { return null; }
-        $stmt = $conexion->prepare('SELECT s.* FROM public.tickets_sistemas_seguimientos s
-            WHERE s.ticket_id = ? ORDER BY s.fecha_creacion, s.seguimiento_id');
-        $stmt->execute([$id]);
-        return ['ticket' => $ticket, 'seguimientos' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
-    }
-
     /**
      * Listar categorías activas disponibles para crear tickets.
      */

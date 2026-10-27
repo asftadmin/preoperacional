@@ -12,19 +12,6 @@ require_once __DIR__ . '/../../models/EmailTickets.php';
 
 class TicketsSistemasController
 {
-    // Devuelve el detalle solo al documento enviado por el consumidor autenticado.
-    public function detalle()
-    {
-        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
-        $documento = $_GET['documento'] ?? '';
-        if (!$id || $id < 1 || !is_string($documento) || !preg_match('/^[0-9]{1,20}$/', $documento)) {
-            ApiResponse::json(false, 'Ticket no válido.', null, 422);
-        }
-        $detalle = $this->modelo->obtenerDetalleEmpleado($id, $documento);
-        if ($detalle === null) { ApiResponse::json(false, 'Ticket no disponible.', null, 404); }
-        ApiResponse::json(true, 'Detalle consultado.', $detalle);
-    }
-
     // Valida las entradas JSON y delega toda persistencia al modelo de soportes.
     public function soportes($op)
     {
