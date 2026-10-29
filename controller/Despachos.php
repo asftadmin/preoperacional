@@ -5,6 +5,7 @@ require_once("../models/Despachos.php");
 
 $despachos = new Despachos();
 
+try {
 switch ($_GET["op"]) {
 
     case "listar":
@@ -235,6 +236,15 @@ switch ($_GET["op"]) {
             echo $html;
         }
         break;
+}
+} catch (PDOException $e) {
+    error_log('Despachos ACPM: ' . $e->getMessage());
+    echo json_encode([
+        'status' => 'error',
+        'message' => $e->getCode() === 'P0001'
+            ? 'No se puede registrar o cambiar combustible en esa fecha. Verifique el cierre diario; esa fecha puede pertenecer a un dia cerrado.'
+            : 'No fue posible guardar el despacho. Intente nuevamente.'
+    ]);
 }
 
 ?>

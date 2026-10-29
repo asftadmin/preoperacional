@@ -215,6 +215,8 @@ if (is_array($datos) and count($datos) > 0) {
                                                         Cargado SIESA
                                                     </option>
 
+                                                    <option value="historico">Histórico antes del corte</option>
+
                                                     <option value="pendiente">
                                                         Pendiente SIESA
                                                     </option>

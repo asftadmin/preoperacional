@@ -2,6 +2,18 @@
 
 /* CLASE DESPACHOS ACPM */
 class  Despachos extends Conectar {
+    protected function conexion_control_acpm() {
+        return parent::conexion();
+    }
+
+    public function get_corte_control_acpm() {
+        $conectar = $this->conexion_control_acpm();
+        $sql = $conectar->query("SELECT saldo_apertura,
+            to_char(fecha_corte AT TIME ZONE 'America/Bogota', 'DD/MM/YYYY HH24:MI:SS') AS fecha_corte_local
+            FROM control_acpm_corte WHERE corte_id = 1");
+        return $sql->fetch(PDO::FETCH_ASSOC);
+    }
+
     /* GUARDAR LOS DESPACHOS */
     public function guardar_despacho($desp_vehi, $desp_galones, $desp_user, $desp_obra) {
         $conectar = parent::conexion();
@@ -250,7 +262,7 @@ class  Despachos extends Conectar {
 
     /* DESPACHOS REALIZADOS HOY AGRUPADOS POR OBRA */
     public function get_despachos_obra_hoy() {
-        $conectar = parent::conexion();
+        $conectar = $this->conexion_control_acpm();
         parent::set_names();
 
         $sql = "SELECT
@@ -268,6 +280,7 @@ class  Despachos extends Conectar {
                 ON o.obras_id = d.desp_obra
 
             WHERE d.desp_fech = CURRENT_DATE
+            AND NOT EXISTS (SELECT 1 FROM control_acpm_historicos h WHERE h.desp_id = d.desp_id)
 
             AND d.desp_galones IS NOT NULL
 
@@ -289,7 +302,7 @@ class  Despachos extends Conectar {
 
     /* RESUMEN DEL DIA Y PENDIENTES ACUMULADOS HASTA HOY */
     public function get_resumen_control_acpm_hoy() {
-        $conectar = parent::conexion();
+        $conectar = $this->conexion_control_acpm();
         parent::set_names();
 
         $sql = "WITH resumen_hoy AS (SELECT
@@ -329,6 +342,7 @@ class  Despachos extends Conectar {
             FROM despachos_acpm
 
             WHERE desp_fech = CURRENT_DATE
+            AND NOT EXISTS (SELECT 1 FROM control_acpm_historicos h WHERE h.desp_id = despachos_acpm.desp_id)
             AND desp_galones IS NOT NULL
             AND desp_galones > 0
             AND desp_estado = 0)
@@ -341,6 +355,7 @@ class  Despachos extends Conectar {
                     COALESCE(SUM(desp_galones), 0) AS galones_pendientes_acumulados
                 FROM despachos_acpm
                 WHERE desp_fech <= CURRENT_DATE
+                AND NOT EXISTS (SELECT 1 FROM control_acpm_historicos h WHERE h.desp_id = despachos_acpm.desp_id)
                 AND desp_galones > 0
                 AND desp_estado = 0
                 AND (
@@ -357,7 +372,7 @@ class  Despachos extends Conectar {
 
     /* LISTAR DESPACHOS PENDIENTES DE DOCUMENTO SIESA */
     public function get_despachos_pendientes_siesa() {
-        $conectar = parent::conexion();
+        $conectar = $this->conexion_control_acpm();
         parent::set_names();
 
         $sql = "SELECT
@@ -379,6 +394,7 @@ class  Despachos extends Conectar {
                 ON v.vehi_id = d.desp_vehi
 
             WHERE d.desp_fech <= CURRENT_DATE
+            AND NOT EXISTS (SELECT 1 FROM control_acpm_historicos h WHERE h.desp_id = d.desp_id)
 
             AND d.desp_galones IS NOT NULL
 
@@ -404,12 +420,13 @@ class  Despachos extends Conectar {
 
     /* REGISTRAR DOCUMENTO INTERNO SIESA */
     public function update_documento_siesa($desp_id, $desp_documento_siesa) {
-        $conectar = parent::conexion();
+        $conectar = $this->conexion_control_acpm();
         parent::set_names();
 
         $sql = "UPDATE despachos_acpm
             SET desp_documento_siesa = ?
-            WHERE desp_id = ?";
+            WHERE desp_id = ?
+            AND NOT EXISTS (SELECT 1 FROM control_acpm_historicos h WHERE h.desp_id = despachos_acpm.desp_id)";
 
         $sql = $conectar->prepare($sql);
 
@@ -426,7 +443,7 @@ class  Despachos extends Conectar {
 
         $sql->execute();
 
-        return true;
+        return $sql->rowCount() > 0;
     }
 
     /* HISTORIAL CONTROL ACPM */
@@ -438,11 +455,12 @@ class  Despachos extends Conectar {
         $estado_siesa = ''
     ) {
 
-        $conectar = parent::conexion();
+        $conectar = $this->conexion_control_acpm();
         parent::set_names();
 
         $sql = "SELECT
                 d.desp_id,
+                CASE WHEN EXISTS (SELECT 1 FROM control_acpm_historicos h WHERE h.desp_id = d.desp_id) THEN 1 ELSE 0 END AS historico_corte,
                 d.desp_fech,
                 d.desp_hora,
                 d.desp_galones,
@@ -505,16 +523,22 @@ class  Despachos extends Conectar {
      */
         if ($estado_siesa === 'cargado') {
 
-            $sql .= " AND d.desp_documento_siesa IS NOT NULL
+            $sql .= " AND NOT EXISTS (SELECT 1 FROM control_acpm_historicos h WHERE h.desp_id = d.desp_id)
+                  AND d.desp_documento_siesa IS NOT NULL
                   AND TRIM(d.desp_documento_siesa) <> ''";
         } elseif ($estado_siesa === 'pendiente') {
 
-            $sql .= " AND (
+            $sql .= " AND NOT EXISTS (SELECT 1 FROM control_acpm_historicos h WHERE h.desp_id = d.desp_id)
+                  AND (
                     d.desp_documento_siesa IS NULL
                     OR TRIM(d.desp_documento_siesa) = ''
                   )";
         }
 
+
+        if ($estado_siesa === 'historico') {
+            $sql .= " AND EXISTS (SELECT 1 FROM control_acpm_historicos h WHERE h.desp_id = d.desp_id)";
+        }
 
         $sql .= " ORDER BY
                 d.desp_fech DESC,

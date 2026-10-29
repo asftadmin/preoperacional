@@ -6,6 +6,9 @@ $rol = new Rol();
 $datos = $rol->validacion_acceso($_SESSION["user_id"], "con_acpm");
 
 if (is_array($datos) and count($datos) > 0) {
+    if (empty($_SESSION['acpm_csrf'])) {
+        $_SESSION['acpm_csrf'] = bin2hex(random_bytes(32));
+    }
 ?>
     <!DOCTYPE html>
     <html lang="es">
@@ -19,6 +22,7 @@ if (is_array($datos) and count($datos) > 0) {
     <link rel="stylesheet" href="../../public/plugins/sweetalert2/sweetalert2.css">
 
     <title>Control ACPM</title>
+    <meta name="acpm-csrf" content="<?php echo htmlspecialchars($_SESSION['acpm_csrf'], ENT_QUOTES, 'UTF-8'); ?>">
     </head>
 
     <body class="hold-transition sidebar-mini">
@@ -78,6 +82,19 @@ if (is_array($datos) and count($datos) > 0) {
 
                         </div>
 
+                        <div class="alert alert-info" role="status">
+                            <strong>Corte de control ACPM:</strong>
+                            <?php
+                            require_once("../../models/Despachos.php");
+                            $corteAcpm = (new Despachos())->get_corte_control_acpm();
+                            echo htmlspecialchars($corteAcpm["fecha_corte_local"], ENT_QUOTES, "UTF-8");
+                            ?> (Colombia).
+                            Saldo de apertura: <?php echo number_format((float) $corteAcpm["saldo_apertura"], 2, ',', '.'); ?> gal.
+                            Los despachos existentes al corte quedan históricos y no se descuentan.
+                            La apertura inicial parte del saldo SIESA del corte. Después, cada apertura toma el cierre anterior.
+                            Asociar documentos SIESA no cambia el combustible disponible.
+                        </div>
+
                         <!-- KPI -->
                         <div class="row">
 
@@ -98,7 +115,7 @@ if (is_array($datos) and count($datos) > 0) {
                                         </span>
 
                                         <small class="text-muted">
-                                            Corte:
+                                            Consulta:
                                             <span id="ultima_actualizacion_siesa">
                                                 Sin consultar
                                             </span>
@@ -116,7 +133,7 @@ if (is_array($datos) and count($datos) > 0) {
 
                                     <div class="info-box-content">
                                         <span class="info-box-text">
-                                            Despachado hoy
+                                            Despachado hoy (desde corte)
                                         </span>
 
                                         <span class="info-box-number" id="kpi_despachado_hoy">
@@ -149,7 +166,7 @@ if (is_array($datos) and count($datos) > 0) {
 
                                         <small class="text-muted">
                                             <span id="kpi_numero_pendientes_siesa">0</span>
-                                            despachos sin documento, hasta hoy
+                                            despachos sin documento desde el corte
                                         </small>
                                     </div>
                                 </div>
@@ -164,7 +181,7 @@ if (is_array($datos) and count($datos) > 0) {
 
                                     <div class="info-box-content">
                                         <span class="info-box-text">
-                                            Disponibilidad operativa
+                                            Saldo disponible
                                         </span>
 
                                         <span class="info-box-number" id="kpi_disponibilidad_operativa">
@@ -172,7 +189,7 @@ if (is_array($datos) and count($datos) > 0) {
                                         </span>
 
                                         <small class="text-muted">
-                                            SIESA - pendiente por registrar
+                                            Apertura del día − despachado hoy
                                         </small>
                                     </div>
                                 </div>
@@ -193,7 +210,7 @@ if (is_array($datos) and count($datos) > 0) {
                                     <div class="card-header">
                                         <h3 class="card-title">
                                             <i class="fas fa-warehouse mr-1"></i>
-                                            Disponibilidad actual
+                                            Saldo disponible del día
                                         </h3>
                                     </div>
 
@@ -206,30 +223,19 @@ if (is_array($datos) and count($datos) > 0) {
 
                                                     <tr>
                                                         <td>
-                                                            Saldo consultado en SIESA
+                                                            Apertura del día
                                                         </td>
-                                                        <td class="text-right font-weight-bold" id="resumen_saldo_siesa">
-                                                            0.00 gal
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr>
-                                                        <td>
-                                                            Pendiente de registrar en SIESA (acumulado)
-                                                        </td>
-
-                                                        <td class="text-right font-weight-bold text-danger"
-                                                            id="resumen_pendiente_siesa">
-
-                                                            0.00 gal
-
+                                                        <td class="text-right font-weight-bold" id="operativo_apertura">
+                                                            Consultando…
                                                         </td>
                                                     </tr>
 
+                                                    <tr><td>Despachado hoy (con o sin documento)</td>
+                                                        <td class="text-right font-weight-bold text-danger" id="operativo_despachos">Consultando…</td></tr>
                                                     <tr class="border-top">
                                                         <td>
                                                             <strong>
-                                                                Disponible operativo real
+                                                                Saldo disponible
                                                             </strong>
                                                         </td>
                                                         <td class="text-right font-weight-bold text-info">
@@ -246,9 +252,10 @@ if (is_array($datos) and count($datos) > 0) {
 
                                         <div class="alert alert-light border mb-0">
                                             <i class="fas fa-calculator mr-1"></i>
-                                            <strong>Disponibilidad operativa:</strong>
-                                            saldo actual SIESA menos los despachos pendientes
-                                            de registrar, incluidos los de días anteriores.
+                                            <strong>Saldo disponible:</strong>
+                                            apertura del día menos los despachos de hoy.
+                                            La conciliación documental no modifica este saldo.
+                                            <div class="mt-2" id="operativo_origen_apertura"></div>
 
                                         </div>
 
@@ -264,7 +271,7 @@ if (is_array($datos) and count($datos) > 0) {
                                     <div class="card-header">
                                         <h3 class="card-title">
                                             <i class="fas fa-check-double mr-1"></i>
-                                            Conciliación de despachos de hoy
+                                            Conciliación de hoy (desde corte)
                                         </h3>
                                     </div>
 
@@ -343,13 +350,15 @@ if (is_array($datos) and count($datos) > 0) {
                         </div>
                         <!-- /.DISPONIBILIDAD / CONCILIACION -->
 
+                        <?php require_once('operativo.php'); ?>
+
                         <!-- DESPACHOS POR OBRA -->
                         <div class="card card-outline card-primary mt-3">
 
                             <div class="card-header">
                                 <h3 class="card-title">
                                     <i class="fas fa-hard-hat mr-1"></i>
-                                    Despachos por obra
+                                    Despachos por obra (desde corte)
                                 </h3>
 
                                 <div class="card-tools">
@@ -536,7 +545,8 @@ if (is_array($datos) and count($datos) > 0) {
             La lógica AJAX/DataTables/Select2/Daterangepicker/SweetAlert2
             debe quedar en este JS.
         -->
-        <script type="text/javascript" src="control_acpm.js"></script>
+        <script type="text/javascript" src="operativo.js?v=20261029-cierre2"></script>
+        <script type="text/javascript" src="control_acpm.js?v=20261029-cierre2"></script>
         <!-- SweetAlert -->
         <script src="../../public/plugins/sweetalert2/sweetalert2.js"></script>
 

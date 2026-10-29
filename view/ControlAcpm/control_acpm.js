@@ -125,7 +125,7 @@ function consultarInventarioAcpmSiesa() {
                 /*
                  * RECALCULAR DISPONIBILIDAD
                  */
-                calcularDisponibilidadOperativa();
+
 
             } else {
 
@@ -416,7 +416,7 @@ function consultarResumenControlAcpm() {
             /*
              * DISPONIBILIDAD OPERATIVA
              */
-            calcularDisponibilidadOperativa();
+
         },
 
         error: function (xhr) {
@@ -431,50 +431,6 @@ function consultarResumenControlAcpm() {
         }
 
     });
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| DISPONIBILIDAD OPERATIVA
-|--------------------------------------------------------------------------
-|
-| Saldo SIESA
-| -
-| Galones pendientes de documento SIESA, incluidos los de días anteriores.
-|
-*/
-function calcularDisponibilidadOperativa() {
-
-    /*
-     * Esperamos a tener las dos consultas.
-     */
-    if (
-        !saldoSiesaCargado ||
-        !resumenDespachosCargado
-    ) {
-        return;
-    }
-
-
-    let disponibleOperativo =
-        saldoSiesa - galonesPendientesSiesa;
-
-
-    $("#kpi_disponibilidad_operativa")
-        .text(
-            formatoGalones(
-                disponibleOperativo
-            )
-        );
-
-
-    $("#resumen_disponibilidad_operativa")
-        .text(
-            formatoGalones(
-                disponibleOperativo
-            )
-        );
 }
 
 
@@ -947,6 +903,7 @@ $(document).on(
                         saldoSiesaCargado = false;
                         resumenDespachosCargado = false;
                         consultarResumenControlAcpm();
+                        consultarEstadoOperativo();
 
 
                         /*

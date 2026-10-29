@@ -6,6 +6,45 @@ require_once("curl.php");
 
 $despachos = new Despachos();
 
+if (($_GET['op'] ?? '') === 'registrarMovimientoOperativo') {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(410);
+    echo json_encode(['status' => 'error', 'message' => 'El registro manual de entradas y ajustes fue retirado. Actualice la pagina.']);
+    exit;
+}
+
+if (in_array($_GET['op'] ?? '', ['estadoOperativo', 'cerrarDiaOperativo'], true)) {
+    header('Content-Type: application/json; charset=utf-8');
+    require_once('../models/Rol.php');
+    if (empty($_SESSION['user_id']) || !(new Rol())->validacion_acceso($_SESSION['user_id'], 'con_acpm')) {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'message' => 'No tiene permiso para el control ACPM.']);
+        exit;
+    }
+    require_once('../models/ControlAcpmOperativo.php');
+    try {
+        $operativo = new ControlAcpmOperativo();
+        if ($_GET['op'] !== 'estadoOperativo') {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_SESSION['acpm_csrf']) ||
+                !hash_equals($_SESSION['acpm_csrf'], (string) ($_POST['csrf'] ?? ''))) {
+                http_response_code(403);
+                echo json_encode(['status' => 'error', 'message' => 'Actualice la pagina e intente nuevamente.']);
+                exit;
+            }
+            $operativo->cerrar((string) ($_POST['fecha'] ?? ''), (int) $_SESSION['user_id'], (string) ($_POST['firma'] ?? ''));
+        }
+        echo json_encode(['status' => 'success', 'data' => $operativo->estado()]);
+    } catch (InvalidArgumentException $e) {
+        http_response_code(422);
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    } catch (Throwable $e) {
+        error_log('Control ACPM operativo: ' . $e->getMessage());
+        http_response_code(409);
+        echo json_encode(['status' => 'error', 'message' => 'No se pudo completar la operacion. Verifique que la fecha siga abierta, los datos sean validos y el saldo este actualizado.']);
+    }
+    exit;
+}
+
 switch ($_GET['op']) {
 
 
@@ -487,7 +526,9 @@ switch ($_GET['op']) {
             /*
          * ESTADO
          */
-            if ($documentoSiesa !== '') {
+            if (!empty($row["historico_corte"])) {
+                $sub_array[] = '<div class="text-center"><span class="badge badge-secondary">HISTÓRICO ANTES DEL CORTE</span></div>';
+            } elseif ($documentoSiesa !== '') {
 
                 $sub_array[] =
                     '<div class="text-center">
