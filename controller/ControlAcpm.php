@@ -96,6 +96,12 @@ switch ($_GET['op']) {
                 "galones_pendientes_siesa" =>
                 (float) ($datos["galones_pendientes_siesa"] ?? 0),
 
+                "total_pendientes_acumulados" =>
+                (int) ($datos["total_pendientes_acumulados"] ?? 0),
+
+                "galones_pendientes_acumulados" =>
+                (float) ($datos["galones_pendientes_acumulados"] ?? 0),
+
                 "total_registrados_siesa" =>
                 (int) ($datos["total_registrados_siesa"] ?? 0),
 
@@ -159,7 +165,7 @@ switch ($_GET['op']) {
     */
     case "listarPendientesSiesa":
 
-        $datos = $despachos->get_despachos_pendientes_siesa_hoy();
+        $datos = $despachos->get_despachos_pendientes_siesa();
 
         $data = array();
 

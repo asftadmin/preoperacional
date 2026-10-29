@@ -287,12 +287,12 @@ class  Despachos extends Conectar {
         return $sql->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /* RESUMEN CONTROL ACPM DEL DIA */
+    /* RESUMEN DEL DIA Y PENDIENTES ACUMULADOS HASTA HOY */
     public function get_resumen_control_acpm_hoy() {
         $conectar = parent::conexion();
         parent::set_names();
 
-        $sql = "SELECT
+        $sql = "WITH resumen_hoy AS (SELECT
                 COUNT(desp_id) AS total_despachos,
 
                 COALESCE(
@@ -331,7 +331,23 @@ class  Despachos extends Conectar {
             WHERE desp_fech = CURRENT_DATE
             AND desp_galones IS NOT NULL
             AND desp_galones > 0
-            AND desp_estado = 0";
+            AND desp_estado = 0)
+            SELECT resumen_hoy.*,
+                pendientes.total_pendientes_acumulados,
+                pendientes.galones_pendientes_acumulados
+            FROM resumen_hoy
+            CROSS JOIN (
+                SELECT COUNT(desp_id) AS total_pendientes_acumulados,
+                    COALESCE(SUM(desp_galones), 0) AS galones_pendientes_acumulados
+                FROM despachos_acpm
+                WHERE desp_fech <= CURRENT_DATE
+                AND desp_galones > 0
+                AND desp_estado = 0
+                AND (
+                    desp_documento_siesa IS NULL
+                    OR TRIM(desp_documento_siesa) = ''
+                )
+            ) pendientes";
 
         $sql = $conectar->prepare($sql);
         $sql->execute();
@@ -340,7 +356,7 @@ class  Despachos extends Conectar {
     }
 
     /* LISTAR DESPACHOS PENDIENTES DE DOCUMENTO SIESA */
-    public function get_despachos_pendientes_siesa_hoy() {
+    public function get_despachos_pendientes_siesa() {
         $conectar = parent::conexion();
         parent::set_names();
 
@@ -362,7 +378,7 @@ class  Despachos extends Conectar {
             INNER JOIN vehiculos v
                 ON v.vehi_id = d.desp_vehi
 
-            WHERE d.desp_fech = CURRENT_DATE
+            WHERE d.desp_fech <= CURRENT_DATE
 
             AND d.desp_galones IS NOT NULL
 

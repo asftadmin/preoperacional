@@ -1,6 +1,5 @@
 let saldoSiesa = 0;
 let galonesPendientesSiesa = 0;
-let totalGalonesDespachados = 0;
 
 let saldoSiesaCargado = false;
 let resumenDespachosCargado = false;
@@ -22,7 +21,14 @@ $(document).on(
     '#btn_actualizar_siesa',
     function () {
 
+        saldoSiesaCargado = false;
+        resumenDespachosCargado = false;
         consultarInventarioAcpmSiesa();
+        consultarResumenControlAcpm();
+        consultarDespachosObraHoy();
+        if (tablaPendientesSiesa) {
+            tablaPendientesSiesa.ajax.reload(null, false);
+        }
 
     }
 );
@@ -278,19 +284,18 @@ function consultarResumenControlAcpm() {
             let totalGalones =
                 parseFloat(data.total_galones) || 0;
 
-            totalGalonesDespachados =
-                parseFloat(data.total_galones) || 0;
-
             let totalPendientes =
                 parseInt(
-                    data.total_pendientes_siesa
+                    data.total_pendientes_acumulados
                 ) || 0;
 
             galonesPendientesSiesa =
                 parseFloat(
-                    data.galones_pendientes_siesa
+                    data.galones_pendientes_acumulados
                 ) || 0;
 
+            let galonesPendientesHoy =
+                parseFloat(data.galones_pendientes_siesa) || 0;
             let totalRegistrados =
                 parseInt(
                     data.total_registrados_siesa
@@ -328,25 +333,13 @@ function consultarResumenControlAcpm() {
             $("#kpi_numero_pendientes_siesa")
                 .text(totalPendientes);
 
-            $("#resumen_despachado_hoy")
+            $("#resumen_pendiente_siesa")
                 .text(
                     "- " +
                     formatoGalones(
-                        totalGalonesDespachados
+                        galonesPendientesSiesa
                     )
                 );
-
-            /*
-             * BLOQUE DISPONIBILIDAD
-             */
-            /*             $("#resumen_pendiente_siesa")
-                            .text(
-                                "- " +
-                                formatoGalones(
-                                    galonesPendientesSiesa
-                                )
-                            ); */
-
 
             /*
              * CONCILIACION
@@ -366,7 +359,7 @@ function consultarResumenControlAcpm() {
             $("#conciliacion_pendiente_siesa")
                 .text(
                     formatoNumero(
-                        galonesPendientesSiesa
+                        galonesPendientesHoy
                     )
                 );
 
@@ -448,7 +441,7 @@ function consultarResumenControlAcpm() {
 |
 | Saldo SIESA
 | -
-| Galones despachados que todavía no tienen documento SIESA
+| Galones pendientes de documento SIESA, incluidos los de días anteriores.
 |
 */
 function calcularDisponibilidadOperativa() {
@@ -465,7 +458,7 @@ function calcularDisponibilidadOperativa() {
 
 
     let disponibleOperativo =
-        saldoSiesa - totalGalonesDespachados;
+        saldoSiesa - galonesPendientesSiesa;
 
 
     $("#kpi_disponibilidad_operativa")
@@ -951,6 +944,8 @@ $(document).on(
                          * - Con documento
                          * - % conciliado
                          */
+                        saldoSiesaCargado = false;
+                        resumenDespachosCargado = false;
                         consultarResumenControlAcpm();
 
 

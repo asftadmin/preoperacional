@@ -140,7 +140,7 @@ if (is_array($datos) and count($datos) > 0) {
 
                                     <div class="info-box-content">
                                         <span class="info-box-text">
-                                            Pendiente SIESA
+                                            Pendiente SIESA acumulado
                                         </span>
 
                                         <span class="info-box-number" id="kpi_pendiente_siesa">
@@ -149,7 +149,7 @@ if (is_array($datos) and count($datos) > 0) {
 
                                         <small class="text-muted">
                                             <span id="kpi_numero_pendientes_siesa">0</span>
-                                            despachos sin documento
+                                            despachos sin documento, hasta hoy
                                         </small>
                                     </div>
                                 </div>
@@ -193,7 +193,7 @@ if (is_array($datos) and count($datos) > 0) {
                                     <div class="card-header">
                                         <h3 class="card-title">
                                             <i class="fas fa-warehouse mr-1"></i>
-                                            Disponibilidad del día
+                                            Disponibilidad actual
                                         </h3>
                                     </div>
 
@@ -215,11 +215,11 @@ if (is_array($datos) and count($datos) > 0) {
 
                                                     <tr>
                                                         <td>
-                                                            Despachado durante el día
+                                                            Pendiente de registrar en SIESA (acumulado)
                                                         </td>
 
                                                         <td class="text-right font-weight-bold text-danger"
-                                                            id="resumen_despachado_hoy">
+                                                            id="resumen_pendiente_siesa">
 
                                                             0.00 gal
 
@@ -247,8 +247,8 @@ if (is_array($datos) and count($datos) > 0) {
                                         <div class="alert alert-light border mb-0">
                                             <i class="fas fa-calculator mr-1"></i>
                                             <strong>Disponibilidad operativa:</strong>
-                                            saldo actual SIESA menos el total
-                                            de ACPM despachado durante el día.
+                                            saldo actual SIESA menos los despachos pendientes
+                                            de registrar, incluidos los de días anteriores.
 
                                         </div>
 
@@ -264,7 +264,7 @@ if (is_array($datos) and count($datos) > 0) {
                                     <div class="card-header">
                                         <h3 class="card-title">
                                             <i class="fas fa-check-double mr-1"></i>
-                                            Conciliación de despachos
+                                            Conciliación de despachos de hoy
                                         </h3>
                                     </div>
 
@@ -390,7 +390,7 @@ if (is_array($datos) and count($datos) > 0) {
                             <div class="card-header">
                                 <h3 class="card-title">
                                     <i class="fas fa-clock mr-1"></i>
-                                    Pendientes de registrar en SIESA
+                                    Pendientes de registrar en SIESA (hasta hoy)
                                 </h3>
 
                                 <div class="card-tools">
