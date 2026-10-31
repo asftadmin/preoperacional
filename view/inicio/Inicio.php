@@ -461,14 +461,6 @@ if (is_array($datos) and count($datos) > 0) {
                             <!-- RENDIMIENTO COMBUSTIBLE -->
                             <div id="rendimiento_combustible" class="tab-pane">
                                 <div class="container-fluid">
-                                    <p class="text-muted mt-2">Vehiculos: km reportados / galones autorizados.
-                                        Maquinaria: galones autorizados / horas reportadas.
-                                        Las autorizaciones se toman por fecha de creacion, excluyendo anuladas.
-                                        El recorrido suma las diferencias final - inicial validas de cada actividad;
-                                        las lecturas inicial y final muestran los extremos del dia.
-                                        El rendimiento del periodo usa los totales del filtro, incluidos dias sin cruce.
-                                        Sin datos indica que falta una fuente o no se puede dividir.</p>
-
                                     <!-- FILTROS -->
                                     <div class="card card-info">
                                         <div class="card-header">
@@ -512,6 +504,42 @@ if (is_array($datos) and count($datos) > 0) {
 
                                     <div class="row">
 
+                                        <div class="col-12">
+                                            <div class="card card-info">
+                                                <div class="card-header">
+                                                    <h3 class="card-title">ACPM REPORTADO VS DESPACHADO POR DÍA</h3>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row" aria-live="polite">
+                                                        <div class="col-md-6">
+                                                            <div class="info-box">
+                                                                <span class="info-box-icon bg-warning"><i class="fas fa-gas-pump" aria-hidden="true"></i></span>
+                                                                <div class="info-box-content">
+                                                                    <span class="info-box-text">ACPM despachado acumulado</span>
+                                                                    <span class="info-box-number" id="totalAcpmDespachado">—</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="info-box">
+                                                                <span class="info-box-icon bg-info"><i class="fas fa-clipboard-list" aria-hidden="true"></i></span>
+                                                                <div class="info-box-content">
+                                                                    <span class="info-box-text">ACPM reportado acumulado</span>
+                                                                    <span class="info-box-number" id="totalAcpmReportado">—</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-right mb-3" aria-live="polite">
+                                                        Diferencia (despachado − reportado): <strong id="diferenciaAcpm">—</strong>
+                                                    </div>
+                                                    <div id="divComparativoCombustible" style="height:340px;">
+                                                        <p class="text-center text-muted mt-4">Selecciona una placa y pulsa buscar.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- INDIVIDUAL -->
                                         <div class="col-md-6">
                                             <div class="card card-info">
@@ -551,7 +579,7 @@ if (is_array($datos) and count($datos) > 0) {
                                                         <thead class="bg-info">
                                                             <tr>
                                                                 <th>Fecha</th>
-                                                                <th>Galones autorizados</th>
+                                                                <th>ACPM reportado (galones)</th>
                                                                 <th>Km inicial</th>
                                                                 <th>Km final</th>
                                                                 <th>Km reportados</th>

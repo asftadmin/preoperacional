@@ -1,4 +1,6 @@
 /* ── combustible.js ── */
+var graficoComparativoCombustible = null;
+var peticionComparativoCombustible = null;
 
 $(document).ready(function () {
 
@@ -63,8 +65,10 @@ $(document).ready(function () {
         limpiarResultadoCombustible();
         if (!placa) {
             $('#divGraficoIndividual').text('Selecciona una placa.');
+            $('#divComparativoCombustible').text('Selecciona una placa.');
             return;
         }
+        cargarComparativoCombustible(placa, obra, fechaIni, fechaFin);
         var maquinaria = esMaquinariaCombustible();
         $('#tablaKmGal thead th').eq(2).text(maquinaria ? 'Horometro inicial' : 'Km inicial');
         $('#tablaKmGal thead th').eq(3).text(maquinaria ? 'Horometro final' : 'Km final');
@@ -191,9 +195,10 @@ function cargarGraficoIndividual(placa, obra, fechaIni, fechaFin) {
             $('#divGraficoIndividual').html('<p class="text-center text-muted mt-4"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>');
         },
         success: function (res) {
-            if (res.success && res.data.length) {
-                renderGraficoIndividual(res.data);
-                cargarTablaGlHora(res.data);
+            var datos = res.success ? filtrarDiasConRendimiento(res.data || [], false) : [];
+            if (datos.length) {
+                renderGraficoIndividual(datos, res.data);
+                cargarTablaGlHora(datos);
             } else {
                 $('#divGraficoIndividual').html('<p class="text-center text-muted mt-4">Sin datos para mostrar.</p>');
             }
@@ -204,12 +209,12 @@ function cargarGraficoIndividual(placa, obra, fechaIni, fechaFin) {
     });
 }
 
-function renderGraficoIndividual(data) {
+function renderGraficoIndividual(data, datosPeriodo) {
     $('#divGraficoIndividual').empty().html('<canvas id="canvasIndividual"></canvas>');
 
     var labels = data.map(function (d) { return d.desp_fech; });
     var valores = data.map(function (d) { return d.km_por_galon === null ? null : Number(d.km_por_galon); });
-    var promedio = rendimientoPeriodo(data, false);
+    var promedio = rendimientoPeriodo(datosPeriodo || data, false);
 
     var ctx = document.getElementById('canvasIndividual').getContext('2d');
 
@@ -311,9 +316,10 @@ function cargarHorometro(placa, obra, fechaIni, fechaFin) {
             $('#divGraficoIndividual').html('<p class="text-center text-muted mt-4"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>');
         },
         success: function (res) {
-            if (res.success && res.data && res.data.length) {
-                renderGraficoHorometro(res.data);
-                cargarTablaGlHora(res.data);
+            var datos = res.success ? filtrarDiasConRendimiento(res.data || [], true) : [];
+            if (datos.length) {
+                renderGraficoHorometro(datos, res.data);
+                cargarTablaGlHora(datos);
             } else {
                 $('#divGraficoIndividual').html('<p class="text-center text-muted mt-4">Sin datos para mostrar.</p>');
                 if ($.fn.DataTable.isDataTable('#tablaKmGal')) {
@@ -364,19 +370,19 @@ function cargarTablaGlHora(data) {
             }
         },
         order:      [[0, 'desc']],
-        pageLength: 10,
-        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        pageLength: 5,
+        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
         columnDefs: [{ targets: [1,2,3,4,5], className: 'text-right' }],
         bDestroy:   true
     });
 }
 
-function renderGraficoHorometro(data) {
+function renderGraficoHorometro(data, datosPeriodo) {
     $('#divGraficoIndividual').empty().html('<canvas id="canvasHorometro"></canvas>');
 
     var labels = data.map(function (d) { return d.desp_fech; });
     var valores = data.map(function (d) { return d.gl_por_hora === null ? null : Number(d.gl_por_hora); });
-    var promedio = rendimientoPeriodo(data, true);
+    var promedio = rendimientoPeriodo(datosPeriodo || data, true);
 
     var ctx = document.getElementById('canvasHorometro').getContext('2d');
 
@@ -451,6 +457,118 @@ function renderGraficoHorometro(data) {
 
 
 
+function cargarComparativoCombustible(placa, obra, fechaIni, fechaFin) {
+    peticionComparativoCombustible = $.ajax({
+        url: '../../controller/Despachos.php?op=comparativoCombustible',
+        type: 'POST',
+        dataType: 'json',
+        data: { vehi_id: placa, obra: obra, fechaIni: fechaIni, fechaFin: fechaFin },
+        beforeSend: function () {
+            $('#divComparativoCombustible').html('<p class="text-center text-muted mt-4">Cargando...</p>');
+        },
+        success: function (res) {
+            if (!res.success) {
+                $('#divComparativoCombustible').text('Error al cargar el comparativo de combustible.');
+                return;
+            }
+            renderComparativoCombustible(res.data || []);
+        },
+        error: function (xhr, estado) {
+            if (estado !== 'abort') {
+                $('#divComparativoCombustible').text('Error al cargar el comparativo de combustible.');
+            }
+        },
+        complete: function () { peticionComparativoCombustible = null; }
+    });
+}
+
+function renderComparativoCombustible(data) {
+    if (graficoComparativoCombustible) {
+        graficoComparativoCombustible.destroy();
+        graficoComparativoCombustible = null;
+    }
+    var dias = data.filter(function (d) {
+        return Number(d.reportado) > 0 || Number(d.despachado) > 0;
+    });
+    var totalReportado = 0, totalDespachado = 0, maximoDiario = 0;
+    dias.forEach(function (d) {
+        var reportado = Number(d.reportado) > 0 ? Number(d.reportado) : 0;
+        var despachado = Number(d.despachado) > 0 ? Number(d.despachado) : 0;
+        totalReportado += reportado;
+        totalDespachado += despachado;
+        maximoDiario = Math.max(maximoDiario, reportado, despachado);
+    });
+    $('#totalAcpmReportado').text(formatoCombustible(totalReportado) + ' galones');
+    $('#totalAcpmDespachado').text(formatoCombustible(totalDespachado) + ' galones');
+    $('#diferenciaAcpm').text(formatoCombustible(totalDespachado - totalReportado) + ' galones');
+    if (!dias.length) {
+        $('#divComparativoCombustible').html('<p class="text-center text-muted mt-4">Sin datos de combustible para los filtros seleccionados.</p>');
+        return;
+    }
+    $('#divComparativoCombustible').html('<canvas id="canvasComparativoCombustible" role="img" aria-label="Comparativo diario de ACPM reportado y despachado en galones"></canvas>');
+    graficoComparativoCombustible = new Chart(
+        document.getElementById('canvasComparativoCombustible').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: dias.map(function (d) { return d.fecha; }),
+                datasets: [
+                    {
+                        label: 'ACPM reportado',
+                        data: dias.map(function (d) { return Number(d.reportado) > 0 ? Number(d.reportado) : null; }),
+                        backgroundColor: '#17a2b8',
+                        maxBarThickness: 45
+                    },
+                    {
+                        label: 'ACPM despachado',
+                        data: dias.map(function (d) { return Number(d.despachado) > 0 ? Number(d.despachado) : null; }),
+                        backgroundColor: '#f0ad4e',
+                        maxBarThickness: 45
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                layout: { padding: { top: 20 } },
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function (ctx) {
+                                return ctx.dataset.label + ': ' + formatoCombustible(ctx.parsed.y) + ' galones';
+                            }
+                        }
+                    },
+                    datalabels: {
+                        anchor: 'end', align: 'end', offset: 8, color: '#495057',
+                        font: { size: 11 },
+                        display: function () { return dias.length <= 15; },
+                        formatter: function (value) { return value === null ? '' : formatoCombustible(value); }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { maxRotation: 45 } },
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: maximoDiario * 1.2,
+                        title: { display: true, text: 'Galones de ACPM' }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        }
+    );
+}
+
+function filtrarDiasConRendimiento(data, maquinaria) {
+    var campo = maquinaria ? 'gl_por_hora' : 'km_por_galon';
+    return data.filter(function (d) {
+        var valor = d[campo];
+        return valor !== null && valor !== undefined && valor !== '' && isFinite(Number(valor));
+    });
+}
+
 function esMaquinariaCombustible() {
     return [2, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 17].indexOf(
         parseInt($('#comb_placa option:selected').data('tipo'), 10)) !== -1;
@@ -475,6 +593,16 @@ function rendimientoPeriodo(data, maquinaria) {
 }
 
 function limpiarResultadoCombustible() {
+    if (peticionComparativoCombustible) {
+        peticionComparativoCombustible.abort();
+        peticionComparativoCombustible = null;
+    }
+    if (graficoComparativoCombustible) {
+        graficoComparativoCombustible.destroy();
+        graficoComparativoCombustible = null;
+    }
+    $('#divComparativoCombustible').empty();
+    $('#totalAcpmReportado, #totalAcpmDespachado, #diferenciaAcpm').text('—');
     if ($.fn.DataTable.isDataTable('#tablaKmGal')) $('#tablaKmGal').DataTable().destroy();
     $('#tbodyKmGal, #promedio_individual, #divGraficoIndividual').empty();
 }

@@ -197,6 +197,18 @@ switch ($_GET["op"]) {
         echo json_encode(['success' => true, 'data' => $data]);
         break;
 
+    case 'comparativoCombustible':
+        $vehi_id = $_POST['vehi_id'] ?? null;
+        if (empty($vehi_id)) {
+            echo json_encode(['success' => false, 'mensaje' => 'Vehículo requerido.']);
+            exit;
+        }
+        $data = $despachos->get_comparativo_combustible(
+            $vehi_id, $_POST['obra'] ?? '', $_POST['fechaIni'] ?? '', $_POST['fechaFin'] ?? ''
+        );
+        echo json_encode(['success' => true, 'data' => $data]);
+        break;
+
     case 'listarObrasPorVehiculo':
         $vehi_id = $_POST["vehi_id"] ?? null;
 

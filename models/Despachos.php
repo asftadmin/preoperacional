@@ -151,7 +151,7 @@ class  Despachos extends Conectar {
         return $this->get_rendimiento_diario($vehi_id, $obra, $fechaIni, $fechaFin);
     }
 
-    // Sumar las fuentes por separado evita duplicar galones por actividad.
+    // Recorrido y ACPM provienen exclusivamente de los reportes diarios.
     private function get_rendimiento_diario($vehi_id, $obra, $fechaIni, $fechaFin) {
         $conectar = parent::conexion();
         $sql = "WITH parametros AS (
@@ -170,16 +170,16 @@ class  Despachos extends Conectar {
               AND (p.inicio IS NULL OR r.repdia_fech::date >= p.inicio)
               AND (p.fin IS NULL OR r.repdia_fech::date <= p.fin)
             GROUP BY r.repdia_fech::date
-        ), autorizaciones AS (
-            SELECT d.desp_fech_crea::date AS fecha,
-                   SUM(d.desp_galones_autorizados) AS galones
-            FROM despachos_acpm d CROSS JOIN parametros p
-            WHERE d.desp_vehi = p.vehiculo AND d.desp_estado = 0
-              AND d.desp_galones_autorizados > 0
-              AND (p.obra IS NULL OR d.desp_obra = p.obra)
-              AND (p.inicio IS NULL OR d.desp_fech_crea::date >= p.inicio)
-              AND (p.fin IS NULL OR d.desp_fech_crea::date <= p.fin)
-            GROUP BY d.desp_fech_crea::date
+        ), combustible AS (
+            SELECT r.repdia_fech::date AS fecha,
+                   SUM(r.repdia_acpm) AS galones
+            FROM reportes_diarios r CROSS JOIN parametros p
+            WHERE r.repdia_vehi = p.vehiculo
+              AND r.repdia_acpm > 0
+              AND (p.obra IS NULL OR r.repdia_obras = p.obra)
+              AND (p.inicio IS NULL OR r.repdia_fech::date >= p.inicio)
+              AND (p.fin IS NULL OR r.repdia_fech::date <= p.fin)
+            GROUP BY r.repdia_fech::date
         )
         SELECT COALESCE(r.fecha, a.fecha) AS desp_fech, a.galones AS desp_galones,
                r.inicial AS km_hr_anterior, r.final AS km_hr_actual,
@@ -187,8 +187,46 @@ class  Despachos extends Conectar {
                r.recorrido AS diferencia,
                ROUND(r.recorrido::numeric / NULLIF(a.galones, 0), 2) AS km_por_galon,
                ROUND(a.galones::numeric / NULLIF(r.recorrido, 0), 2) AS gl_por_hora
-        FROM recorridos r FULL JOIN autorizaciones a ON r.fecha = a.fecha
+        FROM recorridos r FULL JOIN combustible a ON r.fecha = a.fecha
         ORDER BY COALESCE(r.fecha, a.fecha)";
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(':vehi_id', $vehi_id, PDO::PARAM_INT);
+        $stmt->bindValue(':obra', $obra === '' ? null : $obra);
+        $stmt->bindValue(':fechaIni', $fechaIni === '' ? null : $fechaIni);
+        $stmt->bindValue(':fechaFin', $fechaFin === '' ? null : $fechaFin);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function get_comparativo_combustible($vehi_id, $obra = '', $fechaIni = '', $fechaFin = '') {
+        $conectar = parent::conexion();
+        $sql = "WITH parametros AS (
+            SELECT CAST(:vehi_id AS integer) AS vehiculo,
+                   CAST(:obra AS integer) AS obra,
+                   CAST(:fechaIni AS date) AS inicio,
+                   CAST(:fechaFin AS date) AS fin
+        ), reportado AS (
+            SELECT r.repdia_fech::date AS fecha, SUM(r.repdia_acpm) AS galones
+            FROM reportes_diarios r CROSS JOIN parametros p
+            WHERE r.repdia_vehi = p.vehiculo AND r.repdia_acpm > 0
+              AND (p.obra IS NULL OR r.repdia_obras = p.obra)
+              AND (p.inicio IS NULL OR r.repdia_fech::date >= p.inicio)
+              AND (p.fin IS NULL OR r.repdia_fech::date <= p.fin)
+            GROUP BY r.repdia_fech::date
+        ), despachado AS (
+            SELECT d.desp_fech::date AS fecha, SUM(d.desp_galones) AS galones
+            FROM despachos_acpm d CROSS JOIN parametros p
+            WHERE d.desp_vehi = p.vehiculo AND d.desp_estado = 0
+              AND d.desp_galones > 0 AND d.desp_fech IS NOT NULL
+              AND (p.obra IS NULL OR d.desp_obra = p.obra)
+              AND (p.inicio IS NULL OR d.desp_fech::date >= p.inicio)
+              AND (p.fin IS NULL OR d.desp_fech::date <= p.fin)
+            GROUP BY d.desp_fech::date
+        )
+        SELECT COALESCE(r.fecha, d.fecha) AS fecha,
+               r.galones AS reportado, d.galones AS despachado
+        FROM reportado r FULL JOIN despachado d ON r.fecha = d.fecha
+        ORDER BY COALESCE(r.fecha, d.fecha)";
         $stmt = $conectar->prepare($sql);
         $stmt->bindValue(':vehi_id', $vehi_id, PDO::PARAM_INT);
         $stmt->bindValue(':obra', $obra === '' ? null : $obra);
@@ -205,10 +243,15 @@ class  Despachos extends Conectar {
                 o.obras_id,
                 o.obras_nom,
                 o.obras_codigo
-            FROM despachos_acpm d
-            INNER JOIN obras o ON o.obras_id = d.desp_obra
-            WHERE d.desp_vehi = :vehi_id
-            AND d.desp_obra IS NOT NULL
+            FROM (
+                SELECT repdia_vehi, repdia_obras FROM reportes_diarios
+                UNION
+                SELECT desp_vehi, desp_obra FROM despachos_acpm
+                WHERE desp_estado = 0 AND desp_galones > 0 AND desp_fech IS NOT NULL
+            ) r
+            INNER JOIN obras o ON o.obras_id = r.repdia_obras
+            WHERE r.repdia_vehi = :vehi_id
+            AND r.repdia_obras IS NOT NULL
             ORDER BY o.obras_nom ASC";
 
         $stmt = $conectar->prepare($sql);
@@ -229,8 +272,13 @@ class  Despachos extends Conectar {
                 v.vehi_placa,
                 t.tipo_id,
                 t.tipo_nombre
-            FROM despachos_acpm d
-            INNER JOIN vehiculos v ON v.vehi_id = d.desp_vehi
+            FROM (
+                SELECT repdia_vehi FROM reportes_diarios
+                UNION
+                SELECT desp_vehi FROM despachos_acpm
+                WHERE desp_estado = 0 AND desp_galones > 0 AND desp_fech IS NOT NULL
+            ) r
+            INNER JOIN vehiculos v ON v.vehi_id = r.repdia_vehi
             INNER JOIN tipo_vehiculo t ON t.tipo_id = v.vehi_tipo
             WHERE t.tipo_id NOT IN (12,20,21,22,23)
             ORDER BY t.tipo_id ASC";
